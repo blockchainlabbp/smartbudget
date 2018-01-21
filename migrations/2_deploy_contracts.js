@@ -1,11 +1,6 @@
-var ConvertLib = artifacts.require("./ConvertLib.sol");
-var MetaCoin = artifacts.require("./MetaCoin.sol");
 var SmartBudget = artifacts.require("./SmartBudget.sol");
 
 module.exports = function(deployer) {
-  deployer.deploy(ConvertLib);
-  deployer.link(ConvertLib, MetaCoin);
-  deployer.deploy(MetaCoin);
-  //initLock timestamp = 2019. January 21., Monday 17:33:13
-  deployer.deploy(SmartBudget, 15480919933);
+  // deploy a contract that will be locked for 5 seconds after it has made it into the blockchain
+  deployer.deploy(SmartBudget, 5, 1, {value: 1000000000000000000});
 };
