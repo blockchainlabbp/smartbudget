@@ -7,10 +7,9 @@ contract SmartBudget {
   uint lockTime;
 
   function SmartBudget(uint initLock) public payable {
-    if (initLock > block.timestamp) {
+      assert(initLock > block.timestamp);
       owner = msg.sender;
       lockTime = initLock;
-    }
   }
 
   function getLockTime() constant public returns(uint) {
