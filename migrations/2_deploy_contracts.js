@@ -6,6 +6,6 @@ module.exports = function(deployer) {
   deployer.deploy(ConvertLib);
   deployer.link(ConvertLib, MetaCoin);
   deployer.deploy(MetaCoin);
-  //initLock timestamp = 2019. January 21., Monday 17:33:13
-  deployer.deploy(SmartBudget, 15480919933);
+  //initLock timestamp = 2019. January 21., Monday 17:33:13, 30 ether
+  deployer.deploy(SmartBudget, 15480919933, {value: 30000000000000000000});
 };
