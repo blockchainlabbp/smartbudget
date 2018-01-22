@@ -8,6 +8,11 @@
 3. `git clone https://gitlab.com/BlokklancMuhely/MuhelyMunkak/smartbudget.git`  - Clone the git repository
 4. `npm install` - within the `smartbudget` folder. This will download all dependencies defined in `package.json`. These node modules are installed into `node_modules`, therefore only available within the project.
 
+### Setting up Metamask
+Metamask is a web3.js provider and Ethereum wallet as a browser extension. It is essential for interacting with Ethereum smart contracts from the browser.
+1. Read 'Interacting with the dapp in a browser' section at http://truffleframework.com/tutorials/pet-shop
+2. If Metamask transactions fail because of invalid nonce, then change the 'network id' in Ganache settings. It usually happens when Ganache is restarted and a totally fresh blockchain is generated because Metamask does not update the fresh state from Ganache.
+
 ## Running project
 (!) Make sure to start `Ganache`, `truffle develop` or `geth` on the port defined in `truffle.js` before running `truffle migrate`
 
