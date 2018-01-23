@@ -1,15 +1,71 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>MetaCoin - Truffle Webpack Demo w/ Frontend</title>
-  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
-  <script src="./app.js"></script>
+  <title>Tree builder v1.0</title>
+
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+  <script src="app.js"></script>
 </head>
 <body>
-  <h1>MetaCoin</h1>
-  <h2>Example Truffle Dapp</h2>
-  <h3>You have <span class="black"><span id="balance"></span> META</span></h3>
 
+<<<<<<< HEAD
+  <h1>Tree builder v1.0</h1>
+
+  <h3><span class="status" id="status"></span></h3>
+  <h3><span class="error" id="error"></span></h3>
+  <hr>
+  <p>
+    <div class=""form-group>
+        <input type="text" class="form-control" id="stake_input" placeholder="Stake [ETH]">
+        <input type="text" class="form-control" id="desc_input" placeholder="Description">
+    </div>
+    <button class="btn btn-info" id="addRoot" onclick="App.addRoot()">Add Root</button>
+  </p>
+  <hr>
+  <p>
+      <table class="table" id="nodes_table">
+          <thead>
+            <tr>
+              <th>Id [Address]</th>
+              <th>Stake [ETH]</th>
+              <th>Parent Id [Address]</th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+  </p>
+  <p>
+    <button class="btn btn-success" id="getGraph" onclick="App.getNodes()">Get Graph</button>
+  </p>
+  <hr>
+  <p>
+      <button class="btn btn-success" id="getDesc" onclick="App.getNodeDesc()">Get Node Descriptions</button>
+  </p>
+  <hr>
+  <p>
+    <div class=""form-group>
+        <input type="text" class="form-control" id="child_stake_input" placeholder="Stake [ETH]">
+        <input type="text" class="form-control" id="child_desc_input" placeholder="Description">
+    </div>
+    <div class="form-inline">
+        <div class="form-group mb-2">
+          <select id="child_parentid_select" class="form-control" >
+              <option value="null">Select parent node</option>
+          </select>
+        </div>
+        <div class="form-group mx-sm-3 mb-2">
+            <button class="btn btn-success" onclick="App.getIds()">Refresh</button>
+        </div>
+        <div class="form-group mb-2">
+            <button class="btn btn-info" onclick="App.addChild()">Add Child</button>
+        </div>
+    </div>    
+  </p>
+  
+  
+=======
   <br>
   <h1>Send MetaCoin</h1>
   <br><label for="amount">Amount:</label><input type="text" id="amount" placeholder="e.g., 95"></input>
@@ -52,5 +108,6 @@
   </table>
 
   </div>
+>>>>>>> a1c84dbb0e3dd1cd136ab3f3a20875069c4f7231
 </body>
 </html>

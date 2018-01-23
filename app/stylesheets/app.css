@@ -5,48 +5,25 @@ body {
   font-family: "Open Sans", sans-serif;
 }
 
-label {
-  display: inline-block;
-  width: 100px;
-}
-
-input {
-  width: 500px;
-  padding: 5px;
-  font-size: 16px;
-}
-
-button {
-  font-size: 16px;
-  padding: 5px;
-}
-
-h1, h2 {
+h1 {
   display: inline-block;
   vertical-align: middle;
   margin-top: 0px;
   margin-bottom: 10px;
 }
 
-h2 {
-  color: #AAA;
-  font-size: 32px;
+input{
+  margin-bottom: 10px;
 }
 
-h3 {
+.status {
   font-weight: normal;
-  color: #AAA;
+  color: rgb(62, 130, 194);
   font-size: 24px;
 }
 
-.black {
-  color: black;
-}
-
-#balance {
-  color: black;
-}
-
-.hint {
-  color: #666;
+.error {
+  font-weight: normal;
+  color: rgb(177, 20, 20);
+  font-size: 24px;
 }
