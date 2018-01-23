@@ -5,23 +5,44 @@ contract SmartBudget {
   address owner;
   //timestamp
   uint lockTime;
+  // Lock time type
+  // 0 - Absolute (standard unix timestamp is seconds)
+  // 1 - Relative (seconds relative to constructor block's timestamp)
+  uint lockType;
 
-  function SmartBudget(uint initLock) public payable {
-      assert(initLock > block.timestamp);
+  function SmartBudget(uint initLock, uint _lockType) public payable {
+      // TODO: send back ether to sender in case of failure
+      require(_lockType == 0 || _lockType == 1);
       owner = msg.sender;
-      lockTime = initLock;
+      lockType = _lockType;
+      if (lockType == 0) {
+        require(initLock > block.timestamp);
+        lockTime = initLock;
+      } else {
+        lockTime = block.timestamp + initLock;
+      }
   }
 
   function getLockTime() constant public returns(uint) {
       return lockTime;
   }
 
-  function extendsLockTime(uint newLock) public onlyOwner {
-    assert(newLock > lockTime);
-    lockTime = newLock;
+  function getRemainingLockTime() constant public returns(uint) {
+      return lockTime - block.timestamp > 0 ? lockTime - block.timestamp : 0;
   }
 
-  function isUnlocked() constant private returns (bool) {
+  function extendsLockTime(uint newLock, uint _lockType) public onlyOwner {
+    require(_lockType == 0 || _lockType == 1);
+      lockType = _lockType;
+      if (lockType == 0) {
+        require(newLock > block.timestamp);
+        lockTime = newLock;
+      } else {
+        lockTime = block.timestamp + newLock;
+      }
+  }
+
+  function isUnlocked() constant public returns (bool) {
     return block.timestamp >= lockTime;
   }
 
