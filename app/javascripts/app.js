@@ -66,15 +66,8 @@ window.App = {
   start: function() {
     var self = this;
 
-<<<<<<< HEAD
     // Bootstrap the DataStructure abstraction for Use.
     DataStructure.setProvider(web3.currentProvider);
-=======
-    self.renderContracts();
-
-    // Bootstrap the MetaCoin abstraction for Use.
-    MetaCoin.setProvider(web3.currentProvider);
->>>>>>> a1c84dbb0e3dd1cd136ab3f3a20875069c4f7231
 
     // Get the initial account balance so it can be displayed.
     web3.eth.getAccounts(function(err, accs) {
