@@ -45,7 +45,7 @@ contract SmartBudget {
       return lockTime - block.timestamp > 0 ? lockTime - block.timestamp : 0;
   }
 
-  /** @dev Payable contructor for locking an amount of ether for a specific time
+  /** @dev Extend lockTime to a specific time or extend it with specific seconds
     * @param newLock The new lockTime (timestamp, or seconds)
     * @param _lockType The new lockType (0 or 1)
     */
