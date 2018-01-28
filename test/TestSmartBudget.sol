@@ -13,7 +13,7 @@ contract TestSmartBudget {
     uint256 actual = smartBudget.balance;
 
     Assert.equal(actual, expected, "The deployed contract should have 30 ethers initially");
-    }
+  }
 
   function testInitialTimeLock() public {
       SmartBudget smartBudget = SmartBudget(DeployedAddresses.SmartBudget());
@@ -21,5 +21,5 @@ contract TestSmartBudget {
       bool expectedIsUnlocked = false;
       bool actualIsUnlocked = smartBudget.isUnlocked();
       Assert.equal(expectedIsUnlocked, actualIsUnlocked, "The contract should be locked right after creation");
-    }
+  }
 }
