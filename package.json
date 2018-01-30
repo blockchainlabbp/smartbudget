@@ -31,6 +31,7 @@
     "json-loader": "^0.5.4",
     "less": "^2.7.3",
     "less-loader": "^4.0.5",
+    "mocha": "^5.0.0",
     "style-loader": "^0.13.2",
     "truffle-contract": "^1.1.11",
     "url-loader": "^0.6.2",
