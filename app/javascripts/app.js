@@ -1,9 +1,10 @@
 // Import the page's CSS. Webpack will know what to do with it.
 import "../stylesheets/app.css";
+import {SmartBudgetService} from "./smartbudgetservice.js";
 
 // Import fancytree https://github.com/mar10/fancytree/wiki
 import 'jquery.fancytree/dist/skin-lion/ui.fancytree.less';
-import {createTree} from 'jquery.fancytree';
+import {createTree, fancyTree} from 'jquery.fancytree';
 import 'jquery.fancytree/dist/modules/jquery.fancytree.edit';
 import 'jquery.fancytree/dist/modules/jquery.fancytree.filter';  
 import 'jquery.fancytree/dist/modules/jquery.fancytree.table';
@@ -25,48 +26,12 @@ var MetaCoin = contract(metacoin_artifacts);
 var accounts;
 var account;
 
-window.SmartBudgetService = {
-  init: function(contractAddress) {
-    var self = this;
-    self.contractAddress = contractAddress;
-  },
-
-  getInvestor: function() {
-    // TODO: get timelock info, fund amount
-  },
-
-  getContractors: function() {
-    // TODO: get contractor addresses, allocated funds
-    return [
-      {name: "Build a house", id: 0, price: 100, address: "0123456789", children: [
-        {name: "groundwork", id: 1, price: 10, address: "1123456789", children: []},
-        {name: "walls", id: 2, price: 15, address: null, children: []},
-        {name: "doors and windows", id: 3, price: 10, address: null, children: []},
-        {name: "insulation", id: 4, price: 15, address: null, children: []},
-        {name: "painting", id: 5, price: 10, address: null, children: []},
-        {name: "machinery", id: 6, price: 20, address: null, children: []}
-      ] }
-    ]
-  },
-
-  createContractor: function(fund, address) {
-    // TODO: create a new contractor node in the smart contract
-  },
-
-  assignAddress: function(address) {
-    // TODO: assign an ethereum address for the contractor node
-  },
-
-  deleteContractor: function(id) {
-
-  }
-}
 
 window.App = {
   start: function() {
     var self = this;
 
-    self.renderContracts();
+    window.Controller.init();
 
     // Bootstrap the MetaCoin abstraction for Use.
     MetaCoin.setProvider(web3.currentProvider);
@@ -99,6 +64,9 @@ window.App = {
     var self = this;
 
     var meta;
+
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise
+
     MetaCoin.deployed().then(function(instance) {
       meta = instance;
       return meta.getBalance.call(account, {from: account});
@@ -130,28 +98,40 @@ window.App = {
       console.log(e);
       self.setStatus("Error sending coin; see log.");
     });
-  },
+  }
+};
 
-  renderContracts: function() {
-    SmartBudgetService.init("0123456789");
-    const contractors = SmartBudgetService.getContractors();
+/**
+ * 
+ * View: 
+ * <li>HTML and DOM manipulation</li>
+ * <li>assigns event listeners from controller to DOM</li>
+ * <li>knows about Controller</li>
+ * 
+ * Controller: 
+ * <li>event callbacks from view</li>
+ * <li>call to service (SmartContract)</li>
+ * <li>update view from service return</li>
+ * 
+ * Service:
+ * <li>calling backend service and smart contract</li> * 
+ */
 
-    function smartNodeToTreeNodeMapper(smartNode) {
-      return {
-        title: smartNode.name,
-        key: smartNode.id,
-        price: smartNode.price,
-        address: smartNode.address,
-        children: smartNode.children.map(smartNodeToTreeNodeMapper)
-      };
-    }
+/**
+ * Tree rendering
+ */
+window.TreeView = {
 
-    const source = contractors.map(smartNodeToTreeNodeMapper);
-    
-    var tree = createTree("#tree",{
+  /**
+   * Defining the FancyTree object
+   */
+  createTree : function() {
+    $("#btnLoadContracts").click(window.Controller.updateTree);
+
+    TreeView.tree = createTree("#tree",{
       checkbox: false,           // don't render default checkbox column
       titlesTabbable: true,        // Add all node titles to TAB chain
-      source: source,
+      source: null,
       extensions: ["table", "gridnav"],
       table: {
         checkboxColumnIdx: null,    // render the checkboxes into the this column index (default: nodeColumnIdx)
@@ -177,13 +157,46 @@ window.App = {
         
         // ...otherwise render remaining columns
         $tdList.eq(2).text(node.data.address);
-        $tdList.eq(3).text(node.data.price);
+        $tdList.eq(3).text(node.data.stake);
         $tdList.eq(4).append("<button type='button'>Assign</button>");
         $tdList.eq(4).append("<button type='button'>Add</button>");
         $tdList.eq(4).append("<button type='button'>Remove</button>");
       }
     });
+  },
 
+  updateTree : function(contractors) {
+    // How to update data: https://github.com/mar10/fancytree/wiki/TutorialLoadData
+    TreeView.tree.reload(contractors);
+  }
+};
+
+/**
+ * Control flow
+ * client side validation
+ */
+window.Controller = {
+  init : function() {
+    TreeView.createTree();
+  },
+
+  updateTree : function() {
+
+    function smartNodeToTreeNodeMapper(smartNode) {
+      return {
+        title: smartNode.name,
+        key: smartNode.id,
+        stake: smartNode.stake,
+        address: smartNode.address,
+        children: smartNode.children.map(smartNodeToTreeNodeMapper)
+      };
+    }
+
+    SmartBudgetService.init("0123456789");
+    const contractors = SmartBudgetService.getContractors()
+    .then((val) => val.map(smartNodeToTreeNodeMapper))
+    .then((val) => window.TreeView.updateTree(val))
+    .catch(() => console.log("error loading contractors"));
     
   }
 };

@@ -3,10 +3,13 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const webpack = require('webpack');
 
 module.exports = {
-  entry: './app/javascripts/app.js',
+  entry: {
+    app: './app/javascripts/app.js',
+    smartbudgetservice: './app/javascripts/smartbudgetservice.js'
+  },
   output: {
     path: path.resolve(__dirname, 'build'),
-    filename: 'app.js'
+    filename: '[name].bundle.js'
   },
   plugins: [
     // defined plugins should have a corresponding require() on the top

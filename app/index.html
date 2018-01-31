@@ -3,9 +3,11 @@
 <head>
   <title>MetaCoin - Truffle Webpack Demo w/ Frontend</title>
   <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
-  <script src="./app.js"></script>
+  <script src="./app.bundle.js"></script>
+  <script src="./smartbudgetservice.bundle.js"></script>
 </head>
 <body>
+  <!--
   <h1>MetaCoin</h1>
   <h2>Example Truffle Dapp</h2>
   <h3>You have <span class="black"><span id="balance"></span> META</span></h3>
@@ -19,38 +21,40 @@
   <span id="status"></span>
   <br>
   <span class="hint"><strong>Hint:</strong> open the browser developer console to view any errors and warnings.</span>
+  -->
   
   <div id="projectContainer">
     <h1>Contract Graph</h1>
+    <button type="button" id="btnLoadContracts">load contracts</button>
     <table id="tree">
-    <colgroup>
-      <col width="0px"></col>
-      <col width="*"></col>
-      <col width="150px"></col>
-      <col width="30px"></col>
-      <col width="*"></col>
-    </colgroup>
-    <thead>
-      <tr>
-        <th></th>
-        <th>Name</th>
-        <th>Contractor Address</th>
-        <th>Price</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Define a row template for invariant markup and attributes: -->
-			<tr>
+      <colgroup>
+        <col width="0px"></col>
+        <col width="*"></col>
+        <col width="150px"></col>
+        <col width="30px"></col>
+        <col width="*"></col>
+      </colgroup>
+      <thead>
+        <tr>
+          <th></th>
+          <th>Name</th>
+          <th>Contractor Address</th>
+          <th>Stake</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Define a row template for invariant markup and attributes: -->
+        <tr>
           <td></td>
           <td></td>
           <td></td>
           <td></td>
           <td></td>
         </tr>
-    </tbody>
-  </table>
-
+      </tbody>
+    </table>
+  
   </div>
 </body>
 </html>
