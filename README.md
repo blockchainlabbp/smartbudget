@@ -1,6 +1,9 @@
 # SmartBudget - the smart budget manager dapp
 * Based on https://github.com/truffle-box/webpack-box
 * Truffle docs: http://truffleframework.com/docs/
+* Webpack guides: https://webpack.js.org/guides/
+* FancyTree docs: https://github.com/mar10/fancytree/wiki
+* ES6 modules: https://developer.ibm.com/node/2015/12/01/an-introduction-to-javascript-es6-modules/
 
 ## Setting up the development environment
 1. Install NodeJS and npm (Node Package Manager): https://nodejs.org/en/
@@ -21,7 +24,8 @@ Metamask is a web3.js provider and Ethereum wallet as a browser extension. It is
 3. `npm run dev` - Run webpack dev server
 
 ## Running tests
-`truffle test`
+* Full test: `truffle test`
+* Frontend test: `./node_modules/mocha/bin/mocha --require babel-register test/*.js`
 
 ## Notes
 Do not remove `package-lock.json` from source control, it is intended to be committed: https://github.com/npm/npm/blob/latest/doc/files/package-lock.json.md
