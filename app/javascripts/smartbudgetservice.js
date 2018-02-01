@@ -135,21 +135,6 @@ export const SmartBudgetService = {
     },
 
     /**
-     * Create the investor node (root node)
-     */
-    addInvestor: function (stake) {
-        var self = this;
-        var meta;
-
-        const desc = "root desc";
-
-        return self._smartBudgetContract.deployed().then(function (instance) {
-            meta = instance;
-            return meta.addRoot.sendTransaction(stake, desc, { from: self._account, gas: 600000 });
-        });
-    }, 
-
-    /**
      * Create contractors
      */
     addContractor: function (stake, parentid) {
