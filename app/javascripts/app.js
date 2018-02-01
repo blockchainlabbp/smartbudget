@@ -14,6 +14,10 @@ import 'jquery.fancytree/dist/modules/jquery.fancytree.gridnav';
 import { default as Web3} from 'web3';
 import { default as contract } from 'truffle-contract'
 
+// Smartbudget imports
+import smartbudget_abi from '../../build/contracts/SmartBudget.json'
+var SmartBudgetContract = contract(smartbudget_abi);
+
 // The following code is simple to show off interacting with your contracts.
 // As your needs grow you will likely need to change its form and structure.
 // For application bootstrapping, check out window.addEventListener below.
@@ -23,8 +27,6 @@ var account;
 window.App = {
   start: function() {
     var self = this;
-
-    window.Controller.init();
 
     // Get the initial account balance so it can be displayed.
     web3.eth.getAccounts(function(err, accs) {
@@ -40,9 +42,13 @@ window.App = {
 
       accounts = accs;
       account = accounts[0];
-
-      self.refreshBalance();
     });
+
+    // Bootstrap the smart contract
+    SmartBudgetContract.setProvider(web3.currentProvider);
+    SmartBudgetService.init(SmartBudgetContract, account);
+
+    window.Controller.init();
   },
 
   setStatus: function(message) {
@@ -142,11 +148,10 @@ window.Controller = {
       };
     }
 
-    SmartBudgetService.init("0123456789");
     const contractors = SmartBudgetService.getContractors()
     .then((val) => val.map(smartNodeToTreeNodeMapper))
     .then((val) => window.TreeView.updateTree(val))
-    .catch(() => console.log("error loading contractors"));
+    .catch((reason) => console.log(reason));
     
   }
 };

@@ -24,7 +24,10 @@ describe("something", function() {
         [100, 10, 15, 10],
 
         // parentids
-        [0, 0, 1, 2]
+        [0, 0, 1, 2],
+
+        // addresses
+        [1234, 1235, 1236, 1237]
       ];
 
       console.log(triplet);
@@ -39,7 +42,4 @@ describe("something", function() {
       app.SmartBudgetService._visitTree({children:tree}, (node) => console.log(node));
     });
 
-    it("getContractors", function() {
-      app.SmartBudgetService.getContractors().then((val) => app.SmartBudgetService._visitTree({children:val}, (node) => console.log(node)));
-    });
   });

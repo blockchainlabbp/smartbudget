@@ -1,6 +1,13 @@
 // export needed for ES6 module dependency
-
 export const SmartBudgetService = {
+
+    /**
+     * Access the SmartBudget contract via dependency injection
+     */
+    _smartBudgetContract: null,
+
+    _account: null,
+
     /**
      * Check whether this tree node has the defined index
      * @returns true/false
@@ -44,6 +51,7 @@ export const SmartBudgetService = {
         triplet[0] = triplet[0].map((val) => { return { id: val } });
         triplet[1] = triplet[1].map((val) => { return { stake: val } });
         triplet[2] = triplet[2].map((val) => { return { parentid: val } });
+        triplet[3] = triplet[3].map((val) => { return { address: val } });
 
         return triplet;
     },
@@ -87,38 +95,68 @@ export const SmartBudgetService = {
         return newTreeRoot.children;
     },
 
-    getContractors: function () {
-        var promise1 = new Promise(function (resolve, reject) {
-            setTimeout(resolve, 100, [
-                // ids
-                [0, 1, 2, 3],
-
-                // stakes
-                [100, 10, 15, 10],
-
-                // parentids
-                [0, 0, 0, 1]
-            ]);
-
-        });
-
-        return promise1.then(function convertTripletToTree(triplet) {
-            triplet = SmartBudgetService._convertTriplet1(triplet);
-            triplet = SmartBudgetService._convertTriplet2(triplet);
-            return SmartBudgetService._convertTriplet3(triplet);
-        });
+    /**
+     * Build a tree from nodes triplet
+     */
+    _convertNodesTripletToTree: function (nodesArray) {
+        nodesArray = SmartBudgetService._convertTriplet1(nodesArray);
+        nodesArray = SmartBudgetService._convertTriplet2(nodesArray);
+        return SmartBudgetService._convertTriplet3(nodesArray);
     },
 
-    init: function (contractAddress) {
+    init: function (smartBudgetContract, account) {
         var self = this;
-        self.contractAddress = contractAddress;
+        self._smartBudgetContract = smartBudgetContract;
+        self._account = account;
     },
 
-    getInvestor: function () {
+    /**
+     * Get the nodes from the smart contract
+     */
+    getContractors: function () {
+        var self = this;
+        var meta;
+
+        console.log(self._smartBudgetContract);
+
+        return self._smartBudgetContract.deployed().then(function (instance) {
+            meta = instance;
+            return meta.getNodes.call({ from: self._account, gas: 500000 });
+        }).then(function (nodesArray) {
+            // (int[] _ids, uint[] _stakes, int[] _parentIds, address[] _addresses)
+            console.log(nodesArray);
+            return self._convertNodesTripletToTree(nodesArray);
+        });
     },
 
-    createContractor: function (fund, address) {
-        // TODO: create a new contractor node in the smart contract
+    /**
+     * Create the investor node (root node)
+     */
+    addInvestor: function (stake) {
+        var self = this;
+        var meta;
+
+        const desc = "root desc";
+
+        return self._smartBudgetContract.deployed().then(function (instance) {
+            meta = instance;
+            return meta.addRoot.sendTransaction(stake, desc, { from: self._account, gas: 600000 });
+        });
+    }, 
+
+    /**
+     * Create contractors
+     */
+    addContractor: function (stake, parentid) {
+        var self = this;
+        var meta;
+
+        const desc = "contractor";
+
+        return self._smartBudgetContract.deployed().then(function (instance) {
+            meta = instance;
+            return meta.addChild.sendTransaction(stake, desc, parentid, { from: self._account, gas: 300000 });
+        });
     },
 
     assignAddress: function (address) {
@@ -126,12 +164,6 @@ export const SmartBudgetService = {
     },
 
     deleteContractor: function (id) {
-
+        //
     }
-
 };
-
-// Module exports is necessary to run the test in Node.js
-//module.exports = {
-//    SmartBudgetService: SmartBudgetService
-//}
