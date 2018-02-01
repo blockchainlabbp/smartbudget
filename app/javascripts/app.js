@@ -42,13 +42,14 @@ window.App = {
 
       accounts = accs;
       account = accounts[0];
+
+      // Bootstrap the smart contract
+      SmartBudgetContract.setProvider(web3.currentProvider);
+      SmartBudgetService.init(SmartBudgetContract, account);
+  
+      window.Controller.init();
     });
 
-    // Bootstrap the smart contract
-    SmartBudgetContract.setProvider(web3.currentProvider);
-    SmartBudgetService.init(SmartBudgetContract, account);
-
-    window.Controller.init();
   },
 
   setStatus: function(message) {
@@ -92,7 +93,7 @@ window.TreeView = {
       table: {
         checkboxColumnIdx: null,    // render the checkboxes into the this column index (default: nodeColumnIdx)
         indentation: 16,         // indent every node level by 16px
-        nodeColumnIdx: 1         // render node expander, icon, and title to this column (default: #0)
+        nodeColumnIdx: null         // render node expander, icon, and title to this column (default: #0)
       },
       gridnav: {
         autofocusInput:   false, // Focus first embedded input if node gets activated
@@ -105,6 +106,7 @@ window.TreeView = {
       // function: specific callback for status nodes
     
       renderColumns: function(event, data) {
+
         var node = data.node;
         var $tdList = $(node.tr).find(">td");
     
@@ -112,11 +114,11 @@ window.TreeView = {
         // (Column #1 is rendered by fancytree) adding node name and icons
         
         // ...otherwise render remaining columns
-        $tdList.eq(2).text(node.data.address);
+        $tdList.eq(2).text(node.data.address.substring(0,5));
         $tdList.eq(3).text(node.data.stake);
-        $tdList.eq(4).append("<button type='button'>Assign</button>");
-        $tdList.eq(4).append("<button type='button'>Add</button>");
-        $tdList.eq(4).append("<button type='button'>Remove</button>");
+
+        $tdList.eq(4).append("<button type='button'>Add</button>")
+        .click(() => window.Controller.addContractor(100, node.data.id));
       }
     });
   },
@@ -136,14 +138,22 @@ window.Controller = {
     TreeView.createTree();
   },
 
+  addContractor: function(stake, parentId) {
+    SmartBudgetService.addContractor(stake, parentId)
+    .then((val) => console.log(val))
+    .catch((reason) => console.log(reason));
+  },
+
   updateTree : function() {
 
     function smartNodeToTreeNodeMapper(smartNode) {
       return {
+        id: smartNode.id,
         title: smartNode.name,
         key: smartNode.id,
         stake: smartNode.stake,
         address: smartNode.address,
+        parentid: smartNode.parentid,
         children: smartNode.children.map(smartNodeToTreeNodeMapper)
       };
     }

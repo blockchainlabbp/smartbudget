@@ -13,7 +13,7 @@ export const SmartBudgetService = {
      * @returns true/false
      */
     _isTreeElem: function _isTreeElem(treeNode, idx) {
-        return treeNode.id === idx;
+        return treeNode.id == idx;
     },
 
     /**
@@ -48,9 +48,14 @@ export const SmartBudgetService = {
      *  [{parentid: 0}, {parentid: 1}, ...]]
      */
     _convertTriplet1: function (triplet) {
-        triplet[0] = triplet[0].map((val) => { return { id: val } });
+        function convertToNumber(val) {
+            // web3js returns integers in BigNumber object that we convert to javascript number
+            return typeof val === 'object' && val.hasOwnProperty('c') ? val.toNumber() : val;
+        }
+
+        triplet[0] = triplet[0].map((val) => { return { id: convertToNumber(val) } });
         triplet[1] = triplet[1].map((val) => { return { stake: val } });
-        triplet[2] = triplet[2].map((val) => { return { parentid: val } });
+        triplet[2] = triplet[2].map((val) => { return { parentid: convertToNumber(val) } });
         triplet[3] = triplet[3].map((val) => { return { address: val } });
 
         return triplet;
@@ -117,15 +122,15 @@ export const SmartBudgetService = {
         var self = this;
         var meta;
 
-        console.log(self._smartBudgetContract);
 
         return self._smartBudgetContract.deployed().then(function (instance) {
             meta = instance;
             return meta.getNodes.call({ from: self._account, gas: 500000 });
         }).then(function (nodesArray) {
             // (int[] _ids, uint[] _stakes, int[] _parentIds, address[] _addresses)
-            console.log(nodesArray);
-            return self._convertNodesTripletToTree(nodesArray);
+            var newTree =  self._convertNodesTripletToTree(nodesArray);
+
+            return newTree;
         });
     },
 
