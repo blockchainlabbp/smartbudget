@@ -22,16 +22,16 @@ contract SmartBudget {
   //Node[] nodes;
 
   /** currNodeIndex - uint */
-  int currNodeIndex = -1;
+  uint16 currNodeIndex;
 
   /** ids - a numerical id of the node */
-  int[] ids;
+  uint16[] ids;
   /** stakes - uint array for web3js */
   uint[] stakes;
   /** descriptions - string array for web3js */
   string[] descriptions;
   /** parentIds - numerical id of parent node */
-  int[] parentIds;
+  uint16[] parentIds;
   /** addresses - address of the node */
   address[] addresses;
 
@@ -53,7 +53,7 @@ contract SmartBudget {
   * @param desc string description about goal of node
   * @param parentId address address of parent node
   */
-  function addChild(uint stake, string desc, int parentId) public {
+  function addChild(uint stake, string desc, uint16 parentId) public {
 
       currNodeIndex = currNodeIndex + 1;
       ids.push(currNodeIndex);
@@ -66,7 +66,7 @@ contract SmartBudget {
   /** @dev web3js getter to reach ids
   * @return _ids address array
   */
-  function getIds() public view returns (int[] _ids) {
+  function getIds() public view returns (uint16[] _ids) {
       return ids;
   }
 
@@ -75,7 +75,7 @@ contract SmartBudget {
   * @return _stakes uint array
   * @return _parentIds address array
   */
-  function getNodes() public view returns (int[] _ids, uint[] _stakes, int[] _parentIds, address[] _addresses) {
+  function getNodes() public view returns (uint16[] _ids, uint[] _stakes, uint16[] _parentIds, address[] _addresses) {
       return(ids, stakes, parentIds, addresses);
   }
 
@@ -83,7 +83,7 @@ contract SmartBudget {
   * @param index uint index of certain node in descriptions array
   * @return desc string
   */
-  function getNodeDesc(uint index) public view returns (string desc) {
+  function getNodeDesc(uint16 index) public view returns (string desc) {
       return descriptions[index];
   }
 
@@ -114,6 +114,7 @@ contract SmartBudget {
         lockTime = block.timestamp + initLock;
       }
 
+      currNodeIndex = 0;
       addRoot("something");
   }  
   
