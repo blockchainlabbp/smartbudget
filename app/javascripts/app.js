@@ -1,9 +1,10 @@
 // Import the page's CSS. Webpack will know what to do with it.
 import "../stylesheets/app.css";
+import {SmartBudgetService} from "./smartbudgetservice.js";
 
 // Import fancytree https://github.com/mar10/fancytree/wiki
 import 'jquery.fancytree/dist/skin-lion/ui.fancytree.less';
-import {createTree} from 'jquery.fancytree';
+import {createTree, fancyTree} from 'jquery.fancytree';
 import 'jquery.fancytree/dist/modules/jquery.fancytree.edit';
 import 'jquery.fancytree/dist/modules/jquery.fancytree.filter';  
 import 'jquery.fancytree/dist/modules/jquery.fancytree.table';
@@ -13,11 +14,9 @@ import 'jquery.fancytree/dist/modules/jquery.fancytree.gridnav';
 import { default as Web3} from 'web3';
 import { default as contract } from 'truffle-contract'
 
-// Import our contract artifacts and turn them into usable abstractions.
-import metacoin_artifacts from '../../build/contracts/MetaCoin.json'
-
-// MetaCoin is our usable abstraction, which we'll use through the code below.
-var MetaCoin = contract(metacoin_artifacts);
+// Smartbudget imports
+import smartbudget_abi from '../../build/contracts/SmartBudget.json'
+var SmartBudgetContract = contract(smartbudget_abi);
 
 // The following code is simple to show off interacting with your contracts.
 // As your needs grow you will likely need to change its form and structure.
@@ -25,51 +24,9 @@ var MetaCoin = contract(metacoin_artifacts);
 var accounts;
 var account;
 
-window.SmartBudgetService = {
-  init: function(contractAddress) {
-    var self = this;
-    self.contractAddress = contractAddress;
-  },
-
-  getInvestor: function() {
-    // TODO: get timelock info, fund amount
-  },
-
-  getContractors: function() {
-    // TODO: get contractor addresses, allocated funds
-    return [
-      {name: "Build a house", id: 0, price: 100, address: "0123456789", children: [
-        {name: "groundwork", id: 1, price: 10, address: "1123456789", children: []},
-        {name: "walls", id: 2, price: 15, address: null, children: []},
-        {name: "doors and windows", id: 3, price: 10, address: null, children: []},
-        {name: "insulation", id: 4, price: 15, address: null, children: []},
-        {name: "painting", id: 5, price: 10, address: null, children: []},
-        {name: "machinery", id: 6, price: 20, address: null, children: []}
-      ] }
-    ]
-  },
-
-  createContractor: function(fund, address) {
-    // TODO: create a new contractor node in the smart contract
-  },
-
-  assignAddress: function(address) {
-    // TODO: assign an ethereum address for the contractor node
-  },
-
-  deleteContractor: function(id) {
-
-  }
-}
-
 window.App = {
   start: function() {
     var self = this;
-
-    self.renderContracts();
-
-    // Bootstrap the MetaCoin abstraction for Use.
-    MetaCoin.setProvider(web3.currentProvider);
 
     // Get the initial account balance so it can be displayed.
     web3.eth.getAccounts(function(err, accs) {
@@ -86,77 +43,57 @@ window.App = {
       accounts = accs;
       account = accounts[0];
 
-      self.refreshBalance();
+      // Bootstrap the smart contract
+      SmartBudgetContract.setProvider(web3.currentProvider);
+      SmartBudgetService.init(SmartBudgetContract, account);
+  
+      window.Controller.init();
     });
+
   },
 
   setStatus: function(message) {
     var status = document.getElementById("status");
     status.innerHTML = message;
-  },
+  }
+};
 
-  refreshBalance: function() {
-    var self = this;
+/**
+ * 
+ * View: 
+ * <li>HTML and DOM manipulation</li>
+ * <li>assigns event listeners from controller to DOM</li>
+ * <li>knows about Controller</li>
+ * 
+ * Controller: 
+ * <li>event callbacks from view</li>
+ * <li>call to service (SmartContract)</li>
+ * <li>update view from service return</li>
+ * 
+ * Service:
+ * <li>calling backend service and smart contract</li> * 
+ */
 
-    var meta;
-    MetaCoin.deployed().then(function(instance) {
-      meta = instance;
-      return meta.getBalance.call(account, {from: account});
-    }).then(function(value) {
-      var balance_element = document.getElementById("balance");
-      balance_element.innerHTML = value.valueOf();
-    }).catch(function(e) {
-      console.log(e);
-      self.setStatus("Error getting balance; see log.");
-    });
-  },
+/**
+ * Tree rendering
+ */
+window.TreeView = {
 
-  sendCoin: function() {
-    var self = this;
+  /**
+   * Defining the FancyTree object
+   */
+  createTree : function() {
+    $("#btnLoadContracts").click(window.Controller.updateTree);
 
-    var amount = parseInt(document.getElementById("amount").value);
-    var receiver = document.getElementById("receiver").value;
-
-    this.setStatus("Initiating transaction... (please wait)");
-
-    var meta;
-    MetaCoin.deployed().then(function(instance) {
-      meta = instance;
-      return meta.sendCoin(receiver, amount, {from: account});
-    }).then(function() {
-      self.setStatus("Transaction complete!");
-      self.refreshBalance();
-    }).catch(function(e) {
-      console.log(e);
-      self.setStatus("Error sending coin; see log.");
-    });
-  },
-
-  renderContracts: function() {
-    SmartBudgetService.init("0123456789");
-    const contractors = SmartBudgetService.getContractors();
-
-    function smartNodeToTreeNodeMapper(smartNode) {
-      return {
-        title: smartNode.name,
-        key: smartNode.id,
-        price: smartNode.price,
-        address: smartNode.address,
-        children: smartNode.children.map(smartNodeToTreeNodeMapper)
-      };
-    }
-
-    const source = contractors.map(smartNodeToTreeNodeMapper);
-    
-    var tree = createTree("#tree",{
+    TreeView.tree = createTree("#tree",{
       checkbox: false,           // don't render default checkbox column
       titlesTabbable: true,        // Add all node titles to TAB chain
-      source: source,
+      source: null,
       extensions: ["table", "gridnav"],
       table: {
         checkboxColumnIdx: null,    // render the checkboxes into the this column index (default: nodeColumnIdx)
         indentation: 16,         // indent every node level by 16px
-        nodeColumnIdx: 1         // render node expander, icon, and title to this column (default: #0)
+        nodeColumnIdx: null         // render node expander, icon, and title to this column (default: #0)
       },
       gridnav: {
         autofocusInput:   false, // Focus first embedded input if node gets activated
@@ -169,6 +106,7 @@ window.App = {
       // function: specific callback for status nodes
     
       renderColumns: function(event, data) {
+
         var node = data.node;
         var $tdList = $(node.tr).find(">td");
     
@@ -176,14 +114,54 @@ window.App = {
         // (Column #1 is rendered by fancytree) adding node name and icons
         
         // ...otherwise render remaining columns
-        $tdList.eq(2).text(node.data.address);
-        $tdList.eq(3).text(node.data.price);
-        $tdList.eq(4).append("<button type='button'>Assign</button>");
-        $tdList.eq(4).append("<button type='button'>Add</button>");
-        $tdList.eq(4).append("<button type='button'>Remove</button>");
+        $tdList.eq(2).text(node.data.address.substring(0,5));
+        $tdList.eq(3).text(node.data.stake);
+
+        $tdList.eq(4).append("<button type='button'>Add</button>")
+        .click(() => window.Controller.addContractor(100, node.data.id));
       }
     });
+  },
 
+  updateTree : function(contractors) {
+    // How to update data: https://github.com/mar10/fancytree/wiki/TutorialLoadData
+    TreeView.tree.reload(contractors);
+  }
+};
+
+/**
+ * Control flow
+ * client side validation
+ */
+window.Controller = {
+  init : function() {
+    TreeView.createTree();
+  },
+
+  addContractor: function(stake, parentId) {
+    SmartBudgetService.addContractor(stake, parentId)
+    .then((val) => console.log(val))
+    .catch((reason) => console.log(reason));
+  },
+
+  updateTree : function() {
+
+    function smartNodeToTreeNodeMapper(smartNode) {
+      return {
+        id: smartNode.id,
+        title: smartNode.name,
+        key: smartNode.id,
+        stake: smartNode.stake,
+        address: smartNode.address,
+        parentid: smartNode.parentid,
+        children: smartNode.children.map(smartNodeToTreeNodeMapper)
+      };
+    }
+
+    const contractors = SmartBudgetService.getContractors()
+    .then((val) => val.map(smartNodeToTreeNodeMapper))
+    .then((val) => window.TreeView.updateTree(val))
+    .catch((reason) => console.log(reason));
     
   }
 };

@@ -3,48 +3,31 @@ pragma solidity ^0.4.17;
 /** @title Smart Budget. */
 contract SmartBudget {
 
-  /** @dev Node struct for internal function
-  * @param id address of node owner
-  * @param stake stake on the node
-  * @param desc description about goal of node (for example: web design etc.)
-  * @param parentId id of parent node (in case of root nodes parentID is equal with id)
-  */
-  struct Node {
-      address id;
-      uint stake;
-      string desc;
-      address parentId;
-  }
+  /** Index of the latest node added */
+  uint16 currNodeIndex;
 
-  /** nodes - Node struct array */
-  Node[] nodes;
-
-  /** numOfNodes - uint */
-  uint numOfNodes;
-
-  /** ids - address array for web3js */
-  address[] ids;
+  /** ids - a numerical id of the node */
+  uint16[] ids;
   /** stakes - uint array for web3js */
   uint[] stakes;
   /** descriptions - string array for web3js */
   string[] descriptions;
-  /** parentIds - address array for web3js */
-  address[] parentIds;
+  /** parentIds - numerical id of parent node */
+  uint16[] parentIds;
+  /** addresses - address of the node */
+  address[] addresses;
 
   /** @dev Add a root node
-  * @param stake uint The initial stake
   * @param desc string description about goal of node
   */
-  function addRoot(uint stake, string desc) public {
-      
-      nodes.push(Node(msg.sender, stake, desc, msg.sender));
+  function addRoot(string desc) private {
 
-      ids.push(msg.sender);
-      stakes.push(stake);
+      currNodeIndex = currNodeIndex + 1;
+      ids.push(currNodeIndex);
+      stakes.push(msg.value);
       descriptions.push(desc);
-      parentIds.push(msg.sender);
-      
-      numOfNodes = numOfNodes + 1;
+      addresses.push(msg.sender);
+      parentIds.push(currNodeIndex);
   }
 
   /** @dev Add child node
@@ -52,21 +35,20 @@ contract SmartBudget {
   * @param desc string description about goal of node
   * @param parentId address address of parent node
   */
-  function addChild(uint stake, string desc, address parentId) public {
-      nodes.push(Node(msg.sender, stake, desc, parentId));
+  function addChild(uint stake, string desc, uint16 parentId) public {
 
-      ids.push(msg.sender);
+      currNodeIndex = currNodeIndex + 1;
+      ids.push(currNodeIndex);
       stakes.push(stake);
       descriptions.push(desc);
+      addresses.push(msg.sender);
       parentIds.push(parentId);
-
-      numOfNodes = numOfNodes + 1;
   }
 
   /** @dev web3js getter to reach ids
   * @return _ids address array
   */
-  function getIds() public view returns (address[] _ids) {
+  function getIds() public view returns (uint16[] _ids) {
       return ids;
   }
 
@@ -75,15 +57,15 @@ contract SmartBudget {
   * @return _stakes uint array
   * @return _parentIds address array
   */
-  function getNodes() public view returns (address[] _ids, uint[] _stakes, address[] _parentIds) {
-      return(ids, stakes, parentIds);
+  function getNodes() public view returns (uint16[] _ids, uint[] _stakes, uint16[] _parentIds, address[] _addresses) {
+      return(ids, stakes, parentIds, addresses);
   }
 
   /** @dev web3js getter to reach description of certain node
   * @param index uint index of certain node in descriptions array
   * @return desc string
   */
-  function getNodeDesc(uint index) public view returns (string desc) {
+  function getNodeDesc(uint16 index) public view returns (string desc) {
       return descriptions[index];
   }
 
@@ -103,9 +85,6 @@ contract SmartBudget {
     * @param _lockType Lock type
     */
   function SmartBudget(uint initLock, uint _lockType) public payable {
-      // Datastructure consructor
-      numOfNodes = 0;
-
       // TODO: send back ether to sender in case of failure
       require(_lockType == 0 || _lockType == 1);
       owner = msg.sender;
@@ -116,6 +95,9 @@ contract SmartBudget {
       } else {
         lockTime = block.timestamp + initLock;
       }
+
+      currNodeIndex = 0;
+      addRoot("something");
   }  
   
   /** @dev Get locktime
