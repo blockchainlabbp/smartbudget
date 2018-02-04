@@ -3,25 +3,7 @@ pragma solidity ^0.4.17;
 /** @title Smart Budget. */
 contract SmartBudget {
 
-  /** @dev Node struct for internal function
-  * @param id address of node owner
-  * @param stake stake on the node
-  * @param desc description about goal of node (for example: web design etc.)
-  * @param parentId id of parent node (in case of root nodes parentID is equal with id)
-  */
-  /*
-  struct Node {
-      address id;
-      uint stake;
-      string desc;
-      address parentId;
-  }
-  */
-
-  /** nodes - Node struct array */
-  //Node[] nodes;
-
-  /** currNodeIndex - uint */
+  /** Index of the latest node added */
   uint16 currNodeIndex;
 
   /** ids - a numerical id of the node */
