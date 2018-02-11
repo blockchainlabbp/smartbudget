@@ -29,3 +29,6 @@ Metamask is a web3.js provider and Ethereum wallet as a browser extension. It is
 
 ## Notes
 Do not remove `package-lock.json` from source control, it is intended to be committed: https://github.com/npm/npm/blob/latest/doc/files/package-lock.json.md
+
+## Smart contract documentation
+[SmartBudget](docs/contracts.md/SmartBudget.md)

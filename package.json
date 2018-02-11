@@ -6,7 +6,7 @@
     "lint": "eslint ./",
     "build": "webpack",
     "dev": "webpack-dev-server",
-    "docs": "node_modules/.bin/solmd"
+    "docs": "node ./scripts/docs_generate.js"
   },
   "author": "Douglas von Kohorn",
   "license": "MIT",
