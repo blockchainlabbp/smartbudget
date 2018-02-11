@@ -7,9 +7,11 @@
 
 ## Setting up the development environment
 1. Install NodeJS and npm (Node Package Manager): https://nodejs.org/en/
-2. `npm install -g truffle` - Install Truffle globally. It means `truffle` command will be available throughout the system
-3. `git clone https://gitlab.com/BlokklancMuhely/MuhelyMunkak/smartbudget.git`  - Clone the git repository
-4. `npm install` - within the `smartbudget` folder. This will download all dependencies defined in `package.json`. These node modules are installed into `node_modules`, therefore only available within the project.
+1. Install `solc` binaries (https://github.com/ethereum/solidity/releases) and add it to your PATH
+1. Install python on unix or windows-build-tools for windows (`npm --add-python-to-path='true' --debug install --global windows-build-tools`, but this has to be run from an admin-level windows powershell prompt)
+1. `npm install -g truffle` - Install Truffle globally. It means `truffle` command will be available throughout the system
+1. `git clone https://gitlab.com/BlokklancMuhely/MuhelyMunkak/smartbudget.git`  - Clone the git repository
+1. `npm install` - within the `smartbudget` folder. This will download all dependencies defined in `package.json`. These node modules are installed into `node_modules`, therefore only available within the project.
 
 ### Setting up Metamask
 Metamask is a web3.js provider and Ethereum wallet as a browser extension. It is essential for interacting with Ethereum smart contracts from the browser.
@@ -30,5 +32,15 @@ Metamask is a web3.js provider and Ethereum wallet as a browser extension. It is
 ## Notes
 Do not remove `package-lock.json` from source control, it is intended to be committed: https://github.com/npm/npm/blob/latest/doc/files/package-lock.json.md
 
-## Smart contract documentation
+## Smart Contract documentation
+We're using `solmd` to generate markdown documentation for our solidity files.
+Currently the documentation generation has to be kicked off manually, no pipeline set up yet.
+To update the documentation of the Solidity files:
+
+1. Add comments to the Solidity files following the Ethereum NatSpec format: https://github.com/ethereum/wiki/wiki/Ethereum-Natural-Specification-Format
+1. Call `npm run docs`
+1. Add the generated `.md` files to the repository
+1. For new Solidity files, add new link to the Solidity docs section below
+
+### Solidity docs
 [SmartBudget](docs/contracts.md/SmartBudget.md)
