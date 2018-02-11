@@ -7,7 +7,7 @@
 
 ## Setting up the development environment
 1. Install NodeJS and npm (Node Package Manager): https://nodejs.org/en/
-1. Install `solc` binaries (https://github.com/ethereum/solidity/releases) and add it to your PATH
+1. Install `solc` binaries (https://github.com/ethereum/solidity/releases) and add it to your PATH (this is only needed for documentation generation)
 1. Install python on unix or windows-build-tools for windows (`npm --add-python-to-path='true' --debug install --global windows-build-tools`, but this has to be run from an admin-level windows powershell prompt)
 1. `npm install -g truffle` - Install Truffle globally. It means `truffle` command will be available throughout the system
 1. `git clone https://gitlab.com/BlokklancMuhely/MuhelyMunkak/smartbudget.git`  - Clone the git repository
@@ -33,7 +33,7 @@ Metamask is a web3.js provider and Ethereum wallet as a browser extension. It is
 Do not remove `package-lock.json` from source control, it is intended to be committed: https://github.com/npm/npm/blob/latest/doc/files/package-lock.json.md
 
 ## Smart Contract documentation
-We're using `solmd` to generate markdown documentation for our solidity files.
+We're using [solmd](https://github.com/dpilch/solmd) to generate markdown documentation for our solidity files.
 Currently the documentation generation has to be kicked off manually, no pipeline set up yet.
 To update the documentation of the Solidity files:
 
@@ -42,5 +42,5 @@ To update the documentation of the Solidity files:
 1. Add the generated `.md` files to the repository
 1. For new Solidity files, add new link to the Solidity docs section below
 
-### Solidity docs
+### Solidity Docs
 [SmartBudget](docs/contracts.md/SmartBudget.md)
