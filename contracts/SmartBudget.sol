@@ -100,6 +100,11 @@ contract SmartBudget {
       addRoot("something");
   }  
   
+  /** @dev Payable fallback function to receive more ether from the root (owner)
+    */
+  function () public payable onlyOwner {
+  }
+  
   /** @dev Get locktime
     * @return lockTime The locktime
     */
