@@ -1,7 +1,5 @@
-//var SmartBudget = artifacts.require("./SmartBudget.sol");
-var DataStructure = artifacts.require("./DataStructure.sol");
+var MapBasedDataStructure = artifacts.require("./MapBasedDataStructure.sol");
 
 module.exports = function(deployer) {
-  //deployer.deploy(SmartBudget);
-  deployer.deploy(DataStructure);
+  deployer.deploy(MapBasedDataStructure);
 };

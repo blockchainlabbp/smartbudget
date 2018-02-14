@@ -1,5 +1,7 @@
 pragma solidity ^0.4.2;
 
+
+
 contract DataStructure {
 
     struct Node {
@@ -22,7 +24,7 @@ contract DataStructure {
         numOfNodes = 0;
     }    
 
-    function addRoot(uint stake, string desc) public {
+    function addRoot(uint stake, string desc) private {
         
         nodes.push(Node(msg.sender, stake, desc, msg.sender));
 
