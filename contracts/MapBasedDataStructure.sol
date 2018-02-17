@@ -155,12 +155,14 @@ contract MapBasedDataStructure {
         return addr;
     }
 
-    /* [web3js] Get all nodes withouth string description
-    * @return _ids uint[]
-    * @return _parents uint[]
-    * @return _states States[]
-    * @return _stakes uint[]
-    *
+    /** @notice [web3js] Get the most important node details from the contract. Can be used to build the tree on JS side
+    * @dev Due to limitations in Solidity, we can only return tuples of arrays, but not tuples of array of arrays (e.g. array of strings) 
+    * @return {
+    *   "_ids" : "ids of the nodes"
+    *   "_parents" : "parents of the nodes"
+    *   "_states" : "states of the nodes"
+    *   "_stakes" : "stakes of the nodes"
+    * }
     */
     function getNodesWeb() public view returns (uint[] _ids, uint[] _parents, State[] _states, uint[] _stakes) {
 
@@ -180,18 +182,47 @@ contract MapBasedDataStructure {
         return (ids, parents, states, stakes);
     }
 
-    /* Check, how many stake (ethereum) is available from root in the same level (in the tree) with new node
-    * @param stake uint it is the expected amount of ethereum on the new node
-    * @param parent Node parent of the new node
-    * @return res bool true, if there are enough stake to allocate the new node
+    /** @notice Returns the sum of stakes allocated to childrens of node
+    * @param node The node to compute the total allocated stakes for
+    * @return {
+    *    "allocatedStake" : "The amount of stake allocated to child nodes"
+    * }
+    */
+    function getAllocatedStake(Node node) private view returns(uint allocatedStake) {
+        uint totalChildStakes = 0;
+        for (uint i = 0; i < node.childs.length; i++) {
+            totalChildStakes = totalChildStakes + nodes[node.childs[i]].stake;
+        }
+        return totalChildStakes;
+    }
+
+    /** @notice Returns the amount of stake available for allocation for node
+    * @dev Always use getAllocatedStake() or getAvailableStake() explicitly. 
+    * Currently stake = getAllocatedStake + getAvailableStake, 
+    * but we might add finer categorization later 
+    * (e.g. stakes locked for some distinctive reason), 
+    * while this interface won't change
+    * @param node The node to compute the available stakes for
+    * @return {
+    *    "availableStake" : "The amount of stake available for allocation"
+    * }
+    */
+    function getAvailableStake(Node node) private view returns(uint availableStake) {
+        uint allocStake = getAllocatedStake(node);
+        return node.stake - allocStake > 0 ? node.stake - allocStake : 0;
+    }
+
+    /** @notice Checks if 'stake' amount of ethereum is still available for allocation in node 'parent' 
+    * @param stake The amount of ethereum planned to be allocated for the new node
+    * @param parent Parent of the new node
+    * @return {
+    *    "res" : "True, if there is enough stake to allocate the new node"
+    * }
     */
     function stakeValidator(uint stake, Node parent) private view returns(bool res) {
-        uint sum = 0;
-        for (uint i = 0; i < parent.childs.length; i++) {
-            sum = sum + nodes[parent.childs[i]].stake;
-        }
+        uint availableStake = getAvailableStake(parent);
 
-        if (sum - stake > 0) {
+        if (availableStake - stake > 0) {
             return true;
         } else {
             return false;
