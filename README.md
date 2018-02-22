@@ -43,3 +43,4 @@ To update the documentation of the Solidity files:
 
 ### Solidity Docs
 [SmartBudget](docs/contracts.md/SmartBudget.md)
+[TreeDataStructure](docs/contracts.md/TreeDataStructure.md)
