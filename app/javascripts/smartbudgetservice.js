@@ -125,7 +125,7 @@ export const SmartBudgetService = {
 
         return self._smartBudgetContract.deployed().then(function (instance) {
             meta = instance;
-            return meta.getNodes.call({ from: self._account, gas: 500000 });
+            return meta.getNodesWeb.call({ from: self._account, gas: 500000 });
         }).then(function (nodesArray) {
             // (int[] _ids, uint[] _stakes, int[] _parentIds, address[] _addresses)
             var newTree =  self._convertNodesTripletToTree(nodesArray);

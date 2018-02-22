@@ -165,27 +165,27 @@ contract TreeDataStructure {
     * @dev Due to limitations in Solidity, we can only return tuples of arrays, but not tuples of array of arrays (e.g. array of strings) 
     * @return {
     *   "_ids" : "ids of the nodes",
+    *   "_stakes" : "stakes of the nodes",
     *   "_parents" : "parents of the nodes",
-    *   "_states" : "states of the nodes",
-    *   "_stakes" : "stakes of the nodes"
+    *   "_addresses" : "addresses of the nodes"
     * }
     */
-    function getNodesWeb() public view returns (uint[] _ids, uint[] _parents, State[] _states, uint[] _stakes) {
+    function getNodesWeb() public view returns (uint[] _ids, uint[] _stakes, uint[] _parents, address[] _addresses) {
 
         uint[] memory ids;
         uint[] memory parents;
-        State[] memory states;
+        address[] memory addresses;
         uint[] memory stakes;
 
         for (uint i = 0; i < nodeCntr; i++) {
             Node memory node = nodes[i];
             ids[i] = node.id;
             parents[i] = node.parent;
-            states[i] = node.state;
+            addresses[i] = node.addr;
             stakes[i] = node.stake;
         }
 
-        return (ids, parents, states, stakes);
+        return (ids, stakes, parents, addresses);
     }
 
     /** @notice Returns the sum of stakes allocated to childrens of node

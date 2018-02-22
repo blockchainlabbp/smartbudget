@@ -47,9 +47,9 @@ Outputs
 | | | |
 |-|-|-|
 | *uint256[]* | _ids | ids of the nodes |
-| *uint256[]* | _parents | parents of the nodes |
-| *uint8[]* | _states | states of the nodes |
 | *uint256[]* | _stakes | stakes of the nodes |
+| *uint256[]* | _parents | parents of the nodes |
+| *address[]* | _addresses | addresses of the nodes |
 
 ## *function* getNodeWeb
 
@@ -240,9 +240,9 @@ Outputs
 | | | |
 |-|-|-|
 | *uint256[]* | _ids | ids of the nodes |
-| *uint256[]* | _parents | parents of the nodes |
-| *uint8[]* | _states | states of the nodes |
 | *uint256[]* | _stakes | stakes of the nodes |
+| *uint256[]* | _parents | parents of the nodes |
+| *address[]* | _addresses | addresses of the nodes |
 
 ## *function* getNodeWeb
 
