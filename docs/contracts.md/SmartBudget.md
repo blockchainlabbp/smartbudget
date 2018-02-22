@@ -1,22 +1,44 @@
 * [SmartBudget](#smartbudget)
-  * [getIds](#function-getids)
-  * [addChild](#function-addchild)
+  * [lockTime](#function-locktime)
+  * [getNodesWeb](#function-getnodesweb)
+  * [getNodeWeb](#function-getnodeweb)
+  * [addRoot](#function-addroot)
+  * [approveNode](#function-approvenode)
+  * [addNode](#function-addnode)
+  * [lockType](#function-locktype)
   * [getRemainingLockTime](#function-getremaininglocktime)
   * [isUnlocked](#function-isunlocked)
   * [transferFunds](#function-transferfunds)
-  * [getNodeDesc](#function-getnodedesc)
   * [extendsLockTime](#function-extendslocktime)
-  * [getLockTime](#function-getlocktime)
-  * [getNodes](#function-getnodes)
+  * [getNodeCandidatesAddressesWeb](#function-getnodecandidatesaddressesweb)
+  * [applyForNode](#function-applyfornode)
+* [TreeDataStructure](#treedatastructure)
+  * [getNodesWeb](#function-getnodesweb)
+  * [getNodeWeb](#function-getnodeweb)
+  * [addRoot](#function-addroot)
+  * [approveNode](#function-approvenode)
+  * [addNode](#function-addnode)
+  * [getNodeCandidatesAddressesWeb](#function-getnodecandidatesaddressesweb)
+  * [applyForNode](#function-applyfornode)
 
 # SmartBudget
 
 
-## *function* getIds
+## *function* lockTime
 
-SmartBudget.getIds() `view` `2b105663`
+SmartBudget.lockTime() `view` `0d668087`
 
-> web3js getter to reach ids
+
+
+
+
+## *function* getNodesWeb
+
+SmartBudget.getNodesWeb() `view` `2bd40414`
+
+**[web3js] Get the most important node details from the contract. Can be used to build the tree on JS side**
+
+> Due to limitations in Solidity, we can only return tuples of arrays, but not tuples of array of arrays (e.g. array of strings) 
 
 
 
@@ -24,21 +46,87 @@ Outputs
 
 | | | |
 |-|-|-|
-| *uint16[]* | _ids | undefined |
+| *uint256[]* | _ids | ids of the nodes |
+| *uint256[]* | _parents | parents of the nodes |
+| *uint8[]* | _states | states of the nodes |
+| *uint256[]* | _stakes | stakes of the nodes |
 
-## *function* addChild
+## *function* getNodeWeb
 
-SmartBudget.addChild(stake, desc, parentId) `nonpayable` `662dc13d`
+SmartBudget.getNodeWeb(_key) `view` `3f002528`
 
-> Add child node
+**[web3js] Get a node by Id (id is the key in context of map)**
+
 
 Inputs
 
 | | | |
 |-|-|-|
-| *uint256* | stake | uint amount of stake (comes from initial stake) |
-| *string* | desc | string description about goal of node |
-| *uint16* | parentId | address address of parent node |
+| *uint256* | _key | Id of the node |
+
+Outputs
+
+| | | |
+|-|-|-|
+| *uint256* | stake | Stake of node |
+| *address* | addr | Address of node |
+| *uint8* | state | State of node |
+| *string* | desc | Description of node |
+| *uint256* | parent | Id of parent node |
+| *uint256[]* | childs | Array of child node ids |
+
+## *function* addRoot
+
+SmartBudget.addRoot(desc) `payable` `4e800896`
+
+**Add special root element (onlyOwner) **
+
+> A node is root if its id is equal to its parent id
+
+Inputs
+
+| | | |
+|-|-|-|
+| *string* | desc | Description of node (project) |
+
+
+## *function* approveNode
+
+SmartBudget.approveNode(nodeId, candidateKey) `nonpayable` `546c93c5`
+
+**Set certain node state to APPROVED (onlyOwner)**
+
+
+Inputs
+
+| | | |
+|-|-|-|
+| *uint256* | nodeId | Id of the node |
+| *uint256* | candidateKey | Identifier of candidate (id := key) |
+
+
+## *function* addNode
+
+SmartBudget.addNode(stake, desc, parent) `nonpayable` `75b6d9ce`
+
+**Add node**
+
+
+Inputs
+
+| | | |
+|-|-|-|
+| *uint256* | stake | Ethereum stake on the node |
+| *string* | desc | Description of node |
+| *uint256* | parent | Parent's id of node |
+
+
+## *function* lockType
+
+SmartBudget.lockType() `view` `765d4897`
+
+
+
 
 
 ## *function* getRemainingLockTime
@@ -53,7 +141,7 @@ Outputs
 
 | | | |
 |-|-|-|
-| *uint256* |  | undefined |
+| *uint256* | remLockTime | The remaining locktime in seconds |
 
 ## *function* isUnlocked
 
@@ -67,7 +155,7 @@ Outputs
 
 | | | |
 |-|-|-|
-| *bool* |  | undefined |
+| *bool* | lockStatus | True if contract is unlocked |
 
 ## *function* transferFunds
 
@@ -83,24 +171,6 @@ Inputs
 | *uint256* | amount | The amount |
 
 
-## *function* getNodeDesc
-
-SmartBudget.getNodeDesc(index) `view` `a6684a3a`
-
-> web3js getter to reach description of certain node
-
-Inputs
-
-| | | |
-|-|-|-|
-| *uint16* | index | uint index of certain node in descriptions array |
-
-Outputs
-
-| | | |
-|-|-|-|
-| *string* | desc | undefined |
-
 ## *function* extendsLockTime
 
 SmartBudget.extendsLockTime(newLock, _lockType) `nonpayable` `adbbe8c6`
@@ -115,11 +185,53 @@ Inputs
 | *uint256* | _lockType | The new lockType (0 or 1) |
 
 
-## *function* getLockTime
+## *function* getNodeCandidatesAddressesWeb
 
-SmartBudget.getLockTime() `view` `c0a4d64d`
+SmartBudget.getNodeCandidatesAddressesWeb(_key) `view` `d1a90f4b`
 
-> Get locktime
+**[web3js] Get all addresses of candidates which are assigned with a certain node**
+
+
+Inputs
+
+| | | |
+|-|-|-|
+| *uint256* | _key | Id of the node |
+
+Outputs
+
+| | | |
+|-|-|-|
+| *address[]* | _addr | Array of candidate addresses of node |
+
+## *function* applyForNode
+
+SmartBudget.applyForNode(nodeId, name) `nonpayable` `f50365bb`
+
+**Add candidate to certain node**
+
+
+Inputs
+
+| | | |
+|-|-|-|
+| *uint256* | nodeId | Id of the node |
+| *string* | name | Candidate's name |
+
+
+
+
+---
+# TreeDataStructure
+
+
+## *function* getNodesWeb
+
+TreeDataStructure.getNodesWeb() `view` `2bd40414`
+
+**[web3js] Get the most important node details from the contract. Can be used to build the tree on JS side**
+
+> Due to limitations in Solidity, we can only return tuples of arrays, but not tuples of array of arrays (e.g. array of strings) 
 
 
 
@@ -127,24 +239,114 @@ Outputs
 
 | | | |
 |-|-|-|
-| *uint256* |  | undefined |
+| *uint256[]* | _ids | ids of the nodes |
+| *uint256[]* | _parents | parents of the nodes |
+| *uint8[]* | _states | states of the nodes |
+| *uint256[]* | _stakes | stakes of the nodes |
 
-## *function* getNodes
+## *function* getNodeWeb
 
-SmartBudget.getNodes() `view` `e29581aa`
+TreeDataStructure.getNodeWeb(_key) `view` `3f002528`
 
-> web3js getter to reach attributes of nodes
+**[web3js] Get a node by Id (id is the key in context of map)**
 
 
+Inputs
+
+| | | |
+|-|-|-|
+| *uint256* | _key | Id of the node |
 
 Outputs
 
 | | | |
 |-|-|-|
-| *uint16[]* | _ids | undefined |
-| *uint256[]* | _stakes | undefined |
-| *uint16[]* | _parentIds | undefined |
-| *address[]* | _addresses | undefined |
+| *uint256* | stake | Stake of node |
+| *address* | addr | Address of node |
+| *uint8* | state | State of node |
+| *string* | desc | Description of node |
+| *uint256* | parent | Id of parent node |
+| *uint256[]* | childs | Array of child node ids |
+
+## *function* addRoot
+
+TreeDataStructure.addRoot(desc) `payable` `4e800896`
+
+**Add special root element (onlyOwner) **
+
+> A node is root if its id is equal to its parent id
+
+Inputs
+
+| | | |
+|-|-|-|
+| *string* | desc | Description of node (project) |
+
+
+## *function* approveNode
+
+TreeDataStructure.approveNode(nodeId, candidateKey) `nonpayable` `546c93c5`
+
+**Set certain node state to APPROVED (onlyOwner)**
+
+
+Inputs
+
+| | | |
+|-|-|-|
+| *uint256* | nodeId | Id of the node |
+| *uint256* | candidateKey | Identifier of candidate (id := key) |
+
+
+## *function* addNode
+
+TreeDataStructure.addNode(stake, desc, parent) `nonpayable` `75b6d9ce`
+
+**Add node**
+
+
+Inputs
+
+| | | |
+|-|-|-|
+| *uint256* | stake | Ethereum stake on the node |
+| *string* | desc | Description of node |
+| *uint256* | parent | Parent's id of node |
+
+
+## *function* getNodeCandidatesAddressesWeb
+
+TreeDataStructure.getNodeCandidatesAddressesWeb(_key) `view` `d1a90f4b`
+
+**[web3js] Get all addresses of candidates which are assigned with a certain node**
+
+
+Inputs
+
+| | | |
+|-|-|-|
+| *uint256* | _key | Id of the node |
+
+Outputs
+
+| | | |
+|-|-|-|
+| *address[]* | _addr | Array of candidate addresses of node |
+
+## *function* applyForNode
+
+TreeDataStructure.applyForNode(nodeId, name) `nonpayable` `f50365bb`
+
+**Add candidate to certain node**
+
+
+Inputs
+
+| | | |
+|-|-|-|
+| *uint256* | nodeId | Id of the node |
+| *string* | name | Candidate's name |
+
 
 
 ---

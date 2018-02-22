@@ -1,121 +1,48 @@
 pragma solidity ^0.4.17;
 
+import "./TreeDataStructure.sol";
+
 /** @title Smart Budget. */
-contract SmartBudget {
-
-  /** Index of the latest node added */
-  uint16 currNodeIndex;
-
-  /** ids - a numerical id of the node */
-  uint16[] ids;
-  /** stakes - uint array for web3js */
-  uint[] stakes;
-  /** descriptions - string array for web3js */
-  string[] descriptions;
-  /** parentIds - numerical id of parent node */
-  uint16[] parentIds;
-  /** addresses - address of the node */
-  address[] addresses;
-
-  /** @dev Add a root node
-  * @param desc string description about goal of node
-  */
-  function addRoot(string desc) private {
-
-      currNodeIndex = currNodeIndex + 1;
-      ids.push(currNodeIndex);
-      stakes.push(msg.value);
-      descriptions.push(desc);
-      addresses.push(msg.sender);
-      parentIds.push(currNodeIndex);
-  }
-
-  /** @dev Add child node
-  * @param stake uint amount of stake (comes from initial stake)
-  * @param desc string description about goal of node
-  * @param parentId address address of parent node
-  */
-  function addChild(uint stake, string desc, uint16 parentId) public {
-
-      currNodeIndex = currNodeIndex + 1;
-      ids.push(currNodeIndex);
-      stakes.push(stake);
-      descriptions.push(desc);
-      addresses.push(msg.sender);
-      parentIds.push(parentId);
-  }
-
-  /** @dev web3js getter to reach ids
-  * @return _ids address array
-  */
-  function getIds() public view returns (uint16[] _ids) {
-      return ids;
-  }
-
-  /** @dev web3js getter to reach attributes of nodes
-  * @return _ids address array
-  * @return _stakes uint array
-  * @return _parentIds address array
-  */
-  function getNodes() public view returns (uint16[] _ids, uint[] _stakes, uint16[] _parentIds, address[] _addresses) {
-      return(ids, stakes, parentIds, addresses);
-  }
-
-  /** @dev web3js getter to reach description of certain node
-  * @param index uint index of certain node in descriptions array
-  * @return desc string
-  */
-  function getNodeDesc(uint16 index) public view returns (string desc) {
-      return descriptions[index];
-  }
+contract SmartBudget is TreeDataStructure {
 
   /** address owner */
   address owner;
   /** lockTime - timestamp */
-  uint lockTime;
+  uint public lockTime;
   
   /** Lock time type
   * 0 - Absolute (standard unix timestamp is seconds)
   * 1 - Relative (seconds relative to constructor block's timestamp)
   */
-  uint lockType;
+  uint public lockType;
   
   /** @dev Payable constructor for locking an amount of ether for a specific time
     * @param initLock The initial lockTime
     * @param _lockType Lock type
     */
   function SmartBudget(uint initLock, uint _lockType) public payable {
-      // TODO: send back ether to sender in case of failure
-      require(_lockType == 0 || _lockType == 1);
-      owner = msg.sender;
-      lockType = _lockType;
-      if (lockType == 0) {
-        require(initLock > block.timestamp);
-        lockTime = initLock;
-      } else {
-        lockTime = block.timestamp + initLock;
-      }
-
-      currNodeIndex = 0;
-      addRoot("something");
+    require(_lockType == 0 || _lockType == 1);
+    owner = msg.sender;
+    lockType = _lockType;
+    if (lockType == 0) {
+      require(initLock > block.timestamp);
+      lockTime = initLock;
+    } else {
+      lockTime = block.timestamp + initLock;
+    }
   }  
   
   /** @dev Payable fallback function to receive more ether from the root (owner)
     */
   function () public payable onlyOwner {
   }
-  
-  /** @dev Get locktime
-    * @return lockTime The locktime
-    */
-  function getLockTime() constant public returns(uint) {
-      return lockTime;
-  }
 
   /** @dev Calculate and retrieve remaining locktime
-    * @return The remaining locktime
+    * @return {
+    *  "remLockTime" : "The remaining locktime in seconds"
+    * }
     */
-  function getRemainingLockTime() constant public returns(uint) {
+  function getRemainingLockTime() constant public returns(uint remLockTime) {
       return lockTime - block.timestamp > 0 ? lockTime - block.timestamp : 0;
   }
 
@@ -135,9 +62,11 @@ contract SmartBudget {
   }
 
   /** @dev Returns true if timeLock has elapsed, false otherwise
-    * @return Is unlocked
+    * @return {
+    *  "lockStatus" : "True if contract is unlocked"
+    * }
     */
-  function isUnlocked() constant public returns (bool) {
+  function isUnlocked() constant public returns (bool lockStatus) {
     return block.timestamp >= lockTime;
   }
 

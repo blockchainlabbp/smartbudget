@@ -16,9 +16,9 @@ import { default as contract } from 'truffle-contract'
 
 // Smartbudget imports
 import smartbudget_abi from '../../build/contracts/SmartBudget.json'
-import datastruct_artifacts from '../../build/contracts/DataStructure.json'
+import datastruct_artifacts from '../../build/contracts/TreeDataStructure.json'
 var SmartBudgetContract = contract(smartbudget_abi);
-var DataStructure = contract(datastruct_artifacts);
+var TreeDataStructure = contract(datastruct_artifacts);
 
 // The following code is simple to show off interacting with your contracts.
 // As your needs grow you will likely need to change its form and structure.
@@ -46,7 +46,7 @@ window.App = {
       account = accounts[0];
 
       // Bootstrap the smart contract
-      DataStructure.setProvider(web3.currentProvider);
+      TreeDataStructure.setProvider(web3.currentProvider);
       SmartBudgetContract.setProvider(web3.currentProvider);
       SmartBudgetService.init(SmartBudgetContract, account);
   

@@ -1,6 +1,6 @@
 pragma solidity ^0.4.2;
 
-contract MapBasedDataStructure {
+contract TreeDataStructure {
 
     /*
     * State enum disrcibes the state of the node.
@@ -57,13 +57,14 @@ contract MapBasedDataStructure {
 
 
     /** @dev Constructor for initialize counters */
-    function MapBasedDataStructure() public {
+    function TreeDataStructure() public {
         nodeCntr = 0;
         candidateCntr = 0;
     } 
 
-    /** @dev Add special root element (onlyOwner) (Certain element is root if their id is equal with id of their parent)
-    * @param desc string Description of node (project)
+    /** @notice Add special root element (onlyOwner) 
+    * @dev A node is root if its id is equal to its parent id
+    * @param desc Description of node (project)
     */
     function addRoot(string desc) public payable {
         uint key = nodeCntr;
@@ -80,10 +81,10 @@ contract MapBasedDataStructure {
         nodes[key] = node;
     }
 
-    /** @dev Add node
-    * @param stake uint ethereum stake on the node
-    * @param desc string Description of node
-    * @param parent uint parent's id of node
+    /** @notice Add node
+    * @param stake Ethereum stake on the node
+    * @param desc  Description of node
+    * @param parent Parent's id of node
     */
     function addNode(uint stake, string desc, uint parent) public {
 
@@ -104,9 +105,9 @@ contract MapBasedDataStructure {
         nodes[parent].childs.push(key);
     }
 
-    /** @dev Add candidate to certain node
-    * @param nodeId uint id of the node
-    * @param name string candidate's name
+    /** @notice Add candidate to certain node
+    * @param nodeId Id of the node
+    * @param name Candidate's name
     */
     function applyForNode(uint nodeId, string name) public {
         Candidate memory candidate;
@@ -118,30 +119,35 @@ contract MapBasedDataStructure {
         candidateCntr = candidateCntr + 1;
     }
 
-    /* Set certain node state to APPROVED (onlyOwner)
-    * @param nodeId uint id of the node
-    * @param candidateKey uint identifier of candidate (id := key)
+    /** @notice Set certain node state to APPROVED (onlyOwner)
+    * @param nodeId Id of the node
+    * @param candidateKey Identifier of candidate (id := key)
     */
     function approveNode(uint nodeId, uint candidateKey)  public {
         nodes[nodeId].addr = candidates[candidateKey].addr;
         nodes[nodeId].state = State.APPROVED;
     }
 
-    /* [web3js] Get a node by Id (id is the key in context of map)
-    * @return stake uint 
-    * @return addr address
-    * @return state State
-    * @return desc string
-    * @return parent uint
-    * @return childs uint[]
+    /** @notice [web3js] Get a node by Id (id is the key in context of map)
+    * @param _key Id of the node
+    * @return {
+    *   "stake" : "Stake of node",
+    *   "addr" : "Address of node",
+    *   "state" : "State of node",
+    *   "desc" : "Description of node",
+    *   "parent" : "Id of parent node",
+    *   "childs" : "Array of child node ids"
+    * }
     */
     function getNodeWeb(uint _key) public view returns (uint stake, address addr, State state, string desc, uint parent, uint[] childs) {
         return (nodes[_key].stake, nodes[_key].addr, nodes[_key].state, nodes[_key].desc, nodes[_key].parent, nodes[_key].childs);
     }
 
-    /* [web3js] Get all addresses of candidates which are assigned with a certain node
-    * @param _key uint id of the node
-    * @return _addr address[] 
+    /** @notice [web3js] Get all addresses of candidates which are assigned with a certain node
+    * @param _key Id of the node
+    * @return {
+    *    "_addr" : "Array of candidate addresses of node" 
+    * }
     */
     function getNodeCandidatesAddressesWeb(uint _key) public view returns (address[] _addr) {
 
@@ -158,9 +164,9 @@ contract MapBasedDataStructure {
     /** @notice [web3js] Get the most important node details from the contract. Can be used to build the tree on JS side
     * @dev Due to limitations in Solidity, we can only return tuples of arrays, but not tuples of array of arrays (e.g. array of strings) 
     * @return {
-    *   "_ids" : "ids of the nodes"
-    *   "_parents" : "parents of the nodes"
-    *   "_states" : "states of the nodes"
+    *   "_ids" : "ids of the nodes",
+    *   "_parents" : "parents of the nodes",
+    *   "_states" : "states of the nodes",
     *   "_stakes" : "stakes of the nodes"
     * }
     */

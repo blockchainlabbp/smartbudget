@@ -145,7 +145,7 @@ export const SmartBudgetService = {
 
         return self._smartBudgetContract.deployed().then(function (instance) {
             meta = instance;
-            return meta.addChild.sendTransaction(stake, desc, parentid, { from: self._account, gas: 300000 });
+            return meta.addNode.sendTransaction(stake, desc, parentid, { from: self._account, gas: 300000 });
         });
     },
 
