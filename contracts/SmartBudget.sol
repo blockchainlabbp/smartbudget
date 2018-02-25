@@ -30,6 +30,9 @@ contract SmartBudget is TreeDataStructure {
     } else {
       lockTime = block.timestamp + initLock;
     }
+
+    // Add the root node
+    addRoot("Root node");
   }  
   
   /** @dev Payable fallback function to receive more ether from the root (owner)

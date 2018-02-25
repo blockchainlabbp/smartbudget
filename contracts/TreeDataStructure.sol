@@ -44,14 +44,14 @@ contract TreeDataStructure {
     }
 
     /** nodeCntr uint - number of nodes (map type hasn't got length attribute) */
-    uint nodeCntr;
+    uint public nodeCntr;
     /** root uint - root node id (key in nodes map) */
     uint root;
     /** nodes mapping (uint => Node) - map of nodes (map require by bidirected list functionality) */
     mapping (uint => Node) nodes;
 
     /** candidateCntr uint - number of candidates */
-    uint candidateCntr;
+    uint public candidateCntr;
     /** candidates mapping (uint => Candidate) - map of candidates */
     mapping (uint => Candidate) candidates;
 
@@ -95,6 +95,7 @@ contract TreeDataStructure {
         uint key = nodeCntr;
         node.id = key;
         node.stake = stake;
+        node.addr = msg.sender;
         node.state = State.TENTATIVE;
         node.desc = desc;
         node.parent = parent;
@@ -171,11 +172,10 @@ contract TreeDataStructure {
     * }
     */
     function getNodesWeb() public view returns (uint[] _ids, uint[] _stakes, uint[] _parents, address[] _addresses) {
-
-        uint[] memory ids;
-        uint[] memory parents;
-        address[] memory addresses;
-        uint[] memory stakes;
+        uint[] memory ids = new uint[](nodeCntr);
+        uint[] memory parents = new uint[](nodeCntr);
+        address[] memory addresses = new address[](nodeCntr);
+        uint[] memory stakes = new uint[](nodeCntr);
 
         for (uint i = 0; i < nodeCntr; i++) {
             Node memory node = nodes[i];
