@@ -36,10 +36,12 @@ contract TreeDataStructure {
     /*
     * Candidate struct is a datastructure for candidates.
     * name string - name of candidates (for example: Apple :D)
+    * stake uint - amount of stake proposed
     * addr address - ethereum addres of candidate
     */
     struct Candidate {      
         string name;
+        uint stake;
         address addr;
     }
 
@@ -81,21 +83,14 @@ contract TreeDataStructure {
         nodes[key] = node;
     }
 
-    /** @notice Add node
-    * @param stake Ethereum stake on the node
+    /** @notice Add a new empty node
     * @param desc  Description of node
     * @param parent Parent's id of node
     */
-    function addNode(uint stake, string desc, uint parent) public {
-
-        // check the required amount of stake 
-        require(stakeValidator(stake, parent) == true);
-
+    function addNode(string desc, uint parent) public {
         Node memory node;
         uint key = nodeCntr;
         node.id = key;
-        node.stake = stake;
-        node.addr = msg.sender;
         node.state = State.TENTATIVE;
         node.desc = desc;
         node.parent = parent;
@@ -109,11 +104,18 @@ contract TreeDataStructure {
     /** @notice Add candidate to certain node
     * @param nodeId Id of the node
     * @param name Candidate's name
+    * @param stake Stake demanded by the candidate
     */
-    function applyForNode(uint nodeId, string name) public {
+    function applyForNode(uint nodeId, string name, uint stake) public {
+        // check the required amount of stake for node at application time
+        // this way we don't allow for applications with too large demands
+        Node memory node = nodes[nodeId];
+        require(stakeValidator(stake, node.parent) == true);
+
         Candidate memory candidate;
         candidate.name = name;
         candidate.addr = msg.sender;
+        candidate.stake = stake;
         uint key = candidateCntr;
         candidates[key] = candidate;
         nodes[nodeId].candidates.push(key);
@@ -124,8 +126,13 @@ contract TreeDataStructure {
     * @param nodeId Id of the node
     * @param candidateKey Identifier of candidate (id := key)
     */
-    function approveNode(uint nodeId, uint candidateKey)  public {
-        nodes[nodeId].addr = candidates[candidateKey].addr;
+    function approveNode(uint nodeId, uint candidateKey) public {
+        // check the required amount of stake for node at approval time as well
+        Candidate memory candidate = candidates[candidateKey];
+        uint parent = nodes[nodeId].parent;
+        require(stakeValidator(candidate.stake, parent) == true);
+        nodes[nodeId].addr = candidate.addr;
+        nodes[nodeId].stake = candidate.stake;
         nodes[nodeId].state = State.APPROVED;
     }
 
