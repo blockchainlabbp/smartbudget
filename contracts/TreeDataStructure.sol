@@ -36,22 +36,24 @@ contract TreeDataStructure {
     /*
     * Candidate struct is a datastructure for candidates.
     * name string - name of candidates (for example: Apple :D)
+    * stake uint - amount of stake proposed
     * addr address - ethereum addres of candidate
     */
     struct Candidate {      
         string name;
+        uint stake;
         address addr;
     }
 
     /** nodeCntr uint - number of nodes (map type hasn't got length attribute) */
-    uint nodeCntr;
+    uint public nodeCntr;
     /** root uint - root node id (key in nodes map) */
     uint root;
     /** nodes mapping (uint => Node) - map of nodes (map require by bidirected list functionality) */
     mapping (uint => Node) nodes;
 
     /** candidateCntr uint - number of candidates */
-    uint candidateCntr;
+    uint public candidateCntr;
     /** candidates mapping (uint => Candidate) - map of candidates */
     mapping (uint => Candidate) candidates;
 
@@ -81,20 +83,14 @@ contract TreeDataStructure {
         nodes[key] = node;
     }
 
-    /** @notice Add node
-    * @param stake Ethereum stake on the node
+    /** @notice Add a new empty node
     * @param desc  Description of node
     * @param parent Parent's id of node
     */
-    function addNode(uint stake, string desc, uint parent) public {
-
-        // check the required amount of stake 
-        require(stakeValidator(stake, nodes[parent]) == true);
-
+    function addNode(string desc, uint parent) public {
         Node memory node;
         uint key = nodeCntr;
         node.id = key;
-        node.stake = stake;
         node.state = State.TENTATIVE;
         node.desc = desc;
         node.parent = parent;
@@ -108,11 +104,18 @@ contract TreeDataStructure {
     /** @notice Add candidate to certain node
     * @param nodeId Id of the node
     * @param name Candidate's name
+    * @param stake Stake demanded by the candidate
     */
-    function applyForNode(uint nodeId, string name) public {
+    function applyForNode(uint nodeId, string name, uint stake) public {
+        // check the required amount of stake for node at application time
+        // this way we don't allow for applications with too large demands
+        Node memory node = nodes[nodeId];
+        require(stakeValidator(stake, node.parent) == true);
+
         Candidate memory candidate;
         candidate.name = name;
         candidate.addr = msg.sender;
+        candidate.stake = stake;
         uint key = candidateCntr;
         candidates[key] = candidate;
         nodes[nodeId].candidates.push(key);
@@ -123,8 +126,13 @@ contract TreeDataStructure {
     * @param nodeId Id of the node
     * @param candidateKey Identifier of candidate (id := key)
     */
-    function approveNode(uint nodeId, uint candidateKey)  public {
-        nodes[nodeId].addr = candidates[candidateKey].addr;
+    function approveNode(uint nodeId, uint candidateKey) public {
+        // check the required amount of stake for node at approval time as well
+        Candidate memory candidate = candidates[candidateKey];
+        uint parent = nodes[nodeId].parent;
+        require(stakeValidator(candidate.stake, parent) == true);
+        nodes[nodeId].addr = candidate.addr;
+        nodes[nodeId].stake = candidate.stake;
         nodes[nodeId].state = State.APPROVED;
     }
 
@@ -171,11 +179,10 @@ contract TreeDataStructure {
     * }
     */
     function getNodesWeb() public view returns (uint[] _ids, uint[] _stakes, uint[] _parents, address[] _addresses) {
-
-        uint[] memory ids;
-        uint[] memory parents;
-        address[] memory addresses;
-        uint[] memory stakes;
+        uint[] memory ids = new uint[](nodeCntr);
+        uint[] memory parents = new uint[](nodeCntr);
+        address[] memory addresses = new address[](nodeCntr);
+        uint[] memory stakes = new uint[](nodeCntr);
 
         for (uint i = 0; i < nodeCntr; i++) {
             Node memory node = nodes[i];
@@ -189,12 +196,13 @@ contract TreeDataStructure {
     }
 
     /** @notice Returns the sum of stakes allocated to childrens of node
-    * @param node The node to compute the total allocated stakes for
+    * @param id The id of node to compute the total allocated stakes for
     * @return {
     *    "allocatedStake" : "The amount of stake allocated to child nodes"
     * }
     */
-    function getAllocatedStake(Node node) private view returns(uint allocatedStake) {
+    function getAllocatedStake(uint id) public view returns(uint allocatedStake) {
+        Node memory node = nodes[id];
         uint totalChildStakes = 0;
         for (uint i = 0; i < node.childs.length; i++) {
             totalChildStakes = totalChildStakes + nodes[node.childs[i]].stake;
@@ -208,27 +216,28 @@ contract TreeDataStructure {
     * but we might add finer categorization later 
     * (e.g. stakes locked for some distinctive reason), 
     * while this interface won't change
-    * @param node The node to compute the available stakes for
+    * @param id The id of the node to compute the available stakes for
     * @return {
     *    "availableStake" : "The amount of stake available for allocation"
     * }
-    */
-    function getAvailableStake(Node node) private view returns(uint availableStake) {
-        uint allocStake = getAllocatedStake(node);
-        return node.stake - allocStake > 0 ? node.stake - allocStake : 0;
+    */       
+    function getAvailableStake(uint id) public view returns(uint availableStake) {
+        Node memory node = nodes[id];
+        uint allocStake = getAllocatedStake(id);
+        return node.stake > allocStake ? node.stake - allocStake : 0;
     }
 
-    /** @notice Checks if 'stake' amount of ethereum is still available for allocation in node 'parent' 
+    /** @notice Checks if 'stake' amount of ethereum is still available for allocation in node with id 
     * @param stake The amount of ethereum planned to be allocated for the new node
-    * @param parent Parent of the new node
+    * @param id Id of node
     * @return {
     *    "res" : "True, if there is enough stake to allocate the new node"
     * }
     */
-    function stakeValidator(uint stake, Node parent) private view returns(bool res) {
-        uint availableStake = getAvailableStake(parent);
+    function stakeValidator(uint stake, uint id) private view returns(bool res) {
+        uint availableStake = getAvailableStake(id);
 
-        if (availableStake - stake > 0) {
+        if (availableStake > stake) {
             return true;
         } else {
             return false;
