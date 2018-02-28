@@ -16,7 +16,7 @@ contract SmartBudget is TreeDataStructure {
   */
   uint public lockType;
   
-  /** @dev Payable constructor for locking an amount of ether for a specific time
+  /** @notice Constructor for creating a new contract instance
     * @param initLock The initial lockTime
     * @param _lockType Lock type
     */
@@ -35,12 +35,13 @@ contract SmartBudget is TreeDataStructure {
     addRoot("Root node");
   }  
   
-  /** @dev Payable fallback function to receive more ether from the root (owner)
+  /** @notice Fallback function - only callable by the owner of the contract
+    * @dev Can be used to send more ether to the contract after creation
     */
   function () public payable onlyOwner {
   }
 
-  /** @dev Calculate and retrieve remaining locktime
+  /** @notice Calculate and retrieve remaining locktime
     * @return {
     *  "remLockTime" : "The remaining locktime in seconds"
     * }
@@ -49,7 +50,7 @@ contract SmartBudget is TreeDataStructure {
       return lockTime - block.timestamp > 0 ? lockTime - block.timestamp : 0;
   }
 
-  /** @dev Extend lockTime to a specific time or extend it with specific seconds
+  /** @notice Extend lockTime to a specific time or extend it with specific seconds
     * @param newLock The new lockTime (timestamp, or seconds)
     * @param _lockType The new lockType (0 or 1)
     */
@@ -64,7 +65,7 @@ contract SmartBudget is TreeDataStructure {
       }
   }
 
-  /** @dev Returns true if timeLock has elapsed, false otherwise
+  /** @notice Returns true if timeLock has elapsed, false otherwise
     * @return {
     *  "lockStatus" : "True if contract is unlocked"
     * }
@@ -78,11 +79,24 @@ contract SmartBudget is TreeDataStructure {
   /** Verifies if the timeLock has elapsed */
   modifier onlyWhenUnlocked() { require(isUnlocked()); _; }
 
-  /** @dev Send amount to recipient's address
+  /** @notice Send amount to recipient's address
     * @param recipient The recipient
     * @param amount The amount
     */
   function transferFunds(address recipient, uint amount) public onlyOwner onlyWhenUnlocked {
     recipient.transfer(amount);
+  }
+
+  /** @notice Withdraw promised amount
+    * @param id The id of the node to retreive the promised amount from
+    * @dev We require here an id to prevent the runtime scale linearly with the number of nodes. Frontend should get all node details and find the id. However, address is checked here!
+    */
+  function withdraw(uint id) public onlyWhenUnlocked {
+    Node memory node = nodes[id];
+    require(node.addr == msg.sender);
+    uint amount = node.stake;
+    // To prevent reentrancy attacks
+    node.stake = 0;
+    node.addr.transfer(amount);
   }
 }

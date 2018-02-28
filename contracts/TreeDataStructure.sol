@@ -89,7 +89,7 @@ contract TreeDataStructure {
     function addNode(uint stake, string desc, uint parent) public {
 
         // check the required amount of stake 
-        require(stakeValidator(stake, nodes[parent]) == true);
+        require(stakeValidator(stake, parent) == true);
 
         Node memory node;
         uint key = nodeCntr;
@@ -189,12 +189,13 @@ contract TreeDataStructure {
     }
 
     /** @notice Returns the sum of stakes allocated to childrens of node
-    * @param node The node to compute the total allocated stakes for
+    * @param id The id of node to compute the total allocated stakes for
     * @return {
     *    "allocatedStake" : "The amount of stake allocated to child nodes"
     * }
     */
-    function getAllocatedStake(Node node) private view returns(uint allocatedStake) {
+    function getAllocatedStake(uint id) public view returns(uint allocatedStake) {
+        Node memory node = nodes[id];
         uint totalChildStakes = 0;
         for (uint i = 0; i < node.childs.length; i++) {
             totalChildStakes = totalChildStakes + nodes[node.childs[i]].stake;
@@ -208,27 +209,28 @@ contract TreeDataStructure {
     * but we might add finer categorization later 
     * (e.g. stakes locked for some distinctive reason), 
     * while this interface won't change
-    * @param node The node to compute the available stakes for
+    * @param id The id of the node to compute the available stakes for
     * @return {
     *    "availableStake" : "The amount of stake available for allocation"
     * }
-    */
-    function getAvailableStake(Node node) private view returns(uint availableStake) {
-        uint allocStake = getAllocatedStake(node);
-        return node.stake - allocStake > 0 ? node.stake - allocStake : 0;
+    */       
+    function getAvailableStake(uint id) public view returns(uint availableStake) {
+        Node memory node = nodes[id];
+        uint allocStake = getAllocatedStake(id);
+        return node.stake > allocStake ? node.stake - allocStake : 0;
     }
 
-    /** @notice Checks if 'stake' amount of ethereum is still available for allocation in node 'parent' 
+    /** @notice Checks if 'stake' amount of ethereum is still available for allocation in node with id 
     * @param stake The amount of ethereum planned to be allocated for the new node
-    * @param parent Parent of the new node
+    * @param id Id of node
     * @return {
     *    "res" : "True, if there is enough stake to allocate the new node"
     * }
     */
-    function stakeValidator(uint stake, Node parent) private view returns(bool res) {
-        uint availableStake = getAvailableStake(parent);
+    function stakeValidator(uint stake, uint id) private view returns(bool res) {
+        uint availableStake = getAvailableStake(id);
 
-        if (availableStake - stake > 0) {
+        if (availableStake > stake) {
             return true;
         } else {
             return false;
