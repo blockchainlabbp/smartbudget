@@ -1,6 +1,10 @@
 pragma solidity ^0.4.2;
 
 contract TreeDataStructure {
+    /*
+    * Events
+    */
+    event NodeAdded(address indexed from, uint key);
 
     /*
     * State enum disrcibes the state of the node.
@@ -99,6 +103,9 @@ contract TreeDataStructure {
         nodes[key] = node;
 
         nodes[parent].childs.push(key);
+        
+        //fire event
+        NodeAdded(msg.sender, key);
     }
 
     /** @notice Add candidate to certain node

@@ -49,10 +49,20 @@ window.App = {
       //TreeDataStructure.setProvider(web3.currentProvider);
       SmartBudgetContract.setProvider(web3.currentProvider);
       SmartBudgetService.init(SmartBudgetContract, account);
-  
       window.Controller.init();
+        
+        SmartBudgetService.getAddress()
+          .then((address) => {
+            web3.eth.filter({address: address}, function(error, result){
+            if (!error) {
+                console.log('web3.eth.filter result: ', result);
+                //new block was added related to contract
+                window.Controller.warnBlockChange();
+            }
+            });
+          })
+          .catch((reason) => console.log(reason));
     });
-
   },
 
   setStatus: function(message) {
@@ -87,11 +97,13 @@ window.TreeView = {
    */
   createTree : function() {
     $("#btnLoadContracts").click(window.Controller.updateTree);
+    $(window).on("nodeAdded", window.Controller.updateTree);
 
     TreeView.tree = createTree("#tree",{
       checkbox: false,           // don't render default checkbox column
       titlesTabbable: true,        // Add all node titles to TAB chain
       source: null,
+      minExpandLevel: 3,
       extensions: ["table", "gridnav"],
       table: {
         checkboxColumnIdx: null,    // render the checkboxes into the this column index (default: nodeColumnIdx)
@@ -121,7 +133,10 @@ window.TreeView = {
         $tdList.eq(3).text(node.data.stake);
 
         $tdList.eq(4).append("<button type='button'>Add</button>")
-        .click(() => window.Controller.addContractor(100, node.data.id));
+        .click(function() {
+            $(this).append("<span>Node insert pending...</span>");
+            window.Controller.addContractor(node.data.id);
+        });
       }
     });
   },
@@ -141,13 +156,14 @@ window.Controller = {
     TreeView.createTree();
   },
 
-  addContractor: function(stake, parentId) {
-    SmartBudgetService.addContractor(stake, parentId)
+  addContractor: function(parentId) {
+    SmartBudgetService.addContractor(parentId)
     .then((val) => console.log(val))
     .catch((reason) => console.log(reason));
   },
 
   updateTree : function() {
+    $("#msgBlockChanged").hide();
 
     function smartNodeToTreeNodeMapper(smartNode) {
       return {
@@ -166,8 +182,11 @@ window.Controller = {
     .then((val) => window.TreeView.updateTree(val))
     .catch((reason) => console.log(reason));
     
-  }
+  },
 
+    warnBlockChange: function () {
+        $("#msgBlockChanged").show();
+    }
 };
 
 window.addEventListener('load', function() {
