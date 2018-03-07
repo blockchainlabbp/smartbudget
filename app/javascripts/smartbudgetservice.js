@@ -154,23 +154,7 @@ export const SmartBudgetService = {
         const desc = "contractor";
 
         return self._smartBudgetContract.deployed().then(function (instance) {
-            meta = instance;
-            
-            nodeAddedEvent = meta.NodeAdded({ from: self._account });
-            nodeAddedEvent.watch(function(err, result) {
-                if (err) {
-                    console.log(err)
-                    return;
-                }
-                console.log("nodeAddedEvent watch", result.args.from, result.args.key);
-                $(window).trigger("nodeAdded");
-                // check that result.args._from is web3.eth.coinbase then
-                // display result.args._value in the UI and call    
-                nodeAddedEvent.stopWatching();
-            });
-            
-            console.log("Before addNode call");
-            return meta.addNode.sendTransaction(desc, parentid, { from: self._account, gas: 300000 });
+            return instance.addNode.sendTransaction(desc, parentid, { from: self._account, gas: 300000 });
         });
     },
 

@@ -62,6 +62,22 @@ window.App = {
             });
           })
           .catch((reason) => console.log(reason));
+
+        SmartBudgetService._smartBudgetContract.deployed().then(function(instance) {
+          
+          var meta = instance;
+            
+          var nodeAddedEvent = meta.NodeAdded({ from: self._account });
+          nodeAddedEvent.watch(function(err, result) {
+              if (err) {
+                  console.log(err)
+                  return;
+              }
+              console.log("nodeAddedEvent result" , result); 
+              console.log("nodeAddedEvent watch", result.args.from, result.args.key);
+              $(window).trigger("nodeAdded");
+          });
+        });
     });
   },
 
