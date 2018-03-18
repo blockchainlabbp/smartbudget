@@ -161,7 +161,7 @@ contract SmartBudget is TimeLock {
         return (nodes[_key].stake, nodes[_key].addr, nodes[_key].state, nodes[_key].desc, nodes[_key].parent, nodes[_key].childs);
     }
 
-    /** @notice [web3js] Get all addresses of candidateűű
+    /** @notice [web3js] Get all addresses of candidate
     * @return {
     *    "_addr" : "Array of candidate addresses of node" 
     * }
