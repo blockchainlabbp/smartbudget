@@ -2,6 +2,7 @@ var SmartBudget = artifacts.require("./TimeLock.sol");
 var chai = require('chai');
 chai.use(require('chai-as-promised'));
 var expect = chai.expect;
+var assert = chai.assert; 
 
 // Some help on the available functions:
 // https://github.com/trufflesuite/truffle-contract
@@ -76,7 +77,7 @@ contract('TimeLock', function(accounts) {
       {from: root_acc, value: initStake})).be.fulfilled;
   });
 
-  it("should extend time lock with valid settings", function() {
+  it("should allow extending both time locks with valid settings", function() {
     var contract;
     var oldTenderLockTime;
     var newTenderLockTime;
@@ -94,10 +95,10 @@ contract('TimeLock', function(accounts) {
       contract = instance;
       return contract.tenderLockTime();
     }).then( function(tLock) {
-      oldTenderLockTime = tLock;
+      oldTenderLockTime = parseInt(tLock);
       return contract.deliveryLockTime();
     }).then( function(dLock) {
-      oldDeliveryLockTime = dLock;
+      oldDeliveryLockTime = parseInt(dLock);
       // Update locktimes
       tenderLockTime = 11; // relative time in seconds
       tenderLockType = 1; // 0 = absolute, 1 = relative
@@ -107,12 +108,116 @@ contract('TimeLock', function(accounts) {
     }).then( function() {
       return contract.tenderLockTime();
     }).then( function(tLock) {
-      newTenderLockTime = tLock;
+      newTenderLockTime = parseInt(tLock);
       return contract.deliveryLockTime();
     }).then( function(dLock) {
-      newDeliveryLockTime = dLock;
-      assert.greaterThan(newTenderLockTime, oldTenderLockTime, "Tender lock time should be extended!");
-      assert.greaterThan(newDeliveryLockTime, oldDeliveryLockTime, "Delivery lock time should be extended!");
+      newDeliveryLockTime = parseInt(dLock);
+      return assert(newTenderLockTime > oldTenderLockTime && newDeliveryLockTime > oldDeliveryLockTime, 'Tender lock times should have increased.');
     });
+  });
+
+  it("should throw when trying to extend with invalid settings", function() {
+    var contract;
+    var root_acc = accounts[0];
+    SmartBudget.defaults({from: root_acc});
+
+    var tenderLockTime = 500; // relative time in seconds
+    var tenderLockType = 1; // 0 = absolute, 1 = relative
+    var deliveryLockTime = 2000; // in seconds or unix timestamp
+    var deliveryLockType = 1; // 0 = absolute, 1 = relative
+    var initStake = web3.toWei(0.01, 'ether');
+    return SmartBudget.new(tenderLockTime, tenderLockType, deliveryLockTime, deliveryLockType, {value: initStake}).then(function(instance) {
+      contract = instance;
+      // Update locktimes
+      tenderLockTime = 5; // relative time in seconds
+      tenderLockType = 1; // 0 = absolute, 1 = relative
+      deliveryLockTime = 2000; // in seconds or unix timestamp
+      deliveryLockType = 1; // 0 = absolute, 1 = relative
+      return  expect(
+        contract.extendLockTimes(
+          tenderLockTime, 
+          tenderLockType, 
+          deliveryLockTime, 
+          deliveryLockType)
+      ).be.rejectedWith('VM Exception while processing transaction');
+    });
+  });
+
+  it("should allow extending tender time lock only", function() {
+    var contract;
+    var oldTenderLockTime;
+    var newTenderLockTime;
+    var oldDeliveryLockTime;
+    var newDeliveryLockTime;
+    var root_acc = accounts[0];
+    SmartBudget.defaults({from: root_acc});
+
+    var tenderLockTime = 200; // relative time in seconds
+    var tenderLockType = 1; // 0 = absolute, 1 = relative
+    var deliveryLockTime = 400; // in seconds or unix timestamp
+    var deliveryLockType = 1; // 0 = absolute, 1 = relative
+    var initStake = web3.toWei(0.01, 'ether');
+    return SmartBudget.new(tenderLockTime, tenderLockType, deliveryLockTime, deliveryLockType, {value: initStake}).then(function(instance) {
+      contract = instance;
+      return contract.tenderLockTime();
+    }).then( function(tLock) {
+      oldTenderLockTime = parseInt(tLock);
+      return contract.deliveryLockTime();
+    }).then( function(dLock) {
+      oldDeliveryLockTime = parseInt(dLock);
+      // Update tender locktimes
+      tenderLockTime = 201; // relative time is seconds
+      tenderLockType = 1; // 0 = absolute, 1 = relative
+      deliveryLockTime = oldDeliveryLockTime; // unix timestamp now
+      deliveryLockType = 0; // 0 = absolute, 1 = relative
+      return  contract.extendLockTimes(tenderLockTime, tenderLockType, deliveryLockTime, deliveryLockType);
+    }).then( function() {
+      return contract.tenderLockTime();
+    }).then( function(tLock) {
+      newTenderLockTime = parseInt(tLock);
+      return contract.deliveryLockTime();
+    }).then( function(dLock) {
+      newDeliveryLockTime = parseInt(dLock);
+      return assert(newTenderLockTime > oldTenderLockTime && newDeliveryLockTime == oldDeliveryLockTime, 'Delivery lock time should not have changed');
+      });
+  });
+
+  it("should allow extending delivery time lock only", function() {
+    var contract;
+    var oldTenderLockTime;
+    var newTenderLockTime;
+    var oldDeliveryLockTime;
+    var newDeliveryLockTime;
+    var root_acc = accounts[0];
+    SmartBudget.defaults({from: root_acc});
+
+    var tenderLockTime = 200; // relative time in seconds
+    var tenderLockType = 1; // 0 = absolute, 1 = relative
+    var deliveryLockTime = 400; // in seconds or unix timestamp
+    var deliveryLockType = 1; // 0 = absolute, 1 = relative
+    var initStake = web3.toWei(0.01, 'ether');
+    return SmartBudget.new(tenderLockTime, tenderLockType, deliveryLockTime, deliveryLockType, {value: initStake}).then(function(instance) {
+      contract = instance;
+      return contract.tenderLockTime();
+    }).then( function(tLock) {
+      oldTenderLockTime = parseInt(tLock);
+      return contract.deliveryLockTime();
+    }).then( function(dLock) {
+      oldDeliveryLockTime = parseInt(dLock);
+      // Update tender locktimes
+      tenderLockTime = oldTenderLockTime; // unix timestamp now
+      tenderLockType = 0; // 0 = absolute, 1 = relative
+      deliveryLockTime = 401; // unix timestamp now
+      deliveryLockType = 1; // 0 = absolute, 1 = relative
+      return  contract.extendLockTimes(tenderLockTime, tenderLockType, deliveryLockTime, deliveryLockType);
+    }).then( function() {
+      return contract.tenderLockTime();
+    }).then( function(tLock) {
+      newTenderLockTime = parseInt(tLock);
+      return contract.deliveryLockTime();
+    }).then( function(dLock) {
+      newDeliveryLockTime = parseInt(dLock);
+      return assert(newTenderLockTime == oldTenderLockTime && newDeliveryLockTime > oldDeliveryLockTime, 'Tender lock time should not have changed');
+      });
   });
 });
