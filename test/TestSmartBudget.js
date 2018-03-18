@@ -9,10 +9,12 @@ contract('SmartBudget', function(accounts) {
     var root_acc = accounts[0];
     SmartBudget.defaults({from: root_acc});
 
-    var lockTime = 1000; // in seconds or unix timestamp
-    var lockType = 1; // 0 = absolute, 1 = relative
+    var tenderLockTime = 1000; // in seconds or unix timestamp
+    var tenderLockType = 1; // 0 = absolute, 1 = relative
+    var deliveryLockTime = 2000; // in seconds or unix timestamp
+    var deliveryLockType = 1; // 0 = absolute, 1 = relative
     var initStake = web3.toWei(0.01, 'ether');
-    return SmartBudget.new(lockTime, lockType, {from: root_acc, value: initStake}).then(function(instance) {
+    return SmartBudget.new(tenderLockTime, tenderLockType, deliveryLockTime, deliveryLockType, {from: root_acc, value: initStake}).then(function(instance) {
         tree = instance;
         return tree.getNodesWeb.call();
       }).then(function (nodesArray) {
@@ -28,13 +30,15 @@ contract('SmartBudget', function(accounts) {
         assert.equal(address, root_acc, "Root address must be the first account in Ganache!");
     });
   });
-  it("should approve candidte for first node", function() {
+  it("should approve candidate for first node", function() {
     var tree;
     var root_acc = accounts[0];
     var child_acc = accounts[1];
 
-    var lockTime = 1000; // in seconds or unix timestamp
-    var lockType = 1; // 0 = absolute, 1 = relative
+    var tenderLockTime = 1000; // in seconds or unix timestamp
+    var tenderLockType = 1; // 0 = absolute, 1 = relative
+    var deliveryLockTime = 2000; // in seconds or unix timestamp
+    var deliveryLockType = 1; // 0 = absolute, 1 = relative
     var initStake = web3.toWei(0.01, 'ether');
     var nodeDesc = "First node";
     var parentId = 0;
@@ -42,7 +46,7 @@ contract('SmartBudget', function(accounts) {
     var candidateId = 0;
     var candidateName = "First candidate";
     var candidateStake = web3.toWei(0.005, 'ether'); // in ether
-    return SmartBudget.new(lockTime, lockType, {from: root_acc, value: initStake}).then(function(instance) {
+    return SmartBudget.new(tenderLockTime, tenderLockType, deliveryLockTime, deliveryLockType, {from: root_acc, value: initStake}).then(function(instance) {
         tree = instance;
         return  tree.getAvailableStake.call(0);
       }).then( function(availStakeRoot) {

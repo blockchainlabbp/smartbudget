@@ -12,14 +12,14 @@ contract TestSmartBudget {
     uint256 expected = 1 ether;
     uint256 actual = smartBudget.balance;
 
-    Assert.equal(actual, expected, "The deployed contract should have 30 ethers initially");
+    Assert.equal(actual, expected, "The deployed contract should have 1 ether initially");
   }
 
-  function testInitialTimeLock() public {
+  function testInitialState() public {
       SmartBudget smartBudget = SmartBudget(DeployedAddresses.SmartBudget());
 
-      bool expectedIsUnlocked = false;
-      bool actualIsUnlocked = smartBudget.isUnlocked();
-      Assert.equal(expectedIsUnlocked, actualIsUnlocked, "The contract should be locked right after creation");
+      uint expectedState = 1; // The uint value of TENDER
+      uint actualState = smartBudget.getLockState();
+      Assert.equal(expectedState, actualState, "The contract should be in TENDER status right after creation");
   }
 }

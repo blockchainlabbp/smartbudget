@@ -2,33 +2,75 @@ pragma solidity ^0.4.17;
 
 /** @title Smart Budget. */
 contract TimeLock {
+  /*
+  * LockState enum disrcibes the state of the time lock.
+  * INVALID - 0 - For special purposes, not used currently
+  * TENDER - 1 - Contract is in the tender period
+  * DELIVERY - 2 - Contract is in delivery period
+  * FINISHED - 3 - Delivery time lock has expired
+  */
+  enum LockState {INVALID, TENDER, DELIVERY, FINISHED}
 
   /** address owner */
   address owner;
-  /** lockTime - timestamp */
-  uint public lockTime;
+  /** lockTime - unix timestamp, same unit as block.timestamp */
+  uint public tenderLockTime;
+  uint public deliveryLockTime;
+
+    /** Verifies if message sender is the contract's owner */
+  modifier onlyOwner() {require(msg.sender == owner); _;}
   
-  /** Lock time type
-  * 0 - Absolute (standard unix timestamp is seconds)
-  * 1 - Relative (seconds relative to constructor block's timestamp)
-  */
-  uint public lockType;
-  
-  /** @notice Constructor for creating a new contract instance
-    * @param initLock The initial lockTime
-    * @param _lockType Lock type
+  /** @notice Standardize relative or absolute time specification to unix timestamp
+    * @return {
+    *  "unixtime" : "The unix timestamp"
+    * }
     */
-  function TimeLock(uint initLock, uint _lockType) public payable {
-    require(_lockType == 0 || _lockType == 1);
-    owner = msg.sender;
-    lockType = _lockType;
-    if (lockType == 0) {
-      require(initLock > block.timestamp);
-      lockTime = initLock;
+  function toUnixTime(uint _time, uint _type) public view returns(uint unixtime) {
+    if (_type == 0) {
+      // Absolue time specification, should be a unix timestamp directly comparable to block.timestamp
+      require(_time > block.timestamp);
+      return _time;
+    } else if (_type == 1) {
+      // Relative time specification, in seconds
+      return block.timestamp + _time;
     } else {
-      lockTime = block.timestamp + initLock;
+      // Time specification has to be either absolute or relative
+      revert();
     }
-  }  
+  }
+
+    /** @notice Extend lock times
+    * @param _tenderLockTime Tender lock time, absolute or relative
+    * @param _tenderLockType Tender lock type, 0 for absolute, 1 for relative
+    * @param _deliveryLockTime Delivery lock time, absolute or relative
+    * @param _deliveryLockType Delivery lock type, 0 for absolute, 1 for relative
+    */
+  function extendLockTimes(uint _tenderLockTime, uint _tenderLockType, uint _deliveryLockTime, uint _deliveryLockType) public onlyOwner {
+    // First update the delivery lock time
+    uint newDeliveryLockTime = toUnixTime(_deliveryLockTime, _deliveryLockType);
+    require(newDeliveryLockTime >= deliveryLockTime);
+    deliveryLockTime = newDeliveryLockTime;
+    // Next update the tender lock time
+    uint newTenderLockTime = toUnixTime(_tenderLockTime, _tenderLockType);
+    require(newTenderLockTime >= tenderLockTime);
+    tenderLockTime = newTenderLockTime;
+    // Delivery time should be after tender lock time
+    require(deliveryLockTime > tenderLockTime);
+  }
+
+  /** @notice Constructor for creating a new contract instance
+    * @param _tenderLockTime Tender lock time, absolute or relative
+    * @param _tenderLockType Tender lock type, 0 for absolute, 1 for relative
+    * @param _deliveryLockTime Delivery lock time, absolute or relative
+    * @param _deliveryLockType Delivery lock type, 0 for absolute, 1 for relative
+    */
+  function TimeLock(uint _tenderLockTime, uint _tenderLockType, uint _deliveryLockTime, uint _deliveryLockType) public payable {
+    // Initalize to 0 explicitly, to be absolutely sure
+    deliveryLockTime = 0;
+    tenderLockTime = 0;
+    owner = msg.sender;
+    extendLockTimes(_tenderLockTime, _tenderLockType, _deliveryLockTime, _deliveryLockType);
+  }
   
   /** @notice Fallback function - only callable by the owner of the contract
     * @dev Can be used to send more ether to the contract after creation
@@ -36,45 +78,27 @@ contract TimeLock {
   function () public payable onlyOwner {
   }
 
-  /** @notice Calculate and retrieve remaining locktime
+  /** @notice Returns the current lock status enum
     * @return {
-    *  "remLockTime" : "The remaining locktime in seconds"
+    *  "lockState" : "LockState enum representing the contract status"
     * }
     */
-  function getRemainingLockTime() constant public returns(uint remLockTime) {
-      return lockTime - block.timestamp > 0 ? lockTime - block.timestamp : 0;
+  function getLockState() public view returns (uint lockState) {
+    if (deliveryLockTime == 0 || tenderLockTime == 0) {
+      return uint(LockState.INVALID);
+    } else if (block.timestamp < tenderLockTime) {
+      return uint(LockState.TENDER);
+    } else if (block.timestamp < deliveryLockTime) {
+      return uint(LockState.DELIVERY);
+    } else {
+      return uint(LockState.FINISHED);
+    }
   }
 
-  /** @notice Extend lockTime to a specific time or extend it with specific seconds
-    * @param newLock The new lockTime (timestamp, or seconds)
-    * @param _lockType The new lockType (0 or 1)
-    */
-  function extendsLockTime(uint newLock, uint _lockType) public onlyOwner {
-    require(_lockType == 0 || _lockType == 1);
-      lockType = _lockType;
-      if (lockType == 0) {
-        require(newLock > block.timestamp);
-        lockTime = newLock;
-      } else {
-        lockTime = block.timestamp + newLock;
-      }
-  }
+  /** Verifies if the delivery time lock has elapsed */
+  modifier onlyWhenUnlocked() {require(getLockState() == uint(LockState.FINISHED)); _;}
 
-  /** @notice Returns true if timeLock has elapsed, false otherwise
-    * @return {
-    *  "lockStatus" : "True if contract is unlocked"
-    * }
-    */
-  function isUnlocked() constant public returns (bool lockStatus) {
-    return block.timestamp >= lockTime;
-  }
-
-  /** Verifies if message sender is the contract's owner */
-  modifier onlyOwner() { require(msg.sender == owner); _; }
-  /** Verifies if the timeLock has elapsed */
-  modifier onlyWhenUnlocked() { require(isUnlocked()); _; }
-
-  /** @notice Send amount to recipient's address
+  /** @notice Send amount to recipient's address after the delivery time lock has expired
     * @param recipient The recipient
     * @param amount The amount
     */

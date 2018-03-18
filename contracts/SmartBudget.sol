@@ -60,10 +60,13 @@ contract SmartBudget is TimeLock {
     mapping (uint => Candidate) candidates;
 
 
-    /** @dev Constructor for initialize counters 
-    * 
+    /** @notice SmartBudget constructor
+    * @param _tenderLockTime Tender lock time, absolute or relative
+    * @param _tenderLockType Tender lock type, 0 for absolute, 1 for relative
+    * @param _deliveryLockTime Delivery lock time, absolute or relative
+    * @param _deliveryLockType Delivery lock type, 0 for absolute, 1 for relative
     */
-    function SmartBudget(uint initLock, uint _lockType) TimeLock(initLock, _lockType) public payable {
+    function SmartBudget(uint _tenderLockTime, uint _tenderLockType, uint _deliveryLockTime, uint _deliveryLockType) TimeLock(_tenderLockTime, _tenderLockType, _deliveryLockTime, _deliveryLockType) public payable {
         nodeCntr = 0;
         candidateCntr = 0;
 
@@ -158,8 +161,7 @@ contract SmartBudget is TimeLock {
         return (nodes[_key].stake, nodes[_key].addr, nodes[_key].state, nodes[_key].desc, nodes[_key].parent, nodes[_key].childs);
     }
 
-    /** @notice [web3js] Get all addresses of candidates which are assigned with a certain node
-    * @param _key Id of the node
+    /** @notice [web3js] Get all addresses of candidateűű
     * @return {
     *    "_addr" : "Array of candidate addresses of node" 
     * }
