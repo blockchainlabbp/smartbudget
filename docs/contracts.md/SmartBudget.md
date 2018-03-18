@@ -1,39 +1,31 @@
 * [SmartBudget](#smartbudget)
-  * [lockTime](#function-locktime)
   * [getAllocatedStake](#function-getallocatedstake)
   * [candidateCntr](#function-candidatecntr)
   * [getNodesWeb](#function-getnodesweb)
   * [withdraw](#function-withdraw)
   * [getAvailableStake](#function-getavailablestake)
+  * [tenderLockTime](#function-tenderlocktime)
   * [getNodeWeb](#function-getnodeweb)
   * [addNode](#function-addnode)
   * [addRoot](#function-addroot)
   * [approveNode](#function-approvenode)
-  * [lockType](#function-locktype)
-  * [getRemainingLockTime](#function-getremaininglocktime)
-  * [isUnlocked](#function-isunlocked)
+  * [toUnixTime](#function-tounixtime)
+  * [deliveryLockTime](#function-deliverylocktime)
   * [transferFunds](#function-transferfunds)
   * [applyForNode](#function-applyfornode)
-  * [extendsLockTime](#function-extendslocktime)
+  * [getLockState](#function-getlockstate)
   * [getNodeCandidatesAddressesWeb](#function-getnodecandidatesaddressesweb)
+  * [extendLockTimes](#function-extendlocktimes)
   * [nodeCntr](#function-nodecntr)
 * [TimeLock](#timelock)
-  * [lockTime](#function-locktime)
-  * [lockType](#function-locktype)
-  * [getRemainingLockTime](#function-getremaininglocktime)
-  * [isUnlocked](#function-isunlocked)
+  * [tenderLockTime](#function-tenderlocktime)
+  * [toUnixTime](#function-tounixtime)
+  * [deliveryLockTime](#function-deliverylocktime)
   * [transferFunds](#function-transferfunds)
-  * [extendsLockTime](#function-extendslocktime)
+  * [getLockState](#function-getlockstate)
+  * [extendLockTimes](#function-extendlocktimes)
 
 # SmartBudget
-
-
-## *function* lockTime
-
-SmartBudget.lockTime() `view` `0d668087`
-
-
-
 
 
 ## *function* getAllocatedStake
@@ -117,6 +109,14 @@ Outputs
 |-|-|-|
 | *uint256* | availableStake | The amount of stake available for allocation |
 
+## *function* tenderLockTime
+
+SmartBudget.tenderLockTime() `view` `3d0ced49`
+
+
+
+
+
 ## *function* getNodeWeb
 
 SmartBudget.getNodeWeb(_key) `view` `3f002528`
@@ -186,49 +186,39 @@ Inputs
 | *uint256* | candidateKey | Identifier of candidate (id := key) |
 
 
-## *function* lockType
+## *function* toUnixTime
 
-SmartBudget.lockType() `view` `765d4897`
+SmartBudget.toUnixTime(_time, _type) `view` `83b52eb4`
 
-
-
-
-
-## *function* getRemainingLockTime
-
-SmartBudget.getRemainingLockTime() `view` `7a8cd156`
-
-**Calculate and retrieve remaining locktime**
+**Standardize relative or absolute time specification to unix timestamp**
 
 
+Inputs
 
+| | | |
+|-|-|-|
+| *uint256* | _time | undefined |
+| *uint256* | _type | undefined |
 
 Outputs
 
 | | | |
 |-|-|-|
-| *uint256* | remLockTime | The remaining locktime in seconds |
+| *uint256* | unixtime | The unix timestamp |
 
-## *function* isUnlocked
+## *function* deliveryLockTime
 
-SmartBudget.isUnlocked() `view` `8380edb7`
-
-**Returns true if timeLock has elapsed, false otherwise**
+SmartBudget.deliveryLockTime() `view` `97e292bc`
 
 
 
 
-Outputs
-
-| | | |
-|-|-|-|
-| *bool* | lockStatus | True if contract is unlocked |
 
 ## *function* transferFunds
 
 SmartBudget.transferFunds(recipient, amount) `nonpayable` `990dc9db`
 
-**Send amount to recipient's address**
+**Send amount to recipient's address after the delivery time lock has expired**
 
 
 Inputs
@@ -255,39 +245,56 @@ Inputs
 | *uint256* | stake | Stake demanded by the candidate |
 
 
-## *function* extendsLockTime
+## *function* getLockState
 
-SmartBudget.extendsLockTime(newLock, _lockType) `nonpayable` `adbbe8c6`
+SmartBudget.getLockState() `view` `cc7d9ade`
 
-**Extend lockTime to a specific time or extend it with specific seconds**
+**Returns the current lock status enum**
 
 
-Inputs
+
+
+Outputs
 
 | | | |
 |-|-|-|
-| *uint256* | newLock | The new lockTime (timestamp, or seconds) |
-| *uint256* | _lockType | The new lockType (0 or 1) |
-
+| *uint256* | lockState | LockState enum representing the contract status |
 
 ## *function* getNodeCandidatesAddressesWeb
 
 SmartBudget.getNodeCandidatesAddressesWeb(_key) `view` `d1a90f4b`
 
-**[web3js] Get all addresses of candidates which are assigned with a certain node**
+**[web3js] Get all addresses of candidate**
 
 
 Inputs
 
 | | | |
 |-|-|-|
-| *uint256* | _key | Id of the node |
+| *uint256* | _key | undefined |
 
 Outputs
 
 | | | |
 |-|-|-|
 | *address[]* | _addr | Array of candidate addresses of node |
+
+## *function* extendLockTimes
+
+SmartBudget.extendLockTimes(_tenderLockTime, _tenderLockType, _deliveryLockTime, _deliveryLockType) `nonpayable` `ead30a20`
+
+**Extend lock times**
+
+
+Inputs
+
+| | | |
+|-|-|-|
+| *uint256* | _tenderLockTime | Tender lock time, absolute or relative |
+| *uint256* | _tenderLockType | Tender lock type, 0 for absolute, 1 for relative |
+| *uint256* | _deliveryLockTime | Delivery lock time, absolute or relative |
+| *uint256* | _deliveryLockType | Delivery lock type, 0 for absolute, 1 for relative |
+
 
 ## *function* nodeCntr
 
@@ -303,57 +310,47 @@ SmartBudget.nodeCntr() `view` `ef5bd6e8`
 # TimeLock
 
 
-## *function* lockTime
+## *function* tenderLockTime
 
-TimeLock.lockTime() `view` `0d668087`
-
-
-
-
-
-## *function* lockType
-
-TimeLock.lockType() `view` `765d4897`
+TimeLock.tenderLockTime() `view` `3d0ced49`
 
 
 
 
 
-## *function* getRemainingLockTime
+## *function* toUnixTime
 
-TimeLock.getRemainingLockTime() `view` `7a8cd156`
+TimeLock.toUnixTime(_time, _type) `view` `83b52eb4`
 
-**Calculate and retrieve remaining locktime**
+**Standardize relative or absolute time specification to unix timestamp**
 
 
+Inputs
 
+| | | |
+|-|-|-|
+| *uint256* | _time | undefined |
+| *uint256* | _type | undefined |
 
 Outputs
 
 | | | |
 |-|-|-|
-| *uint256* | remLockTime | The remaining locktime in seconds |
+| *uint256* | unixtime | The unix timestamp |
 
-## *function* isUnlocked
+## *function* deliveryLockTime
 
-TimeLock.isUnlocked() `view` `8380edb7`
-
-**Returns true if timeLock has elapsed, false otherwise**
+TimeLock.deliveryLockTime() `view` `97e292bc`
 
 
 
 
-Outputs
-
-| | | |
-|-|-|-|
-| *bool* | lockStatus | True if contract is unlocked |
 
 ## *function* transferFunds
 
 TimeLock.transferFunds(recipient, amount) `nonpayable` `990dc9db`
 
-**Send amount to recipient's address**
+**Send amount to recipient's address after the delivery time lock has expired**
 
 
 Inputs
@@ -364,19 +361,36 @@ Inputs
 | *uint256* | amount | The amount |
 
 
-## *function* extendsLockTime
+## *function* getLockState
 
-TimeLock.extendsLockTime(newLock, _lockType) `nonpayable` `adbbe8c6`
+TimeLock.getLockState() `view` `cc7d9ade`
 
-**Extend lockTime to a specific time or extend it with specific seconds**
+**Returns the current lock status enum**
+
+
+
+
+Outputs
+
+| | | |
+|-|-|-|
+| *uint256* | lockState | LockState enum representing the contract status |
+
+## *function* extendLockTimes
+
+TimeLock.extendLockTimes(_tenderLockTime, _tenderLockType, _deliveryLockTime, _deliveryLockType) `nonpayable` `ead30a20`
+
+**Extend lock times**
 
 
 Inputs
 
 | | | |
 |-|-|-|
-| *uint256* | newLock | The new lockTime (timestamp, or seconds) |
-| *uint256* | _lockType | The new lockType (0 or 1) |
+| *uint256* | _tenderLockTime | Tender lock time, absolute or relative |
+| *uint256* | _tenderLockType | Tender lock type, 0 for absolute, 1 for relative |
+| *uint256* | _deliveryLockTime | Delivery lock time, absolute or relative |
+| *uint256* | _deliveryLockType | Delivery lock type, 0 for absolute, 1 for relative |
 
 
 

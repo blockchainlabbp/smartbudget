@@ -1,65 +1,55 @@
 * [TimeLock](#timelock)
-  * [lockTime](#function-locktime)
-  * [lockType](#function-locktype)
-  * [getRemainingLockTime](#function-getremaininglocktime)
-  * [isUnlocked](#function-isunlocked)
+  * [tenderLockTime](#function-tenderlocktime)
+  * [toUnixTime](#function-tounixtime)
+  * [deliveryLockTime](#function-deliverylocktime)
   * [transferFunds](#function-transferfunds)
-  * [extendsLockTime](#function-extendslocktime)
+  * [getLockState](#function-getlockstate)
+  * [extendLockTimes](#function-extendlocktimes)
 
 # TimeLock
 
 
-## *function* lockTime
+## *function* tenderLockTime
 
-TimeLock.lockTime() `view` `0d668087`
-
-
-
-
-
-## *function* lockType
-
-TimeLock.lockType() `view` `765d4897`
+TimeLock.tenderLockTime() `view` `3d0ced49`
 
 
 
 
 
-## *function* getRemainingLockTime
+## *function* toUnixTime
 
-TimeLock.getRemainingLockTime() `view` `7a8cd156`
+TimeLock.toUnixTime(_time, _type) `view` `83b52eb4`
 
-**Calculate and retrieve remaining locktime**
+**Standardize relative or absolute time specification to unix timestamp**
 
 
+Inputs
 
+| | | |
+|-|-|-|
+| *uint256* | _time | undefined |
+| *uint256* | _type | undefined |
 
 Outputs
 
 | | | |
 |-|-|-|
-| *uint256* | remLockTime | The remaining locktime in seconds |
+| *uint256* | unixtime | The unix timestamp |
 
-## *function* isUnlocked
+## *function* deliveryLockTime
 
-TimeLock.isUnlocked() `view` `8380edb7`
-
-**Returns true if timeLock has elapsed, false otherwise**
+TimeLock.deliveryLockTime() `view` `97e292bc`
 
 
 
 
-Outputs
-
-| | | |
-|-|-|-|
-| *bool* | lockStatus | True if contract is unlocked |
 
 ## *function* transferFunds
 
 TimeLock.transferFunds(recipient, amount) `nonpayable` `990dc9db`
 
-**Send amount to recipient's address**
+**Send amount to recipient's address after the delivery time lock has expired**
 
 
 Inputs
@@ -70,19 +60,36 @@ Inputs
 | *uint256* | amount | The amount |
 
 
-## *function* extendsLockTime
+## *function* getLockState
 
-TimeLock.extendsLockTime(newLock, _lockType) `nonpayable` `adbbe8c6`
+TimeLock.getLockState() `view` `cc7d9ade`
 
-**Extend lockTime to a specific time or extend it with specific seconds**
+**Returns the current lock status enum**
+
+
+
+
+Outputs
+
+| | | |
+|-|-|-|
+| *uint256* | lockState | LockState enum representing the contract status |
+
+## *function* extendLockTimes
+
+TimeLock.extendLockTimes(_tenderLockTime, _tenderLockType, _deliveryLockTime, _deliveryLockType) `nonpayable` `ead30a20`
+
+**Extend lock times**
 
 
 Inputs
 
 | | | |
 |-|-|-|
-| *uint256* | newLock | The new lockTime (timestamp, or seconds) |
-| *uint256* | _lockType | The new lockType (0 or 1) |
+| *uint256* | _tenderLockTime | Tender lock time, absolute or relative |
+| *uint256* | _tenderLockType | Tender lock type, 0 for absolute, 1 for relative |
+| *uint256* | _deliveryLockTime | Delivery lock time, absolute or relative |
+| *uint256* | _deliveryLockType | Delivery lock type, 0 for absolute, 1 for relative |
 
 
 
