@@ -146,12 +146,10 @@ export const SmartBudgetService = {
     /**
      * Create contractors
      */
-    addContractor: function (parentid) {
+    addContractor: function (parentid, desc) {
         var self = this;
         var meta;
         var nodeAddedEvent;
-
-        const desc = "contractor";
 
         return self._smartBudgetContract.deployed().then(function (instance) {
             return instance.addNode.sendTransaction(desc, parentid, { from: self._account, gas: 300000 });

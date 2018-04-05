@@ -40,5 +40,28 @@
     </table>
   
   </div>
+  <div id="detailsDialog" style="display:none" title="Details">
+    <input id="nodeID" type="hidden" value="-1">
+    <p id="nodeDetails"></p>
+    <div id="validationError" class="error">Fill the corresponding inputs!</div>
+    <fieldset>
+      <legend>Add sub project</legend>
+      <label for="addNodeDesc">Description</label>
+      <input id="addNodeDesc" type="text" required />
+      <button id="addNode" type='button'>Add sub project</button>
+    </fieldset>
+    <fieldset>
+      <legend>Apply for project</legend>
+      <label for="applyForNodeName">Name</label>
+      <input id="applyForNodeName" type="text" required />
+      <label for="applyForNodeStake">Stake</label>
+      <input id="applyForNodeStake" type="number"required />
+      <button id="applyForNode" type='button'>Apply for project</button>
+    </fieldset>
+    <fieldset>
+      <legend>Approve candidate</legend>
+      <button id="approveNode" type='button'>Approve candidate</button>
+    </fieldset>
+  </div>
 </body>
 </html>

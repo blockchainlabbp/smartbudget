@@ -10,6 +10,9 @@ import 'jquery.fancytree/dist/modules/jquery.fancytree.filter';
 import 'jquery.fancytree/dist/modules/jquery.fancytree.table';
 import 'jquery.fancytree/dist/modules/jquery.fancytree.gridnav';
 
+import 'jquery-ui/ui/widgets/dialog';
+import 'jquery-ui/themes/base/all.css';
+
 // Import libraries we need.
 import { default as Web3} from 'web3';
 import { default as contract } from 'truffle-contract'
@@ -52,31 +55,29 @@ window.App = {
       window.Controller.init();
         
         SmartBudgetService.getAddress()
-          .then((address) => {
-            web3.eth.filter({address: address}, function(error, result){
-            if (!error) {
-                console.log('web3.eth.filter result: ', result);
-                //new block was added related to contract
-                window.Controller.warnBlockChange();
-            }
+        .then((address) => {
+            web3.eth.filter({address: address}, function(error, result) {
+                if (!error) {
+                    console.log('web3.eth.filter: ', result);
+                    //new block was added related to contract
+                    window.Controller.warnBlockChange();
+                }
             });
-          })
-          .catch((reason) => console.log(reason));
+        })
+        .catch((reason) => console.log(reason));
 
         SmartBudgetService._smartBudgetContract.deployed().then(function(instance) {
-          
-          var meta = instance;
-            
-          var nodeAddedEvent = meta.NodeAdded({ from: self._account });
-          nodeAddedEvent.watch(function(err, result) {
-              if (err) {
-                  console.log(err)
-                  return;
-              }
-              console.log("nodeAddedEvent result" , result); 
-              console.log("nodeAddedEvent watch", result.args.from, result.args.key);
-              $(window).trigger("nodeAdded");
-          });
+            var nodeAddedEvent = instance.NodeAdded({ from: self._account });
+            nodeAddedEvent.watch(function(err, result) {
+                if (err) {
+                    console.log(err);
+                    return;
+                }
+                //refresh only if node was added by current address
+                if (result.args.from == account)
+                    window.Controller.updateTree();
+                console.log("nodeAddedEvent:", result);
+            });
         });
     });
   },
@@ -113,7 +114,31 @@ window.TreeView = {
    */
   createTree : function() {
     $("#btnLoadContracts").click(window.Controller.updateTree);
-    $(window).on("nodeAdded", window.Controller.updateTree);
+    $("#detailsDialog").dialog().dialog("close");
+    $("#addNode", "#detailsDialog").on("click", function(e) {
+        //$(this).append("<span>Node insert pending...</span>");
+        if ($("#addNodeDesc", "#detailsDialog")[0].checkValidity()) {
+          window.Controller.addContractor(
+            $("#nodeID", "#detailsDialog").val(),
+            $("#addNodeDesc", "#detailsDialog").val());  
+        } else {
+          $("#validationError", "#detailsDialog").show();
+        }
+    });
+    $("#applyForNode", "#detailsDialog").on("click", function(e) {
+        if ($("#applyForNodeName", "#detailsDialog")[0].checkValidity() && 
+            $("#applyForNodeStake", "#detailsDialog")[0].checkValidity()) {
+          window.Controller.applyForProject(
+            $("#nodeID", "#detailsDialog").val(),
+            $("#applyForNodeName", "#detailsDialog").val(),
+            $("#applyForNodeStake", "#detailsDialog").val());  
+        } else {
+          $("#validationError", "#detailsDialog").show();
+        }
+    });
+    $("#approveNode", "#detailsDialog").on("click", function(e) {
+        window.Controller.approveProject($("#nodeID", "#detailsDialog").val());
+    });
 
     TreeView.tree = createTree("#tree",{
       checkbox: false,           // don't render default checkbox column
@@ -145,13 +170,16 @@ window.TreeView = {
         // (Column #1 is rendered by fancytree) adding node name and icons
         
         // ...otherwise render remaining columns
+        $tdList.eq(1).text(node.data.title);
         $tdList.eq(2).text(node.data.address.substring(0,5));
         $tdList.eq(3).text(node.data.stake);
 
-        $tdList.eq(4).append("<button type='button'>Add</button>")
+        $tdList.eq(4).append("<button type='button'>Details</button>")
         .click(function() {
-            $(this).append("<span>Node insert pending...</span>");
-            window.Controller.addContractor(node.data.id);
+            $("#nodeID", "#detailsDialog").val(node.data.id);
+            $("#nodeDetails", "#detailsDialog").html("Project ID: " + node.data.id);
+            $("#validationError", "#detailsDialog").hide();
+            $("#detailsDialog").dialog("open");
         });
       }
     });
@@ -172,8 +200,20 @@ window.Controller = {
     TreeView.createTree();
   },
 
-  addContractor: function(parentId) {
-    SmartBudgetService.addContractor(parentId)
+  addContractor: function(parentId, desc) {
+    SmartBudgetService.addContractor(parentId, desc)
+    .then((val) => console.log(val))
+    .catch((reason) => console.log(reason));
+  },
+  
+  applyForProject: function(nodeId, name, stake) {
+    SmartBudgetService.applyForNode(nodeId, name, stake)
+    .then((val) => console.log(val))
+    .catch((reason) => console.log(reason));
+  },
+  
+  approveProject: function(nodeId) {
+    SmartBudgetService.approveNode(nodeId)
     .then((val) => console.log(val))
     .catch((reason) => console.log(reason));
   },
