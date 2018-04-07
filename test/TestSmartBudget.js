@@ -14,9 +14,13 @@ contract('SmartBudget', function(accounts) {
     var deliveryLockTime = 2000; // in seconds or unix timestamp
     var deliveryLockType = 1; // 0 = absolute, 1 = relative
     var initStake = web3.toWei(0.01, 'ether');
-    return SmartBudget.new(tenderLockTime, tenderLockType, deliveryLockTime, deliveryLockType, {from: root_acc, value: initStake}).then(function(instance) {
+    var lastNodeId;
+    return SmartBudget.new(tenderLockTime, tenderLockType, deliveryLockTime, deliveryLockType, "SBTest", {from: root_acc, value: initStake}).then(function(instance) {
         tree = instance;
-        return tree.getNodesWeb.call();
+        return tree.nodeCntr();
+      }).then(function (nodeCntr) {
+        lastNodeId = nodeCntr - 1;
+        return tree.getNodesWeb(0, lastNodeId);
       }).then(function (nodesArray) {
         // (int[] _ids, uint[] _stakes, int[] _parentIds, address[] _addresses)
         assert.equal(nodesArray[0].length, 1, "Contract should have exatly one node after deployment!");
@@ -31,7 +35,7 @@ contract('SmartBudget', function(accounts) {
     });
   });
   it("should approve candidate for first node", function() {
-    var tree;
+    var contract;
     var root_acc = accounts[0];
     var child_acc = accounts[1];
 
@@ -46,45 +50,39 @@ contract('SmartBudget', function(accounts) {
     var candidateId = 0;
     var candidateName = "First candidate";
     var candidateStake = web3.toWei(0.005, 'ether'); // in ether
-    return SmartBudget.new(tenderLockTime, tenderLockType, deliveryLockTime, deliveryLockType, {from: root_acc, value: initStake}).then(function(instance) {
-        tree = instance;
-        return  tree.getAvailableStake.call(0);
-      }).then( function(availStakeRoot) {
-        assert.equal(availStakeRoot.toNumber(), initStake, "After deployment, init stake should be unchanged!");
-        return tree.getAllocatedStake.call(0);
-      }).then( function(allocStakeRoot) {
-        assert.equal(allocStakeRoot.toNumber(), 0, "After deployment, there should not be any allocated stake!");
-
-
-        console.log("Adding new node");
-        return tree.addNode(nodeDesc, parentId);
+    var lastNodeId;
+    return SmartBudget.new(tenderLockTime, tenderLockType, deliveryLockTime, deliveryLockType, "SBTest", {from: root_acc, value: initStake}).then(function(instance) {
+        contract = instance;
+        return  contract.getNodeWeb(0);
+      }).then( function(attributes) {
+        assert.equal(attributes[0].toNumber(), initStake, "After deployment, init stake should be unchanged!");
+        console.log("       Adding new node");
+        return contract.addNode(nodeDesc, parentId);
       }).then( function(result) {
         // result.tx => transaction hash, string
         // result.logs => array of trigger events (1 item in this case)
         // result.receipt => receipt object
-        return  tree.getAvailableStake.call(0);
-      }).then( function(availStakeRoot) {
-        assert.equal(availStakeRoot.toNumber(), initStake, "After adding first empty node, init stake should be unchaged!");
-        return  tree.getAllocatedStake.call(0);
-      }).then( function(allocStakeRoot) {
-        assert.equal(allocStakeRoot.toNumber(), 0, "After adding first empty node, there should not be any allocated stake!");
-
-
-        console.log("Applying for node");
-        return tree.applyForNode(nodeId, candidateName, candidateStake, {from: child_acc});
+        return  contract.getNodeWeb(0);
+      }).then( function(attributes) {
+        assert.equal(attributes[0].toNumber(), initStake, "After adding first empty node, init stake should be unchaged!");
+        console.log("       Applying for node");
+        return contract.applyForNode(nodeId, candidateName, candidateStake, {from: child_acc});
       }).then( function(result) {
         // result.tx => transaction hash, string
         // result.logs => array of trigger events (1 item in this case)
         // result.receipt => receipt object
 
 
-        console.log("Approving candidate");
-        return tree.approveNode(nodeId, candidateId);
+        console.log("       Approving candidate");
+        return contract.approveNode(nodeId, candidateId);
       }).then( function(result) {
         // result.tx => transaction hash, string
         // result.logs => array of trigger events (1 item in this case)
         // result.receipt => receipt object
-        return tree.getNodesWeb.call();
+        return  contract.nodeCntr();
+      }).then(function (nodeCntr) {
+        lastNodeId = nodeCntr - 1;
+        return contract.getNodesWeb(0, lastNodeId);
       }).then(function (nodesArray) {
 
 
