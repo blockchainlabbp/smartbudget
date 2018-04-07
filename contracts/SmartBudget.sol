@@ -371,12 +371,13 @@ contract SmartBudget is TimeLock {
             // The root may withdraw the amount promised to the node
             requireNodeOwner(root);
             recipient = nodes[root].addr;
+        } else {
+            revert();
         }
         uint amount = node.stake;
-        // To prevent reentrancy attacks
         node.stake = 0;
-        recipient.transfer(amount);
         node.state = NodeState.PAYED;
+        recipient.transfer(amount);     
     }
 
     /** @notice Withdraw all funds from contract if the project has been cancelled
