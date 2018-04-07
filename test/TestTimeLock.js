@@ -77,7 +77,7 @@ contract('TimeLock', function(accounts) {
       {from: root_acc, value: initStake})).be.fulfilled;
   });
 
-  it("should allow extending both time locks with valid settings", function() {
+  it("should throw even when trying to extend with valid settings", function() {
     var contract;
     var oldTenderLockTime;
     var newTenderLockTime;
@@ -93,26 +93,18 @@ contract('TimeLock', function(accounts) {
     var initStake = web3.toWei(0.01, 'ether');
     return SmartBudget.new(tenderLockTime, tenderLockType, deliveryLockTime, deliveryLockType, {value: initStake}).then(function(instance) {
       contract = instance;
-      return contract.tenderLockTime();
-    }).then( function(tLock) {
-      oldTenderLockTime = parseInt(tLock);
-      return contract.deliveryLockTime();
-    }).then( function(dLock) {
-      oldDeliveryLockTime = parseInt(dLock);
       // Update locktimes
-      tenderLockTime = 11; // relative time in seconds
+      tenderLockTime = 50; // relative time in seconds
       tenderLockType = 1; // 0 = absolute, 1 = relative
-      deliveryLockTime = 50; // in seconds or unix timestamp
+      deliveryLockTime = 100; // in seconds or unix timestamp
       deliveryLockType = 1; // 0 = absolute, 1 = relative
-      return  contract.extendLockTimes(tenderLockTime, tenderLockType, deliveryLockTime, deliveryLockType);
-    }).then( function() {
-      return contract.tenderLockTime();
-    }).then( function(tLock) {
-      newTenderLockTime = parseInt(tLock);
-      return contract.deliveryLockTime();
-    }).then( function(dLock) {
-      newDeliveryLockTime = parseInt(dLock);
-      return assert(newTenderLockTime > oldTenderLockTime && newDeliveryLockTime > oldDeliveryLockTime, 'Tender lock times should have increased.');
+      return  expect(
+        contract.extendLockTimes(
+          tenderLockTime, 
+          tenderLockType, 
+          deliveryLockTime, 
+          deliveryLockType)
+      ).be.rejectedWith('VM Exception while processing transaction');
     });
   });
 
@@ -142,7 +134,7 @@ contract('TimeLock', function(accounts) {
       ).be.rejectedWith('VM Exception while processing transaction');
     });
   });
-
+  /*
   it("should allow extending tender time lock only", function() {
     var contract;
     var oldTenderLockTime;
@@ -220,4 +212,5 @@ contract('TimeLock', function(accounts) {
       return assert(newTenderLockTime == oldTenderLockTime && newDeliveryLockTime > oldDeliveryLockTime, 'Tender lock time should not have changed');
       });
   });
+  */
 });

@@ -46,6 +46,9 @@ contract TimeLock {
     * @param _deliveryLockType Delivery lock type, 0 for absolute, 1 for relative
     */
   function extendLockTimes(uint _tenderLockTime, uint _tenderLockType, uint _deliveryLockTime, uint _deliveryLockType) public onlyOwner {
+    // Let's disallow time lock extension in the MVP
+    // Unilateral extension of the time lock can be bad for the subcontractors
+    require(getLockState() == uint(LockState.INVALID));
     // First update the delivery lock time
     uint newDeliveryLockTime = toUnixTime(_deliveryLockTime, _deliveryLockType);
     require(newDeliveryLockTime >= deliveryLockTime);
