@@ -169,7 +169,7 @@ contract SmartBudget is TimeLock {
     }
     
 
-    //--------------------------------------Update Methods------------------------------------
+    //--------------------------------------Updater methods------------------------------------
 
 
     /** @notice SmartBudget constructor
@@ -289,7 +289,7 @@ contract SmartBudget is TimeLock {
         nodes[nodeId].state = NodeState.COMPLETED;
     }
 
-    //--------------------------------------Getter Methods------------------------------------
+    //-------------------------Getter methods for web interface-----------------------------
 
 
     /** @notice [web3js] Get a node by Id (id is the key in context of map)
@@ -305,28 +305,27 @@ contract SmartBudget is TimeLock {
     * }
     */
     function getNodeWeb(uint nodeId) public view returns (uint stake, address addr, NodeState state, uint[] cands, string desc, uint parent, uint[] childs) {
+        validateNodeId(nodeId);
         return (nodes[nodeId].stake, nodes[nodeId].addr, nodes[nodeId].state, nodes[nodeId].candidates, nodes[nodeId].desc, nodes[nodeId].parent, nodes[nodeId].childs);
     }
 
-    /** @notice [web3js] Get all candidate addresses of nodes
+    /** @notice [web3js] Get a candidate by Id (id is the key in context of map)
+    * @param candidateId Id of the candidate
     * @return {
-    *    "_addr" : "Array of candidate addresses of node" 
+        "name" : "Name of the  candidate",
+    *   "stake" : "Proposed stake of candidate",
+    *   "addr" : "Address of candidate"
     * }
     */
-    function getNodeCandidatesAddressesWeb(uint _key) public view returns (address[] _addr) {
-
-        address[] memory addr;
-
-        for (uint i = 0; i < nodes[_key].candidates.length; i++) {
-            Candidate memory candidate = candidates[nodes[_key].candidates[i]];
-            addr[i] = candidate.addr;
-        }
-
-        return addr;
+    function getCandidateWeb(uint candidateId) public view returns (string name, uint stake, address addr) {
+        validateCandidateId(candidateId);
+        return (candidates[candidateId].name, candidates[candidateId].stake, candidates[candidateId].addr);
     }
 
-    /** @notice [web3js] Get the most important node details from the contract. Can be used to build the tree on JS side
+    /** @notice [web3js] Get the most important details of nodes where firstNodeIf <= nodeId <= lastNodeId. Can be used to build the tree on JS side
     * @dev Due to limitations in Solidity, we can only return tuples of arrays, but not tuples of array of arrays (e.g. array of strings) 
+    * @param firstNodeId Starting id
+    * @param lastNodeId Ending id
     * @return {
     *   "_ids" : "ids of the nodes",
     *   "_stakes" : "stakes of the nodes",
@@ -334,13 +333,16 @@ contract SmartBudget is TimeLock {
     *   "_addresses" : "addresses of the nodes"
     * }
     */
-    function getNodesWeb() public view returns (uint[] _ids, uint[] _stakes, uint[] _parents, address[] _addresses) {
+    function getNodesWeb(uint firstNodeId, uint lastNodeId) public view returns (uint[] _ids, uint[] _stakes, uint[] _parents, address[] _addresses) {
+        validateNodeId(firstNodeId);
+        validateNodeId(lastNodeId);
+        require(lastNodeId >= firstNodeId);
         uint[] memory ids = new uint[](nodeCntr);
         uint[] memory parents = new uint[](nodeCntr);
         address[] memory addresses = new address[](nodeCntr);
         uint[] memory stakes = new uint[](nodeCntr);
 
-        for (uint i = 0; i < nodeCntr; i++) {
+        for (uint i = firstNodeId; i <= lastNodeId; i++) {
             Node memory node = nodes[i];
             ids[i] = node.id;
             parents[i] = node.parent;
@@ -350,6 +352,38 @@ contract SmartBudget is TimeLock {
 
         return (ids, stakes, parents, addresses);
     }
+
+    /** @notice [web3js] Get the most important candidate details where firstCandidateId <= candidateId <= lastCandidateId. Can be used to scan the candidate addresses
+    * @dev Due to limitations in Solidity, we can only return tuples of arrays, but not tuples of array of arrays (e.g. array of strings) 
+    * @param firstCandidateId Starting id
+    * @param lastCandidateId Ending id
+    * @return {
+    *   "_ids" : "ids of the candidates",
+    *   "_stakes" : "stakes of the candidates",
+    *   "_addresses" : "addresses of the candidates"
+    * }
+    */
+    function getCandidatesWeb(uint firstCandidateId, uint lastCandidateId) public view returns (uint[] _ids, uint[] _stakes, address[] _addresses) {
+        validateNodeId(firstCandidateId);
+        validateNodeId(lastCandidateId);
+        require(lastCandidateId >= firstCandidateId);
+        uint[] memory ids = new uint[](candidateCntr);
+        address[] memory addresses = new address[](candidateCntr);
+        uint[] memory stakes = new uint[](candidateCntr);
+
+        for (uint i = firstCandidateId; i <= lastCandidateId; i++) {
+            Node memory node = nodes[i];
+            ids[i] = node.id;
+            addresses[i] = node.addr;
+            stakes[i] = node.stake;
+        }
+
+        return (ids, stakes, addresses);
+    }
+
+
+    //--------------------------------------Payment related methods------------------------------------
+
 
     /** @notice Withdraw promised amount
     * @param nodeId The id of the node to retreive the promised amount from
