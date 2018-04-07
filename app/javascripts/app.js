@@ -1,5 +1,6 @@
 // Import the page's CSS. Webpack will know what to do with it.
 import "../stylesheets/app.css";
+import "../stylesheets/main.css";
 import {SmartBudgetService} from "./smartbudgetservice.js";
 
 // Import fancytree https://github.com/mar10/fancytree/wiki
@@ -16,6 +17,17 @@ import 'jquery-ui/themes/base/all.css';
 // Import libraries we need.
 import { default as Web3} from 'web3';
 import { default as contract } from 'truffle-contract'
+
+import logoData from '../images/logo.png';
+import logo2Data from '../images/logo2.png';
+import metamask3Data from '../images/metamask3.png';
+import pic01Data from '../images/pic01.jpg';
+import pic11Data from '../images/pic01.jpg';
+$('#logoImg').attr('src', logoData);
+$('#logo2Img').attr('src', logo2Data);
+$('#metamask3Img').attr('src', metamask3Data);
+$('#pic01Img').attr('src', pic01Data);
+$('#pic11Img').attr('src', pic11Data);
 
 // Smartbudget imports
 import smartbudget_abi from '../../build/contracts/SmartBudget.json'
@@ -47,6 +59,8 @@ window.App = {
 
       accounts = accs;
       account = accounts[0];
+      
+      $('#metamaskAddress').html(account);
 
       // Bootstrap the smart contract
       //TreeDataStructure.setProvider(web3.currentProvider);
