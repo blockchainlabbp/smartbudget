@@ -1,17 +1,20 @@
-pragma solidity ^0.4.2;
+pragma solidity ^0.4.21;
 
 import "./TimeLock.sol";
 
 contract SmartBudget is TimeLock {
+    //------------------------------Events-------------------------------------------------
+    event SmartBudgetCreation(address indexed owner, uint stake);
+
     //------------------------------Enums--------------------------------------------------
 
     /*
     * ContractState enum disrcibes the state of the smartbudget contract.
     * INVALID   - 0 - Before initalization is complete
-    * TENDER    - 1 - Contract is in the tender period
-    * DELIVERY  - 2 - Contract is in delivery period
-    * FINISHED  - 3 - Delivery time lock has expired, withdraw is opened
-    * CANCELLED - 4 - Some first-level subprojects of the main project have not been approved
+    * CANCELLED - 1 - Some first-level subprojects of the main project have not been approved
+    * TENDER    - 2 - Contract is in the tender period
+    * DELIVERY  - 3 - Contract is in delivery period
+    * FINISHED  - 4 - Delivery time lock has expired, withdraw is opened
     */
     enum ContractState {INVALID, CANCELLED, TENDER, DELIVERY, FINISHED}
 
@@ -179,6 +182,10 @@ contract SmartBudget is TimeLock {
     * @param _deliveryLockType Delivery lock type, 0 for absolute, 1 for relative
     */
     function SmartBudget(uint _tenderLockTime, uint _tenderLockType, uint _deliveryLockTime, uint _deliveryLockType, string desc) TimeLock(_tenderLockTime, _tenderLockType, _deliveryLockTime, _deliveryLockType) public payable {
+        emit SmartBudgetCreation(msg.sender, msg.value);
+
+        topSubProjectsNum = 0;
+        approvedTopSubProjectsNum = 0;
         nodeCntr = 0;
         candidateCntr = 0;
 
@@ -194,7 +201,7 @@ contract SmartBudget is TimeLock {
         nodeCntr = nodeCntr + 1;
 
         root = key;
-        nodes[key] = node;
+        nodes[key] = node;   
     } 
 
     /** @notice Add a new empty node

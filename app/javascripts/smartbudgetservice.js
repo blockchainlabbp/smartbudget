@@ -125,8 +125,13 @@ export const SmartBudgetService = {
 
         return self._smartBudgetContract.deployed().then(function (instance) {
             meta = instance;
-            return meta.getNodesWeb.call({ from: self._account, gas: 500000 });
+            return meta.nodeCntr();
+        }).then(function (nodeCntr) {
+            var lastId = nodeCntr - 1;
+            console.log("NodeCntr is "+ nodeCntr);
+            return meta.getNodesWeb.call(0, lastId, { from: self._account, gas: 500000 });
         }).then(function (nodesArray) {
+            console.log("The returned nodesArray is " + nodesArray);
             // (int[] _ids, uint[] _stakes, int[] _parentIds, address[] _addresses)
             var newTree =  self._convertNodesTripletToTree(nodesArray);
 
@@ -139,14 +144,25 @@ export const SmartBudgetService = {
      */
     addContractor: function (stake, parentid) {
         var self = this;
-        var meta;
+        var contract;
 
         const desc = "contractor";
 
         return self._smartBudgetContract.deployed().then(function (instance) {
-            meta = instance;
-            return meta.addNode.sendTransaction(desc, parentid, { from: self._account, gas: 300000 });
-        });
+            contract = instance;
+            return contract.getContractState();
+        }).then( function(state) {
+            console.log("Contract state is "+ state);
+            console.log("self.account "+ self._account);
+            console.log("Adding new node with desc " + desc + " and parentid " + parentid);
+            return contract.addNode(desc, parentid,{ from: self._account, gas: 500000 });
+        }).then( function(result) {
+            // result.tx => transaction hash, string
+            // result.logs => array of trigger events (1 item in this case)
+            // result.receipt => receipt object
+            console.log("The returned result is: " + result);
+            return  0;
+          });
     },
 
     assignAddress: function (address) {

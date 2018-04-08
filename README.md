@@ -8,7 +8,7 @@
 ## Setting up the development environment
 1. Install NodeJS and npm (Node Package Manager): https://nodejs.org/en/
 1. Install `solc` binaries (https://github.com/ethereum/solidity/releases) and add it to your PATH (this is only needed for documentation generation)
-1. `npm install -g truffle` - Install Truffle globally. It means `truffle` command will be available throughout the system
+1. `npm install -g truffle@4.1.4` - Install specific version of Truffle globally. It is important that we all use the same version of truffle to avoid misterious issues. Global installation means the `truffle` is installed to your npm install folder (instead of the project folder) which is supposed to be on the cmd path.
 1. `git clone https://gitlab.com/BlokklancMuhely/MuhelyMunkak/smartbudget.git`  - Clone the git repository
 1. `npm install` - within the `smartbudget` folder. This will download all dependencies defined in `package.json`. These node modules are installed into `node_modules`, therefore only available within the project.
 
