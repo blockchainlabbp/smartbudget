@@ -114,6 +114,15 @@ export const SmartBudgetService = {
         self._smartBudgetContract = smartBudgetContract;
         self._account = account;
     },
+    
+    getAddress: function() {
+        var self = this;
+        
+        return self._smartBudgetContract.deployed().then(function (instance) {
+            return instance.address;
+        });
+    },
+    
 
     /**
      * Get the nodes from the smart contract
@@ -142,27 +151,15 @@ export const SmartBudgetService = {
     /**
      * Create contractors
      */
-    addContractor: function (stake, parentid) {
+    addContractor: function (parentid, desc) {
         var self = this;
-        var contract;
 
-        const desc = "contractor";
+        var meta;
+        var nodeAddedEvent;
 
         return self._smartBudgetContract.deployed().then(function (instance) {
-            contract = instance;
-            return contract.getContractState();
-        }).then( function(state) {
-            console.log("Contract state is "+ state);
-            console.log("self.account "+ self._account);
-            console.log("Adding new node with desc " + desc + " and parentid " + parentid);
-            return contract.addNode(desc, parentid,{ from: self._account, gas: 500000 });
-        }).then( function(result) {
-            // result.tx => transaction hash, string
-            // result.logs => array of trigger events (1 item in this case)
-            // result.receipt => receipt object
-            console.log("The returned result is: " + result);
-            return  0;
-          });
+            return instance.addNode.sendTransaction(desc, parentid, { from: self._account, gas: 500000 });
+        });
     },
 
     assignAddress: function (address) {

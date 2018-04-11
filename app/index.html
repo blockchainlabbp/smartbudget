@@ -1,43 +1,196 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE HTML>
+<!--
+  HTML5 - page01
+-->
 <html>
-<head>
-  <title>SmartBudget - Smart Contract for decentralised budget management</title>
-  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
-  <script src="./app.bundle.js"></script>
-</head>
-<body>
-  <div id="projectContainer">
-    <h1>Contract Graph</h1>
-    <button type="button" id="btnLoadContracts">load contracts</button>
-    <table id="tree">
-      <colgroup>
-        <col width="0px"></col>
-        <col width="*"></col>
-        <col width="150px"></col>
-        <col width="30px"></col>
-        <col width="*"></col>
-      </colgroup>
-      <thead>
-        <tr>
-          <th></th>
-          <th>Name</th>
-          <th>Contractor Address</th>
-          <th>Stake</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Define a row template for invariant markup and attributes: -->
-        <tr>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-        </tr>
-      </tbody>
-    </table>
-  
-  </div>
-</body>
+	<head>
+		<title>SmartBudget homepage</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+	</head>
+	<body>
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Main -->
+					<div id="main">
+						<div class="inner">
+
+							<!-- Header -->
+								<header id="header">
+									<a href="index.html" class="logo"><img id="logoImg" src="" alt="" class="limage2"/></a>
+									<div class="icons">
+										<strong>METAMASK ADRESS:</strong><br> 
+									<span id="metamaskAddress" class="metamaskadress"></span> </div>
+								</header>
+
+							<!-- Banner -->
+								<section id="banner">
+									<div class="content">
+										<header>
+											<h1>Attention!</h1>
+											<p>The metamask plugin must be installed.</p>
+										</header>
+										<p>Lorem űúőéó dolor sit amet, consectetur adipiscing elit. Donec rhoncus gravida iaculis. Integer accumsan semper cursus. Curabitur in vehicula lectus. Nam ultricies cursus lectus eget aliquet. Maecenas commodo placerat lacus, vitae condimentum enim convallis in. Sed sed est massa. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nam convallis, justo nec viverra ultricies, tortor nulla pharetra nisl, vitae pulvinar erat augue vitae sapien. Fusce fringilla.
+</p>
+										<ul class="actions">
+											<li><a href="https://metamask.io/" target="_blank" class="button special big">Download the plugin</a></li>
+										</ul>
+									</div>
+									<span class="image">
+										<img id="pic01Img" alt="" />
+									</span>
+						  </section>
+
+							
+
+							<!-- Section -->
+								<section>
+									<header class="major">
+										<h2>My projects</h2>
+									</header>
+									
+                                    <h4>Contract Graph</h4>
+                                                    
+                                    <!-- Load contract tree -->    
+                                      <div id="projectContainer">
+                                        <button type="button" id="btnLoadContracts">load contracts</button>
+                                        <span id="msgBlockChanged">Contract was changed by others, please reload the graph!</span>
+                                        <table id="tree">
+                                          <colgroup>
+                                            <col width="0px"></col>
+                                            <col width="*"></col>
+                                            <col width="150px"></col>
+                                            <col width="30px"></col>
+                                            <col width="*"></col>
+                                          </colgroup>
+                                          <thead>
+                                            <tr>
+                                              <th></th>
+                                              <th>Name</th>
+                                              <th>Contractor Address</th>
+                                              <th>Stake</th>
+                                              <th>Actions</th>
+                                            </tr>
+                                          </thead>
+                                          <tbody>
+                                            <!-- Define a row template for invariant markup and attributes: -->
+                                            <tr>
+                                              <td></td>
+                                              <td></td>
+                                              <td></td>
+                                              <td></td>
+                                              <td></td>
+                                            </tr>
+                                          </tbody>
+                                        </table>
+                                      
+                                      </div>
+                                      <div id="detailsDialog" style="display:none" title="Details">
+                                        <input id="nodeID" type="hidden" value="-1">
+                                        <p id="nodeDetails"></p>
+                                        <div id="validationError" class="error">Fill the corresponding inputs!</div>
+                                        <fieldset>
+                                          <legend>Add sub project</legend>
+                                          <label for="addNodeDesc">Description</label>
+                                          <input id="addNodeDesc" type="text" required />
+                                          <button id="addNode" type='button'>Add sub project</button>
+                                        </fieldset>
+                                        <fieldset>
+                                          <legend>Apply for project</legend>
+                                          <label for="applyForNodeName">Name</label>
+                                          <input id="applyForNodeName" type="text" required />
+                                          <label for="applyForNodeStake">Stake</label>
+                                          <input id="applyForNodeStake" type="number"required />
+                                          <button id="applyForNode" type='button'>Apply for project</button>
+                                        </fieldset>
+                                        <fieldset>
+                                          <legend>Approve candidate</legend>
+                                          <button id="approveNode" type='button'>Approve candidate</button>
+                                        </fieldset>
+                                      </div>                                          
+								</section>
+
+					  </div>
+					</div>
+
+				<!-- Sidebar -->
+					<div id="sidebar">
+						<div class="inner">
+
+							<!-- Search -->
+						  <section id="search" class="alt">
+									
+
+										<a href="#" class="image"><img id="metamask3img" alt="" width="200" class="limage"/></a>
+										
+											
+										
+								</section>
+								
+
+							<!-- Menu -->
+								<nav id="menu">
+								
+								
+									<header class="major">
+										<h2>MENU</h2>
+									</header>
+									<ul>
+										<li><a href="index.html">Landing</a></li>
+										<li><a href="webelements.html">Create new project</a></li>
+										<li><a href="find.html">Find project</a></li>
+										<li>
+											<span class="opener">Project overview</span>
+											<ul>
+												<li><a href="blank.html">Subproject view</a></li>
+												<li><a href="blank.html">Create subproject</a></li>
+												<li><a href="blank.html">Apply for subproject</a></li>
+												
+											</ul>
+										</li>
+										<li><a href="about.html">About Us</a></li>
+										
+										
+									</ul>
+						  </nav>
+
+							
+								<section>
+									<header class="major">
+										<h2>CONTACT</h2>
+									</header>
+									<p>Sed varius enim lorem ullamcorper dolore aliquam aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin sed aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.</p>
+									<ul class="contact">
+										<li class="fa-envelope-o"><a href="#">info@akarmi.hu</a></li>
+										<li class="fa-phone">(+36)00-000-0000</li>
+										<li class="fa-home">1234 XXXXXX,<br />
+										xxxxxxxx ddddd 00.</li>
+									</ul>
+								</section>
+
+							<!-- Footer -->
+								<footer id="footer">
+								<img id="logo2Img" alt="" width="200" class="limage"/></a>
+									<p class="copyright">&copy; 2018. All rights reserved.<a href="https://blokklancmuhely.club/" target="_blank"> Blokklánc Műhely</a></p>
+								</footer>
+
+						</div>
+					</div>
+
+			</div>
+
+		<!-- Scripts -->
+        <!--
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/skel.min.js"></script>
+			<script src="assets/js/util.js"></script>
+        -->
+			<!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
+        <!--
+			<script src="assets/js/main.js"></script>
+        -->
+            <script src="./app.bundle.js"></script>
+	</body>
 </html>

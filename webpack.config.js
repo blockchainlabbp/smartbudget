@@ -17,7 +17,11 @@ module.exports = {
 
     // Copy our app's index.html to the build folder.
     new CopyWebpackPlugin([
-      { from: './app/index.html', to: "index.html" }
+      { from: './app/about.html', to: "about.html" },
+      { from: './app/blank.html', to: "blank.html" },
+      { from: './app/find.html', to: "find.html" },
+      { from: './app/index.html', to: "index.html" },
+      { from: './app/webelements.html', to: "webelements.html" },
     ]), 
     new webpack.ProvidePlugin({
         // Make jQuery / $ available in every module:
@@ -46,8 +50,8 @@ module.exports = {
       },
       { test: /\.(?:png|jpe?g|svg|gif)$/i, use: [ { loader: 'url-loader', options: {
         limit: 10000  // Inline images smaller than 10kb as data URIs
-      } } ]
-    }
+        } } ]
+      }
     ],
     loaders: [
       { test: /\.json$/, use: 'json-loader' },

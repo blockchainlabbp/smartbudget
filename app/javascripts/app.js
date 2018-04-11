@@ -1,5 +1,6 @@
 // Import the page's CSS. Webpack will know what to do with it.
 import "../stylesheets/app.css";
+import "../stylesheets/main.css";
 import {SmartBudgetService} from "./smartbudgetservice.js";
 
 // Import fancytree https://github.com/mar10/fancytree/wiki
@@ -10,9 +11,23 @@ import 'jquery.fancytree/dist/modules/jquery.fancytree.filter';
 import 'jquery.fancytree/dist/modules/jquery.fancytree.table';
 import 'jquery.fancytree/dist/modules/jquery.fancytree.gridnav';
 
+import 'jquery-ui/ui/widgets/dialog';
+import 'jquery-ui/themes/base/all.css';
+
 // Import libraries we need.
 import { default as Web3} from 'web3';
 import { default as contract } from 'truffle-contract'
+
+import logoData from '../images/logo.png';
+import logo2Data from '../images/logo2.png';
+import metamask3Data from '../images/metamask3.png';
+import pic01Data from '../images/pic01.jpg';
+import pic11Data from '../images/pic01.jpg';
+$('#logoImg').attr('src', logoData);
+$('#logo2Img').attr('src', logo2Data);
+$('#metamask3Img').attr('src', metamask3Data);
+$('#pic01Img').attr('src', pic01Data);
+$('#pic11Img').attr('src', pic11Data);
 
 // Smartbudget imports
 import smartbudget_abi from '../../build/contracts/SmartBudget.json'
@@ -42,14 +57,40 @@ window.App = {
 
       accounts = accs;
       account = accounts[0];
+      
+      $('#metamaskAddress').html(account);
 
       // Bootstrap the smart contract
       SmartBudgetContract.setProvider(web3.currentProvider);
       SmartBudgetService.init(SmartBudgetContract, account);
-  
       window.Controller.init();
-    });
+        
+        SmartBudgetService.getAddress()
+        .then((address) => {
+            web3.eth.filter({address: address}, function(error, result) {
+                if (!error) {
+                    console.log('web3.eth.filter: ', result);
+                    //new block was added related to contract
+                    window.Controller.warnBlockChange();
+                }
+            });
+        })
+        .catch((reason) => console.log(reason));
 
+        SmartBudgetService._smartBudgetContract.deployed().then(function(instance) {
+            var nodeAddedEvent = instance.NodeAdded({ from: self._account });
+            nodeAddedEvent.watch(function(err, result) {
+                if (err) {
+                    console.log(err);
+                    return;
+                }
+                //refresh only if node was added by current address
+                if (result.args.from == account)
+                    window.Controller.updateTree();
+                console.log("nodeAddedEvent:", result);
+            });
+        });
+    });
   },
 
   setStatus: function(message) {
@@ -84,11 +125,37 @@ window.TreeView = {
    */
   createTree : function() {
     $("#btnLoadContracts").click(window.Controller.updateTree);
+    $("#detailsDialog").dialog().dialog("close");
+    $("#addNode", "#detailsDialog").on("click", function(e) {
+        //$(this).append("<span>Node insert pending...</span>");
+        if ($("#addNodeDesc", "#detailsDialog")[0].checkValidity()) {
+          window.Controller.addContractor(
+            $("#nodeID", "#detailsDialog").val(),
+            $("#addNodeDesc", "#detailsDialog").val());  
+        } else {
+          $("#validationError", "#detailsDialog").show();
+        }
+    });
+    $("#applyForNode", "#detailsDialog").on("click", function(e) {
+        if ($("#applyForNodeName", "#detailsDialog")[0].checkValidity() && 
+            $("#applyForNodeStake", "#detailsDialog")[0].checkValidity()) {
+          window.Controller.applyForProject(
+            $("#nodeID", "#detailsDialog").val(),
+            $("#applyForNodeName", "#detailsDialog").val(),
+            $("#applyForNodeStake", "#detailsDialog").val());  
+        } else {
+          $("#validationError", "#detailsDialog").show();
+        }
+    });
+    $("#approveNode", "#detailsDialog").on("click", function(e) {
+        window.Controller.approveProject($("#nodeID", "#detailsDialog").val());
+    });
 
     TreeView.tree = createTree("#tree",{
       checkbox: false,           // don't render default checkbox column
       titlesTabbable: true,        // Add all node titles to TAB chain
       source: null,
+      minExpandLevel: 3,
       extensions: ["table", "gridnav"],
       table: {
         checkboxColumnIdx: null,    // render the checkboxes into the this column index (default: nodeColumnIdx)
@@ -114,11 +181,17 @@ window.TreeView = {
         // (Column #1 is rendered by fancytree) adding node name and icons
         
         // ...otherwise render remaining columns
+        $tdList.eq(1).text(node.data.title);
         $tdList.eq(2).text(node.data.address.substring(0,5));
         $tdList.eq(3).text(node.data.stake);
 
-        $tdList.eq(4).append("<button type='button'>Add</button>")
-        .click(() => window.Controller.addContractor(100, node.data.id));
+        $tdList.eq(4).append("<button type='button'>Details</button>")
+        .click(function() {
+            $("#nodeID", "#detailsDialog").val(node.data.id);
+            $("#nodeDetails", "#detailsDialog").html("Project ID: " + node.data.id);
+            $("#validationError", "#detailsDialog").hide();
+            $("#detailsDialog").dialog("open");
+        });
       }
     });
   },
@@ -138,13 +211,26 @@ window.Controller = {
     TreeView.createTree();
   },
 
-  addContractor: function(stake, parentId) {
-    SmartBudgetService.addContractor(stake, parentId)
+  addContractor: function(parentId, desc) {
+    SmartBudgetService.addContractor(parentId, desc)
+    .then((val) => console.log(val))
+    .catch((reason) => console.log(reason));
+  },
+  
+  applyForProject: function(nodeId, name, stake) {
+    SmartBudgetService.applyForNode(nodeId, name, stake)
+    .then((val) => console.log(val))
+    .catch((reason) => console.log(reason));
+  },
+  
+  approveProject: function(nodeId) {
+    SmartBudgetService.approveNode(nodeId)
     .then((val) => console.log(val))
     .catch((reason) => console.log(reason));
   },
 
   updateTree : function() {
+    $("#msgBlockChanged").hide();
 
     function smartNodeToTreeNodeMapper(smartNode) {
       return {
@@ -163,8 +249,11 @@ window.Controller = {
     .then((val) => window.TreeView.updateTree(val))
     .catch((reason) => console.log(reason));
     
-  }
+  },
 
+    warnBlockChange: function () {
+        $("#msgBlockChanged").show();
+    }
 };
 
 window.addEventListener('load', function() {
