@@ -4,7 +4,7 @@ import "truffle/Assert.sol";
 import "truffle/DeployedAddresses.sol";
 import "../contracts/SmartBudget.sol";
 
-contract TestSmartBudget {
+contract TestSmartBudgetSol {
     function testInitialBalance() public {
         SmartBudget smartBudget = SmartBudget(DeployedAddresses.SmartBudget());
 

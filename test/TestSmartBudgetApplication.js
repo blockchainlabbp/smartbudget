@@ -3,37 +3,7 @@ var SmartBudget = artifacts.require("./SmartBudget.sol");
 // https://github.com/trufflesuite/truffle-contract
 
 // http://truffleframework.com/docs/getting_started/javascript-tests#use-contract-instead-of-describe-
-contract('SmartBudget', function(accounts) {
-  it("should have a root node after deployment", function() {
-    var tree;
-    var root_acc = accounts[0];
-    SmartBudget.defaults({from: root_acc});
-
-    var tenderLockTime = 1000; // in seconds or unix timestamp
-    var tenderLockType = 1; // 0 = absolute, 1 = relative
-    var deliveryLockTime = 2000; // in seconds or unix timestamp
-    var deliveryLockType = 1; // 0 = absolute, 1 = relative
-    var initStake = web3.toWei(0.01, 'ether');
-    var lastNodeId;
-    return SmartBudget.new(tenderLockTime, tenderLockType, deliveryLockTime, deliveryLockType, "SBTest", {from: root_acc, value: initStake}).then(function(instance) {
-        tree = instance;
-        return tree.nodeCntr();
-      }).then(function (nodeCntr) {
-        lastNodeId = nodeCntr - 1;
-        return tree.getNodesWeb(0, lastNodeId);
-      }).then(function (nodesArray) {
-        // (int[] _ids, uint[] _stakes, int[] _parentIds, address[] _addresses)
-        assert.equal(nodesArray[0].length, 1, "Contract should have exatly one node after deployment!");
-        var id = nodesArray[0][0];
-        var stake = nodesArray[1][0].toNumber();  // Originally it is a BigInt, we need to convert it
-        var parent = nodesArray[2][0];
-        var address = nodesArray[3][0];
-        assert.equal(id, 0, "Root id must be 0!");
-        assert.equal(stake, initStake, "Root stake not set correctly!");
-        assert.equal(parent, 0, "Root's parent must be itself (parent id = 0)!");
-        assert.equal(address, root_acc, "Root address must be the first account in Ganache!");
-    });
-  });
+contract('SmartBudget:ApplicationTests', function(accounts) {
   it("should approve candidate for first node", function() {
     var contract;
     var root_acc = accounts[0];
