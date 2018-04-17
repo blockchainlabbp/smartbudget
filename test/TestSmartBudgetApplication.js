@@ -1,10 +1,20 @@
 var SmartBudget = artifacts.require("./SmartBudget.sol");
+var chai = require('chai');
+chai.use(require('chai-as-promised'));
+var expect = chai.expect;
+var assert = chai.assert; 
 // Some help on the available functions:
 // https://github.com/trufflesuite/truffle-contract
 
+function sleep(seconds) 
+{
+  var e = new Date().getTime() + (seconds * 1000);
+  while (new Date().getTime() <= e) {}
+}
+
 // http://truffleframework.com/docs/getting_started/javascript-tests#use-contract-instead-of-describe-
 contract('SmartBudget:ApplicationTests', function(accounts) {
-  it("should approve candidate for first node", function() {
+  it("should allow root to apply as candidate for subproject", function() {
     var contract;
     var root_acc = accounts[0];
     var child_acc = accounts[1];
@@ -13,59 +23,135 @@ contract('SmartBudget:ApplicationTests', function(accounts) {
     var tenderLockType = 1; // 0 = absolute, 1 = relative
     var deliveryLockTime = 2000; // in seconds or unix timestamp
     var deliveryLockType = 1; // 0 = absolute, 1 = relative
-    var initStake = web3.toWei(0.01, 'ether');
-    var nodeDesc = "First node";
+    var initStake = web3.toWei(0.001, 'ether');
     var parentId = 0;
-    var nodeId = 1;
+    var childId = 1;
     var candidateId = 0;
-    var candidateName = "First candidate";
-    var candidateStake = web3.toWei(0.005, 'ether'); // in ether
-    var lastNodeId;
-    return SmartBudget.new(tenderLockTime, tenderLockType, deliveryLockTime, deliveryLockType, "SBTest", {from: root_acc, value: initStake}).then(function(instance) {
+    var candidateName = "Root as candidate";
+    var candidateStake = web3.toWei(0.0005, 'ether'); // in ether
+    return SmartBudget.new(tenderLockTime, 
+                          tenderLockType, 
+                          deliveryLockTime, 
+                          deliveryLockType, 
+                          "SBTest", 
+                          {from: root_acc, value: initStake}).then(function(instance) {
         contract = instance;
-        return  contract.getNodeWeb(0);
-      }).then( function(attributes) {
-        assert.equal(attributes[0].toNumber(), initStake, "After deployment, init stake should be unchanged!");
-        console.log("       Adding new node");
-        return contract.addNode(nodeDesc, parentId);
+        console.log("       Adding new child node to root");
+        return contract.addNode("First node", parentId);
       }).then( function(result) {
-        // result.tx => transaction hash, string
-        // result.logs => array of trigger events (1 item in this case)
-        // result.receipt => receipt object
-        return  contract.getNodeWeb(0);
-      }).then( function(attributes) {
-        assert.equal(attributes[0].toNumber(), initStake, "After adding first empty node, init stake should be unchaged!");
-        console.log("       Applying for node");
-        return contract.applyForNode(nodeId, candidateName, candidateStake, {from: child_acc});
+        console.log("       Applying for child node using child_acc");
+        return contract.applyForNode(childId, candidateName, candidateStake, {from: root_acc});
       }).then( function(result) {
-        // result.tx => transaction hash, string
-        // result.logs => array of trigger events (1 item in this case)
-        // result.receipt => receipt object
+        return contract.getCandidateWeb(candidateId);
+      }).then( function(candAttrs) {
+        // string name, uint stake, address addr
+        assert.equal(candAttrs[0], candidateName, "Candidate name should be " +  candidateName + " !");
+        assert.equal(candAttrs[1], candidateStake, "The candidate stake should be set correctly!");
+        assert.equal(candAttrs[2], root_acc, "The candidate address should be root!");
+    });
+  });
 
+  it("should not allow applications with invalid (too high) stakes", function() {
+    var contract;
+    var root_acc = accounts[0];
+    var child_acc = accounts[1];
 
-        console.log("       Approving candidate");
-        return contract.approveNode(nodeId, candidateId);
+    var tenderLockTime = 1000; // in seconds or unix timestamp
+    var tenderLockType = 1; // 0 = absolute, 1 = relative
+    var deliveryLockTime = 2000; // in seconds or unix timestamp
+    var deliveryLockType = 1; // 0 = absolute, 1 = relative
+    var initStake = web3.toWei(0.001, 'ether');
+    var parentId = 0;
+    var childId = 1;
+    var candidateId = 0;
+    var candidateName = "first candidate";
+    var candidateStake = web3.toWei(0.05, 'ether'); // This is more than the total stake in the project
+    return SmartBudget.new(tenderLockTime, 
+                          tenderLockType, 
+                          deliveryLockTime, 
+                          deliveryLockType, 
+                          "SBTest", 
+                          {from: root_acc, value: initStake}).then(function(instance) {
+        contract = instance;
+        console.log("       Adding new child node to root");
+        return contract.addNode("First node", parentId);
       }).then( function(result) {
-        // result.tx => transaction hash, string
-        // result.logs => array of trigger events (1 item in this case)
-        // result.receipt => receipt object
-        return  contract.nodeCntr();
-      }).then(function (nodeCntr) {
-        lastNodeId = nodeCntr - 1;
-        return contract.getNodesWeb(0, lastNodeId);
-      }).then(function (nodesArray) {
+        console.log("       Trying to apply for child node with too high stake");
+        return expect(
+          contract.applyForNode(childId, candidateName, candidateStake, {from: child_acc})
+        ).be.rejectedWith('VM Exception while processing transaction');
+    });
+  });
 
+  it("should not allow applications after the TENDER period", function() {
+    var contract;
+    var root_acc = accounts[0];
+    var child_acc = accounts[1];
 
-        // (int[] _ids, uint[] _stakes, int[] _parentIds, address[] _addresses)
-        assert.equal(nodesArray[0].length, 2, "Contract should have exatly 2 nodes after one node addition!");
-        var id = nodesArray[0][1];
-        var stake = nodesArray[1][1].toNumber();  // Originally it is a BigInt, we need to convert it
-        var parent = nodesArray[2][1];
-        var address = nodesArray[3][1];
-        assert.equal(id, 1, "Node id must be 1!");
-        assert.equal(stake, candidateStake, "Child node stake is incorrect!");
-        assert.equal(parent, 0, "The parent of the first node must be root, which should have id = 0!");
-        assert.equal(address, child_acc, "The address of the first node must be child_acc!");
+    var tenderLockTime = 1; // in seconds or unix timestamp
+    var tenderLockType = 1; // 0 = absolute, 1 = relative
+    var deliveryLockTime = 2000; // in seconds or unix timestamp
+    var deliveryLockType = 1; // 0 = absolute, 1 = relative
+    var initStake = web3.toWei(0.001, 'ether');
+    var parentId = 0;
+    var childId = 1;
+    var candidateId = 0;
+    var candidateName = "Root as candidate";
+    var candidateStake = web3.toWei(0.0005, 'ether'); // in ether
+    return SmartBudget.new(tenderLockTime, 
+                          tenderLockType, 
+                          deliveryLockTime, 
+                          deliveryLockType, 
+                          "SBTest", 
+                          {from: root_acc, value: initStake}).then(function(instance) {
+        contract = instance;
+        console.log("       Adding new child node to root");
+        return contract.addNode("First node", parentId);
+      }).then( function(result) {
+        sleep(2);
+        console.log("       Trying to apply for child node after the TENDER period");
+        return expect(
+          contract.applyForNode(childId, candidateName, candidateStake, {from: child_acc})
+        ).be.rejectedWith('VM Exception while processing transaction');
+    });
+  });
+
+  it("should not allow applications to APPROVED nodes", function() {
+    var contract;
+    var root_acc = accounts[0];
+    var child_acc = accounts[1];
+
+    var tenderLockTime = 1000; // in seconds or unix timestamp
+    var tenderLockType = 1; // 0 = absolute, 1 = relative
+    var deliveryLockTime = 2000; // in seconds or unix timestamp
+    var deliveryLockType = 1; // 0 = absolute, 1 = relative
+    var initStake = web3.toWei(0.001, 'ether');
+    var parentId = 0;
+    var childId = 1;
+    var candidateId = 0;
+    var candidateName = "Root as candidate";
+    var candidateStake = web3.toWei(0.0005, 'ether'); // in ether
+    var anotherStake = web3.toWei(0.0001, 'ether'); // in ether
+    return SmartBudget.new(tenderLockTime, 
+                          tenderLockType, 
+                          deliveryLockTime, 
+                          deliveryLockType, 
+                          "SBTest", 
+                          {from: root_acc, value: initStake}).then(function(instance) {
+        contract = instance;
+        console.log("       Adding new child node to root");
+        return contract.addNode("First node", parentId);
+      }).then( function(result) {
+        console.log("       Applying for child node using child_acc");
+        return contract.applyForNode(childId, candidateName, candidateStake, {from: child_acc});
+      }).then( function(result) {
+        console.log("       Approving child node candidate using root_acc");
+        return contract.approveNode(childId, candidateId, {from: root_acc});
+      }).then( function(result) {
+        console.log("       Trying to apply for an already approved node");
+        return expect(
+          contract.applyForNode(childId, "Another candidate", anotherStake, {from: root_acc})
+        ).be.rejectedWith('VM Exception while processing transaction');
     });
   });
 });
