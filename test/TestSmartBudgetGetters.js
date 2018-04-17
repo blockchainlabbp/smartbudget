@@ -13,7 +13,7 @@ function sleep(seconds)
 }
 
 // http://truffleframework.com/docs/getting_started/javascript-tests#use-contract-instead-of-describe-
-contract('SmartBudget:ConstructorTests', function(accounts) {
+contract('SmartBudget:GetterTests', function(accounts) {
     it("should return multiple nodes data", function() {
     
     });
