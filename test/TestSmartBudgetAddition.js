@@ -153,7 +153,40 @@ contract('SmartBudget:AdditionTests', function(accounts) {
     });
   });
 
-  it("should allow child owner to add subprojects", function() {
+  it("should not allow child owner to add subprojects to OPEN child node", function() {
+    var contract;
+    var root_acc = accounts[0];
+    var child_acc = accounts[1];
+
+    var tenderLockTime = 1000; // in seconds or unix timestamp
+    var tenderLockType = 1; // 0 = absolute, 1 = relative
+    var deliveryLockTime = 2000; // in seconds or unix timestamp
+    var deliveryLockType = 1; // 0 = absolute, 1 = relative
+    var initStake = web3.toWei(0.001, 'ether');
+    var rootId = 0;
+    var childId = 1;
+    var candidateId = 0;
+    var candidateName = "First candidate";
+    var candidateStake = web3.toWei(0.0005, 'ether'); // in ether
+    var lastNodeId;
+    return SmartBudget.new(tenderLockTime, 
+                          tenderLockType, 
+                          deliveryLockTime, 
+                          deliveryLockType, 
+                          "SBTest", 
+                          {from: root_acc, value: initStake}).then(function(instance) {
+        contract = instance;
+        console.log("       Adding new child node to root");
+        return contract.addNode("First node", rootId, {from: root_acc});
+      }).then( function(result) {
+        console.log("       Trying to add second child node to child node using root_acc");
+        return expect(
+          contract.addNode("Second node", childId, {from: child_acc})
+        ).be.rejectedWith('VM Exception while processing transaction');
+    });
+  });
+
+  it("should allow child owner to add subprojects to APPROVED child node", function() {
     var contract;
     var root_acc = accounts[0];
     var child_acc = accounts[1];
