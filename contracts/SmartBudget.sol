@@ -133,7 +133,7 @@ contract SmartBudget is TimeLock {
     /** @notice Verifies if the message sender is the owner of the parent of the node
     * @param nodeId The node Id, whose parent will be checked
     */
-    function requireNodeParent(uint nodeId) public view {    
+    function requireNodeParentOwner(uint nodeId) public view {    
         uint parentId = nodes[nodeId].parent;
         requireNodeOwner(parentId);
     }
@@ -262,7 +262,7 @@ contract SmartBudget is TimeLock {
         requireContractState(uint(ContractState.TENDER));
         validateNodeId(nodeId);
         validateCandidateId(candidateId);
-        requireNodeParent(nodeId);
+        requireNodeParentOwner(nodeId);
         requireNodeState(nodeId, uint(NodeState.OPEN));
         // check the required amount of stake for node at approval time as well
         Candidate memory candidate = candidates[candidateId];
@@ -416,8 +416,9 @@ contract SmartBudget is TimeLock {
             revert();
         }
         uint amount = node.stake;
-        node.stake = 0;
-        node.state = NodeState.PAYED;
+        // Modify the state
+        nodes[nodeId].stake = 0;
+        nodes[nodeId].state = NodeState.PAYED;
         recipient.transfer(amount);     
     }
 
