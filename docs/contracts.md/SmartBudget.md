@@ -1,22 +1,32 @@
 * [SmartBudget](#smartbudget)
-  * [getAllocatedStake](#function-getallocatedstake)
+  * [getCandidateWeb](#function-getcandidateweb)
+  * [topSubProjectsNum](#function-topsubprojectsnum)
   * [candidateCntr](#function-candidatecntr)
-  * [getNodesWeb](#function-getnodesweb)
+  * [validateNodeId](#function-validatenodeid)
   * [withdraw](#function-withdraw)
-  * [getAvailableStake](#function-getavailablestake)
   * [tenderLockTime](#function-tenderlocktime)
   * [getNodeWeb](#function-getnodeweb)
   * [addNode](#function-addnode)
-  * [addRoot](#function-addroot)
+  * [approvedTopSubProjectsNum](#function-approvedtopsubprojectsnum)
   * [approveNode](#function-approvenode)
+  * [validateCandidateId](#function-validatecandidateid)
+  * [getNodesWeb](#function-getnodesweb)
+  * [getContractState](#function-getcontractstate)
   * [toUnixTime](#function-tounixtime)
+  * [requireNodeOwner](#function-requirenodeowner)
   * [deliveryLockTime](#function-deliverylocktime)
   * [transferFunds](#function-transferfunds)
   * [applyForNode](#function-applyfornode)
   * [getLockState](#function-getlockstate)
-  * [getNodeCandidatesAddressesWeb](#function-getnodecandidatesaddressesweb)
+  * [getCandidatesWeb](#function-getcandidatesweb)
+  * [requireNodeParentOwner](#function-requirenodeparentowner)
+  * [requireContractState](#function-requirecontractstate)
+  * [cancel](#function-cancel)
   * [extendLockTimes](#function-extendlocktimes)
   * [nodeCntr](#function-nodecntr)
+  * [requireNodeState](#function-requirenodestate)
+  * [markNodeComplete](#function-marknodecomplete)
+  * [SmartBudgetCreation](#event-smartbudgetcreation)
 * [TimeLock](#timelock)
   * [tenderLockTime](#function-tenderlocktime)
   * [toUnixTime](#function-tounixtime)
@@ -28,24 +38,34 @@
 # SmartBudget
 
 
-## *function* getAllocatedStake
+## *function* getCandidateWeb
 
-SmartBudget.getAllocatedStake(id) `view` `1433bf74`
+SmartBudget.getCandidateWeb(candidateId) `view` `1806f659`
 
-**Returns the sum of stakes allocated to childrens of node**
+**[web3js] Get a candidate by Id (id is the key in context of map)**
 
 
 Inputs
 
 | | | |
 |-|-|-|
-| *uint256* | id | The id of node to compute the total allocated stakes for |
+| *uint256* | candidateId | Id of the candidate |
 
 Outputs
 
 | | | |
 |-|-|-|
-| *uint256* | allocatedStake | The amount of stake allocated to child nodes |
+| *string* | name | Name of the  candidate |
+| *uint256* | stake | Proposed stake of candidate |
+| *address* | addr | Address of candidate |
+
+## *function* topSubProjectsNum
+
+SmartBudget.topSubProjectsNum() `view` `19945976`
+
+
+
+
 
 ## *function* candidateCntr
 
@@ -55,28 +75,23 @@ SmartBudget.candidateCntr() `view` `1c2734d3`
 
 
 
-## *function* getNodesWeb
+## *function* validateNodeId
 
-SmartBudget.getNodesWeb() `view` `2bd40414`
+SmartBudget.validateNodeId(nodeId) `view` `1d7c5e76`
 
-**[web3js] Get the most important node details from the contract. Can be used to build the tree on JS side**
-
-> Due to limitations in Solidity, we can only return tuples of arrays, but not tuples of array of arrays (e.g. array of strings) 
+**Validates if 0 <= nodeId < nodeCntr**
 
 
-
-Outputs
+Inputs
 
 | | | |
 |-|-|-|
-| *uint256[]* | _ids | ids of the nodes |
-| *uint256[]* | _stakes | stakes of the nodes |
-| *uint256[]* | _parents | parents of the nodes |
-| *address[]* | _addresses | addresses of the nodes |
+| *uint256* | nodeId | The node id to validate |
+
 
 ## *function* withdraw
 
-SmartBudget.withdraw(id) `nonpayable` `2e1a7d4d`
+SmartBudget.withdraw(nodeId) `nonpayable` `2e1a7d4d`
 
 **Withdraw promised amount**
 
@@ -86,28 +101,8 @@ Inputs
 
 | | | |
 |-|-|-|
-| *uint256* | id | The id of the node to retreive the promised amount from |
+| *uint256* | nodeId | The id of the node to retreive the promised amount from |
 
-
-## *function* getAvailableStake
-
-SmartBudget.getAvailableStake(id) `view` `313ae45a`
-
-**Returns the amount of stake available for allocation for node**
-
-> Always use getAllocatedStake() or getAvailableStake() explicitly.  Currently stake = getAllocatedStake + getAvailableStake,  but we might add finer categorization later  (e.g. stakes locked for some distinctive reason),  while this interface won't change
-
-Inputs
-
-| | | |
-|-|-|-|
-| *uint256* | id | The id of the node to compute the available stakes for |
-
-Outputs
-
-| | | |
-|-|-|-|
-| *uint256* | availableStake | The amount of stake available for allocation |
 
 ## *function* tenderLockTime
 
@@ -119,7 +114,7 @@ SmartBudget.tenderLockTime() `view` `3d0ced49`
 
 ## *function* getNodeWeb
 
-SmartBudget.getNodeWeb(_key) `view` `3f002528`
+SmartBudget.getNodeWeb(nodeId) `view` `3f002528`
 
 **[web3js] Get a node by Id (id is the key in context of map)**
 
@@ -128,7 +123,7 @@ Inputs
 
 | | | |
 |-|-|-|
-| *uint256* | _key | Id of the node |
+| *uint256* | nodeId | Id of the node |
 
 Outputs
 
@@ -137,13 +132,14 @@ Outputs
 | *uint256* | stake | Stake of node |
 | *address* | addr | Address of node |
 | *uint8* | state | State of node |
+| *uint256[]* | cands | Array of candidate ids |
 | *string* | desc | Description of node |
 | *uint256* | parent | Id of parent node |
 | *uint256[]* | childs | Array of child node ids |
 
 ## *function* addNode
 
-SmartBudget.addNode(desc, parent) `nonpayable` `44be7f70`
+SmartBudget.addNode(desc, parentId) `nonpayable` `44be7f70`
 
 **Add a new empty node**
 
@@ -153,29 +149,22 @@ Inputs
 | | | |
 |-|-|-|
 | *string* | desc | Description of node |
-| *uint256* | parent | Parent's id of node |
+| *uint256* | parentId | Parent's id of node |
 
 
-## *function* addRoot
+## *function* approvedTopSubProjectsNum
 
-SmartBudget.addRoot(desc) `payable` `4e800896`
+SmartBudget.approvedTopSubProjectsNum() `view` `5136cf0f`
 
-**Add special root element (onlyOwner) **
 
-> A node is root if its id is equal to its parent id
 
-Inputs
-
-| | | |
-|-|-|-|
-| *string* | desc | Description of node (project) |
 
 
 ## *function* approveNode
 
-SmartBudget.approveNode(nodeId, candidateKey) `nonpayable` `546c93c5`
+SmartBudget.approveNode(nodeId, candidateId) `nonpayable` `546c93c5`
 
-**Set certain node state to APPROVED (onlyOwner)**
+**Set certain node state to APPROVED**
 
 
 Inputs
@@ -183,7 +172,55 @@ Inputs
 | | | |
 |-|-|-|
 | *uint256* | nodeId | Id of the node |
-| *uint256* | candidateKey | Identifier of candidate (id := key) |
+| *uint256* | candidateId | Id of candidate |
+
+
+## *function* validateCandidateId
+
+SmartBudget.validateCandidateId(candidateId) `view` `69bebc3f`
+
+**Validates if 0 <= candidateId < candidateCntr**
+
+
+Inputs
+
+| | | |
+|-|-|-|
+| *uint256* | candidateId | The candidate id to validate |
+
+
+## *function* getNodesWeb
+
+SmartBudget.getNodesWeb(firstNodeId, lastNodeId) `view` `70c7a4a7`
+
+**[web3js] Get the most important details of nodes where firstNodeIf <= nodeId <= lastNodeId. Can be used to build the tree on JS side**
+
+> Due to limitations in Solidity, we can only return tuples of arrays, but not tuples of array of arrays (e.g. array of strings) 
+
+Inputs
+
+| | | |
+|-|-|-|
+| *uint256* | firstNodeId | Starting id |
+| *uint256* | lastNodeId | Ending id |
+
+Outputs
+
+| | | |
+|-|-|-|
+| *uint256[]* | _ids | ids of the nodes |
+| *uint256[]* | _stakes | stakes of the nodes |
+| *uint256[]* | _parents | parents of the nodes |
+| *address[]* | _addresses | addresses of the nodes |
+
+## *function* getContractState
+
+SmartBudget.getContractState() `view` `7f4e4849`
+
+**Gets the contract's state**
+
+
+
 
 
 ## *function* toUnixTime
@@ -205,6 +242,20 @@ Outputs
 | | | |
 |-|-|-|
 | *uint256* | unixtime | The unix timestamp |
+
+## *function* requireNodeOwner
+
+SmartBudget.requireNodeOwner(nodeId) `view` `949004a0`
+
+**Verifies if the message sender is the owner of the node**
+
+
+Inputs
+
+| | | |
+|-|-|-|
+| *uint256* | nodeId | The node Id |
+
 
 ## *function* deliveryLockTime
 
@@ -260,24 +311,67 @@ Outputs
 |-|-|-|
 | *uint256* | lockState | LockState enum representing the contract status |
 
-## *function* getNodeCandidatesAddressesWeb
+## *function* getCandidatesWeb
 
-SmartBudget.getNodeCandidatesAddressesWeb(_key) `view` `d1a90f4b`
+SmartBudget.getCandidatesWeb(firstCandidateId, lastCandidateId) `view` `d11b4ccb`
 
-**[web3js] Get all addresses of candidate**
+**[web3js] Get the most important candidate details where firstCandidateId <= candidateId <= lastCandidateId. Can be used to scan the candidate addresses**
+
+> Due to limitations in Solidity, we can only return tuples of arrays, but not tuples of array of arrays (e.g. array of strings) 
+
+Inputs
+
+| | | |
+|-|-|-|
+| *uint256* | firstCandidateId | Starting id |
+| *uint256* | lastCandidateId | Ending id |
+
+Outputs
+
+| | | |
+|-|-|-|
+| *uint256[]* | _ids | ids of the candidates |
+| *uint256[]* | _stakes | stakes of the candidates |
+| *address[]* | _addresses | addresses of the candidates |
+
+## *function* requireNodeParentOwner
+
+SmartBudget.requireNodeParentOwner(nodeId) `view` `de06c354`
+
+**Verifies if the message sender is the owner of the parent of the node**
 
 
 Inputs
 
 | | | |
 |-|-|-|
-| *uint256* | _key | undefined |
+| *uint256* | nodeId | The node Id, whose parent will be checked |
 
-Outputs
+
+## *function* requireContractState
+
+SmartBudget.requireContractState(state) `view` `e60a0bf2`
+
+**Requires the contract to be in a specific state**
+
+
+Inputs
 
 | | | |
 |-|-|-|
-| *address[]* | _addr | Array of candidate addresses of node |
+| *uint256* | state | The expected state |
+
+
+## *function* cancel
+
+SmartBudget.cancel() `nonpayable` `ea8a1af0`
+
+**Withdraw all funds from contract if the project has been cancelled**
+
+> Allows the root owner to withdraw all funds in case state is cancelled
+
+
+
 
 ## *function* extendLockTimes
 
@@ -304,6 +398,47 @@ SmartBudget.nodeCntr() `view` `ef5bd6e8`
 
 
 
+## *function* requireNodeState
+
+SmartBudget.requireNodeState(nodeId, state) `view` `f5a098af`
+
+**Requires the selected node to be in a specific state**
+
+
+Inputs
+
+| | | |
+|-|-|-|
+| *uint256* | nodeId | The node Id |
+| *uint256* | state | The expected state of the node |
+
+
+## *function* markNodeComplete
+
+SmartBudget.markNodeComplete(nodeId) `nonpayable` `f7e8db3c`
+
+**Set certain node state to COMPLETED**
+
+> The root can mark a node as complete after the tender period
+
+Inputs
+
+| | | |
+|-|-|-|
+| *uint256* | nodeId | Id of the node |
+
+
+
+## *event* SmartBudgetCreation
+
+SmartBudget.SmartBudgetCreation(owner, stake) `127f33f6`
+
+Arguments
+
+| | | |
+|-|-|-|
+| *address* | owner | indexed |
+| *uint256* | stake | not indexed |
 
 
 ---

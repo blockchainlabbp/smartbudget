@@ -24,10 +24,10 @@ fs.readdir( contractDir, function( err, files ) {
 							console.log("----------[" + file + "]----------\n" + stdout);
 						if (stderr != null && stderr.trim() != "")
 							console.log("----------[" + file + "]----------\n" + stderr);
-						if (error !== null && error.trim() != "") {
+						if (error !== null) {
 							 console.log("----------[" + file + "]----------\n" + error);
 						}
 					});
 				
-        } );
+		} );
 } );
