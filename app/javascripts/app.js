@@ -182,7 +182,7 @@ window.TreeView = {
         
         // ...otherwise render remaining columns
         $tdList.eq(1).text(node.data.title);
-        $tdList.eq(2).text(node.data.address.substring(0,5));
+        $tdList.eq(2).text(node.data.address);
         $tdList.eq(3).text(node.data.stake);
 
         $tdList.eq(4).append("<button type='button'>Details</button>")
@@ -244,9 +244,11 @@ window.Controller = {
       };
     }
 
-    const contractors = SmartBudgetService.getContractors()
-    .then((val) => val.map(smartNodeToTreeNodeMapper))
-    .then((val) => window.TreeView.updateTree(val))
+    const contractors = SmartBudgetService._smartBudgetContract.deployed().then(function (contract) {
+      return SmartBudgetService.getSubTree(contract, 0, 10);
+    }).then(function (val) {
+      return [val].map(smartNodeToTreeNodeMapper);
+    }).then((val) => window.TreeView.updateTree(val))
     .catch((reason) => console.log(reason));
     
   },
