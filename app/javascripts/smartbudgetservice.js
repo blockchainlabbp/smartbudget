@@ -168,11 +168,11 @@ export const SmartBudgetService = {
             *   "parent" : "Id of parent node",
             *   "childs" : "Array of child node ids"
             */
-            console.log("[visitNode] Loading node with id " + nodeId);
+            //console.log("[visitNode] Loading node with id " + nodeId);
             var attributes = await contract.getNodeWeb(nodeId, { from: self._account, gas: 500000 });
-            console.log("[visitNode] Loaded node with id " + nodeId + ", attributes are: " + attributes);
+            //console.log("[visitNode] Loaded node with id " + nodeId + ", attributes are: " + attributes);
             var childIds = attributes[6].map((id) => id.toNumber());
-            console.log("[visitNode] Loading children with ids: " + childIds);
+            //console.log("[visitNode] Loading children with ids: " + childIds);
             var childList;
             if (childIds.length > 0) {
                 childList = await Promise.all(childIds.map( async (childId) => await this.visitNode(contract, childId, currDepth + 1, maxDepth) ));
@@ -200,7 +200,7 @@ export const SmartBudgetService = {
     getSubTree: async function (contract, startNode, maxDepth) {
         var nodeCntr = await contract.nodeCntr();
         var lastId = nodeCntr - 1;
-        console.log("NodeCntr is "+ nodeCntr);
+        //console.log("[getSubTree] NodeCntr is "+ nodeCntr);
         var subTree = await this.visitNode(contract, startNode, 0, maxDepth);
         return subTree;
     },
