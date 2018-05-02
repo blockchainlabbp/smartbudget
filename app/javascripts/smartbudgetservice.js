@@ -148,6 +148,63 @@ export const SmartBudgetService = {
         });
     },
 
+
+    
+
+    /**
+     * The recursive function that gets the details for the nodes
+     */
+    visitNode: async function (contract, nodeId, currDepth, maxDepth) {
+        // Get node by ID    
+        // Check if we have reached the max depth
+        if (currDepth >= maxDepth) {
+            return {};
+        } else {
+            /** "stake" : "Stake of node",
+            *   "addr" : "Address of node",
+            *   "state" : "State of node",
+            *   "cands" : "Array of candidate ids",
+            *   "desc" : "Description of node",
+            *   "parent" : "Id of parent node",
+            *   "childs" : "Array of child node ids"
+            */
+            //console.log("[visitNode] Loading node with id " + nodeId);
+            var attributes = await contract.getNodeWeb(nodeId, { from: self._account, gas: 500000 });
+            //console.log("[visitNode] Loaded node with id " + nodeId + ", attributes are: " + attributes);
+            var childIds = attributes[6].map((id) => id.toNumber());
+            //console.log("[visitNode] Loading children with ids: " + childIds);
+            var childList;
+            if (childIds.length > 0) {
+                childList = await Promise.all(childIds.map( async (childId) => await this.visitNode(contract, childId, currDepth + 1, maxDepth) ));
+            } else {
+                childIds = [];
+                childList = [];
+            }
+            var smartNode = {id: nodeId, 
+                stake: attributes[0].toNumber(),
+                address: attributes[1],
+                state: attributes[2],
+                candidates: attributes[3],
+                name: attributes[4],
+                parent: attributes[5].toNumber(),
+                childIds: childIds,
+                children: childList};
+            console.log("[visitNode] Loaded node with id " + nodeId + ", the result is: " + JSON.stringify(smartNode));
+            return smartNode;
+        }
+    },
+
+    /**
+     * Get the complete node subtree starting from startNode. The maximum allowed depth is maxDepth
+     */
+    getSubTree: async function (contract, startNode, maxDepth) {
+        var nodeCntr = await contract.nodeCntr();
+        var lastId = nodeCntr - 1;
+        //console.log("[getSubTree] NodeCntr is "+ nodeCntr);
+        var subTree = await this.visitNode(contract, startNode, 0, maxDepth);
+        return subTree;
+    },
+
     /**
      * Create contractors
      */
