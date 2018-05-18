@@ -38,6 +38,7 @@ var SmartBudgetContract = contract(smartbudget_abi);
 // For application bootstrapping, check out window.addEventListener below.
 var accounts;
 var account;
+var address;
 
 window.App = {
   start: function() {
@@ -62,34 +63,40 @@ window.App = {
 
       // Bootstrap the smart contract
       SmartBudgetContract.setProvider(web3.currentProvider);
-      SmartBudgetService.init(SmartBudgetContract, account);
-      window.Controller.init();
-        
-        SmartBudgetService.getAddress()
-        .then((address) => {
-            web3.eth.filter({address: address}, function(error, result) {
-                if (!error) {
-                    console.log('web3.eth.filter: ', result);
-                    //new block was added related to contract
-                    window.Controller.warnBlockChange();
-                }
-            });
-        })
-        .catch((reason) => console.log(reason));
+      SmartBudgetContract.deployed().then(function(instance) {
+        address = instance.address;
+        SmartBudgetService.init(instance);
+        window.Controller.init();
 
-        SmartBudgetService._smartBudgetContract.deployed().then(function(instance) {
-            var nodeAddedEvent = instance.NodeAdded({ from: self._account });
-            nodeAddedEvent.watch(function(err, result) {
-                if (err) {
-                    console.log(err);
-                    return;
-                }
-                //refresh only if node was added by current address
-                if (result.args.from == account)
-                    window.Controller.updateTree();
-                console.log("nodeAddedEvent:", result);
-            });
+        // Set the callbacks
+        SmartBudgetService.setAddNodeCallback(function(error, result) {
+          console.log("AddNodeCallback was called!");
+          window.Controller.updateTree();
         });
+
+        SmartBudgetService.setAddCandidateCallback(function(error, result) {
+          console.log("AddCandidateCallback was called!");
+          window.Controller.updateTree();
+        });
+
+        SmartBudgetService.setApproveCandidateCallback(function(error, result) {
+          console.log("ApproveCandidateCallback was called!");
+          window.Controller.updateTree();
+        });
+
+        SmartBudgetService.setCompletedNodeCallback(function(error, result) {
+          console.log("CompletedNodeCallback was called!");
+          window.Controller.updateTree();
+        });
+
+        web3.eth.filter({address: instance.address}, function(error, result) {
+            if (!error) {
+                console.log('web3.eth.filter: ', result);
+                //new block was added related to contract
+                window.Controller.warnBlockChange();
+            }
+        });
+      });
     });
   },
 
@@ -212,27 +219,25 @@ window.Controller = {
   },
 
   addContractor: function(parentId, desc) {
-    SmartBudgetService.addContractor(parentId, desc)
-    .then((val) => console.log(val))
+    SmartBudgetService.addNode(account, desc, parentId)
     .catch((reason) => console.log(reason));
   },
   
   applyForProject: function(nodeId, name, stake) {
-    SmartBudgetService.applyForNode(nodeId, name, stake)
-    .then((val) => console.log(val))
+    SmartBudgetService.applyForNode(account, nodeId, name, stake)
     .catch((reason) => console.log(reason));
   },
   
   approveProject: function(nodeId) {
-    SmartBudgetService.approveNode(nodeId)
-    .then((val) => console.log(val))
+    SmartBudgetService.approveNode(account, nodeId, 0)
     .catch((reason) => console.log(reason));
   },
 
   updateTree : function() {
     $("#msgBlockChanged").hide();
 
-    function smartNodeToTreeNodeMapper(smartNode) {
+    function smartNodeToTreeNodeMapper(smartNode) { 
+      
       return {
         id: smartNode.id,
         title: smartNode.name,
@@ -244,13 +249,20 @@ window.Controller = {
       };
     }
 
-    const contractors = SmartBudgetService._smartBudgetContract.deployed().then(function (contract) {
-      return SmartBudgetService.getSubTree(contract, 0, 10);
-    }).then(function (val) {
+    // Try to load the contract using logs
+    var signature = web3.sha3("SBCreation(address,uint256)");
+    // Find all past logs containing SBCreation event
+    var filter2 = web3.eth.filter({fromBlock: "0x0", toBlock: "latest", topics: [signature]});
+    filter2.get( function(err, res) { 
+      console.log("The found topics are: " + JSON.stringify(res));
+      console.log("The found errors are: " + err);
+     });
+
+    SmartBudgetService.getSubTree(0, 10)
+    .then(function (val) {
       return [val].map(smartNodeToTreeNodeMapper);
     }).then((val) => window.TreeView.updateTree(val))
     .catch((reason) => console.log(reason));
-    
   },
 
     warnBlockChange: function () {

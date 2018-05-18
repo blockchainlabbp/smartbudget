@@ -4,7 +4,11 @@ import "./TimeLock.sol";
 
 contract SmartBudget is TimeLock {
     //------------------------------Events-------------------------------------------------
-    event SmartBudgetCreation(address indexed owner, uint stake);
+    event SBCreation(address indexed owner, uint stake);
+    event SBNodeAdded(address indexed owner, uint id);
+    event SBCandidateAdded(address indexed owner, uint id);
+    event SBCandidateApproved(address indexed owner, uint id);
+    event SBNodeCompleted(address indexed owner, uint id);
 
     //------------------------------Enums--------------------------------------------------
 
@@ -182,7 +186,7 @@ contract SmartBudget is TimeLock {
     * @param _deliveryLockType Delivery lock type, 0 for absolute, 1 for relative
     */
     function SmartBudget(uint _tenderLockTime, uint _tenderLockType, uint _deliveryLockTime, uint _deliveryLockType, string desc) TimeLock(_tenderLockTime, _tenderLockType, _deliveryLockTime, _deliveryLockType) public payable {
-        emit SmartBudgetCreation(msg.sender, msg.value);
+        emit SBCreation(msg.sender, msg.value);
 
         topSubProjectsNum = 0;
         approvedTopSubProjectsNum = 0;
@@ -213,6 +217,7 @@ contract SmartBudget is TimeLock {
         validateNodeId(parentId);
         requireNodeOwner(parentId);
 
+        
         Node memory node;
         uint key = nodeCntr;
         node.id = key;
@@ -224,10 +229,11 @@ contract SmartBudget is TimeLock {
         if (parentId == root) {
             ++topSubProjectsNum;
         }
-                
+
         nodes[key] = node;
 
         nodes[parentId].childs.push(key);
+        emit SBNodeAdded(msg.sender, key);
     }
 
     /** @notice Add candidate to certain node
@@ -252,6 +258,7 @@ contract SmartBudget is TimeLock {
         candidates[key] = candidate;
         nodes[nodeId].candidates.push(key);
         candidateCntr = candidateCntr + 1;
+        emit SBCandidateAdded(msg.sender, key);
     }
 
     /** @notice Set certain node state to APPROVED
@@ -278,6 +285,7 @@ contract SmartBudget is TimeLock {
         if (parentId == root) {
             ++approvedTopSubProjectsNum;
         }
+        emit SBCandidateApproved(candidate.addr, nodeId);
     }
 
     /** @notice Set certain node state to COMPLETED
@@ -294,6 +302,7 @@ contract SmartBudget is TimeLock {
         requireNodeState(nodeId, uint(NodeState.APPROVED));
         // Update the node
         nodes[nodeId].state = NodeState.COMPLETED;
+        emit SBNodeCompleted(nodes[nodeId].addr, nodeId);
     }
 
     //-------------------------Getter methods for web interface-----------------------------

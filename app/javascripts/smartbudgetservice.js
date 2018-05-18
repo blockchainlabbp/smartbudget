@@ -2,159 +2,60 @@
 export const SmartBudgetService = {
 
     /**
-     * Access the SmartBudget contract via dependency injection
+     * This is the contract instance, which has an address
      */
-    _smartBudgetContract: null,
-
-    _account: null,
+    _instance: null,
 
     /**
-     * Check whether this tree node has the defined index
-     * @returns true/false
+     * Watcher objects
      */
-    _isTreeElem: function _isTreeElem(treeNode, idx) {
-        return treeNode.id == idx;
-    },
+    _addNodeEvent: null,
+    _addCandidateEvent: null,
+    _approveCandidateEvent: null,
+    _completedNodeEvent: null,
 
-    /**
-     * Find and return tree node with defined index
-     * @returns node or undefined
-     */
-    _findTreeElem: function _findTreeElem(treeNode, idx) {
-        if (SmartBudgetService._isTreeElem(treeNode, idx)) {
-            return treeNode;
-        }
-        else {
-            for (var i = 0; i < treeNode.children.length; i++) {
-                var found = _findTreeElem(treeNode.children[i], idx);
-                if (typeof found !== 'undefined') {
-                    return found;
-                }
-            }
-        }
-    },
-
-    /**
-     * Iterates over the tree DFS manner
-     */
-    _visitTree: function _visitTree(treeNode, visitorCallback) {
-        visitorCallback(treeNode);
-        treeNode.children.forEach((val) => SmartBudgetService._visitTree(val, visitorCallback));
-    },
-
-    /** convert triplet coming from contract to
-     *  [[{id: 0}, {id: 0}, ...], 
-     *  [{stake: 100}, {stake: 15}, ...], 
-     *  [{parentid: 0}, {parentid: 1}, ...]]
-     */
-    _convertTriplet1: function (triplet) {
-        function convertToNumber(val) {
-            // web3js returns integers in BigNumber object that we convert to javascript number
-            return typeof val === 'object' && val.hasOwnProperty('c') ? val.toNumber() : val;
-        }
-
-        triplet[0] = triplet[0].map((val) => { return { id: convertToNumber(val) } });
-        triplet[1] = triplet[1].map((val) => { return { stake: val } });
-        triplet[2] = triplet[2].map((val) => { return { parentid: convertToNumber(val) } });
-        triplet[3] = triplet[3].map((val) => { return { address: val } });
-
-        return triplet;
-    },
-
-    /**
-     * Reduce input from the output _convertTriplet1 to
-     * [{id: 0, stake: 100, parentid: 0}, ... ]
-     */
-    _convertTriplet2: function (triplet1) {
-        return triplet1.reduce(
-            (acc, curr) => {
-                curr.forEach((element, i) => {
-                    if (typeof acc[i] === 'undefined') {
-                        acc[i] = { children: [] };
-                    }
-
-                    // copy the properties to the same index in acc array
-                    Object.assign(acc[i], element);
-                })
-                return acc;
-            }, []);
-    },
-
-    /**
-     * Build Tree from the output of _convertTriplet2
-     */
-    _convertTriplet3: function (flatTree) {
-        var newTreeRoot = { id: -1, children: [] };
-
-        flatTree.forEach((val, index) => {
-            var foundParent = SmartBudgetService._findTreeElem(newTreeRoot, val.parentid);
-
-            if (typeof foundParent === 'undefined') {
-                newTreeRoot.children.push(val);
-            }
-            else {
-                foundParent.children.push(val);
-            }
-        });
-
-        return newTreeRoot.children;
-    },
-
-    /**
-     * Build a tree from nodes triplet
-     */
-    _convertNodesTripletToTree: function (nodesArray) {
-        nodesArray = SmartBudgetService._convertTriplet1(nodesArray);
-        nodesArray = SmartBudgetService._convertTriplet2(nodesArray);
-        return SmartBudgetService._convertTriplet3(nodesArray);
-    },
-
-    init: function (smartBudgetContract, account) {
+    init: function (instance) {
         var self = this;
-        self._smartBudgetContract = smartBudgetContract;
-        self._account = account;
-    },
-    
-    getAddress: function() {
-        var self = this;
-        
-        return self._smartBudgetContract.deployed().then(function (instance) {
-            return instance.address;
-        });
-    },
-    
-
-    /**
-     * Get the nodes from the smart contract
-     */
-    getContractors: function () {
-        var self = this;
-        var meta;
-
-
-        return self._smartBudgetContract.deployed().then(function (instance) {
-            meta = instance;
-            return meta.nodeCntr();
-        }).then(function (nodeCntr) {
-            var lastId = nodeCntr - 1;
-            console.log("NodeCntr is "+ nodeCntr);
-            return meta.getNodesWeb.call(0, lastId, { from: self._account, gas: 500000 });
-        }).then(function (nodesArray) {
-            console.log("The returned nodesArray is " + nodesArray);
-            // (int[] _ids, uint[] _stakes, int[] _parentIds, address[] _addresses)
-            var newTree =  self._convertNodesTripletToTree(nodesArray);
-
-            return newTree;
-        });
+        self._instance = instance;
+        self._addNodeEvent = self._instance.SBNodeAdded();
+        self._addCandidateEvent = self._instance.SBCandidateAdded();
+        self._approveCandidateEvent = self._instance.SBCandidateApproved();
+        self._completedNodeEvent = self._instance.SBNodeCompleted();
     },
 
+    setAddNodeCallback: function(cb) {
+        // Uninstall any previous filter
+        this._addNodeEvent.stopWatching();
+        // Set callback
+        console.log("Set new callback");
+        this._addNodeEvent.watch(cb);  
+    },
 
-    
+    setAddCandidateCallback: function(cb) {
+        // Uninstall any previous filter
+        this._addCandidateEvent.stopWatching();
+        // Set callback
+        this._addCandidateEvent.watch(cb);  
+    },
+
+    setApproveCandidateCallback: function(cb) {
+        // Uninstall any previous filter
+        this._approveCandidateEvent.stopWatching();
+        // Set callback
+        this._approveCandidateEvent.watch(cb);  
+    },
+
+    setCompletedNodeCallback: function(cb) {
+        // Uninstall any previous filter
+        this._completedNodeEvent.stopWatching();
+        // Set callback
+        this._completedNodeEvent.watch(cb);  
+    },
 
     /**
      * The recursive function that gets the details for the nodes
      */
-    visitNode: async function (contract, nodeId, currDepth, maxDepth) {
+    visitNode: async function (nodeId, currDepth, maxDepth) {
         // Get node by ID    
         // Check if we have reached the max depth
         if (currDepth >= maxDepth) {
@@ -169,13 +70,13 @@ export const SmartBudgetService = {
             *   "childs" : "Array of child node ids"
             */
             //console.log("[visitNode] Loading node with id " + nodeId);
-            var attributes = await contract.getNodeWeb(nodeId, { from: self._account, gas: 500000 });
+            var attributes = await this._instance.getNodeWeb(nodeId, {gas: 500000 });
             //console.log("[visitNode] Loaded node with id " + nodeId + ", attributes are: " + attributes);
             var childIds = attributes[6].map((id) => id.toNumber());
             //console.log("[visitNode] Loading children with ids: " + childIds);
             var childList;
             if (childIds.length > 0) {
-                childList = await Promise.all(childIds.map( async (childId) => await this.visitNode(contract, childId, currDepth + 1, maxDepth) ));
+                childList = await Promise.all(childIds.map( async (childId) => await this.visitNode(childId, currDepth + 1, maxDepth) ));
             } else {
                 childIds = [];
                 childList = [];
@@ -189,7 +90,7 @@ export const SmartBudgetService = {
                 parent: attributes[5].toNumber(),
                 childIds: childIds,
                 children: childList};
-            console.log("[visitNode] Loaded node with id " + nodeId + ", the result is: " + JSON.stringify(smartNode));
+            //console.log("[visitNode] Loaded node with id " + nodeId + ", the result is: " + JSON.stringify(smartNode));
             return smartNode;
         }
     },
@@ -197,33 +98,76 @@ export const SmartBudgetService = {
     /**
      * Get the complete node subtree starting from startNode. The maximum allowed depth is maxDepth
      */
-    getSubTree: async function (contract, startNode, maxDepth) {
-        var nodeCntr = await contract.nodeCntr();
-        var lastId = nodeCntr - 1;
-        //console.log("[getSubTree] NodeCntr is "+ nodeCntr);
-        var subTree = await this.visitNode(contract, startNode, 0, maxDepth);
+    getSubTree: async function (startNode, maxDepth) {
+        var subTree = await this.visitNode(startNode, 0, maxDepth);
         return subTree;
     },
 
     /**
      * Create contractors
      */
-    addContractor: function (parentid, desc) {
-        var self = this;
-
-        var meta;
-        var nodeAddedEvent;
-
-        return self._smartBudgetContract.deployed().then(function (instance) {
-            return instance.addNode.sendTransaction(desc, parentid, { from: self._account, gas: 500000 });
-        });
+    addContractor: async function (fromAddress, nodeId, name, stake) {
+        console.log("Called contract.addNode with parmeters: (" + fromAddress + "," + description + "," + parentId + ")");
+        /** Do input checks here */
+        var res = await this._instance.addNode(description, parentId, {from: fromAddress});
+        console.log("Awaited addNode, the returned log is " + JSON.stringify(res.logs));
+        /** Parse logs and select the relevant one here */
+        return res.logs[0].args;    
     },
 
-    assignAddress: function (address) {
-        // TODO: assign an ethereum address for the contractor node
+    /**
+    *   Wrapper for SmartBudget.addNode(string desc, uint parentId)
+    *   Returns the emitted event's arguments
+    */
+    addNode: async function (fromAddress, description, parentId) {
+        console.log("Called contract.addNode with parmeters: (" + fromAddress + "," + description + "," + parentId + ")");
+        /** Do input checks here */
+        var res = await this._instance.addNode(description, parentId, {from: fromAddress});
+        console.log("Awaited addNode, the returned log is " + JSON.stringify(res.logs));
+        /** Parse logs and select the relevant one here */
+        return res.logs[0].args;    
     },
 
-    deleteContractor: function (id) {
-        //
+    /*
+    *  To create an async env in a sync func: (async () => { statements })();
+    */
+
+
+    /**
+     * Wrapper for SmartBudget.applyForNode(uint nodeId, string name, uint stake)
+     * Returns the emitted event's arguments
+     */
+    applyForNode: async function (fromAddress, nodeId, name, stake) {
+        console.log("Called contract.applyForNode with parmeters: (" + fromAddress + "," + nodeId + "," + name + "," + stake + ")");
+        /** Do input checks here */
+        var res = await this._instance.applyForNode(nodeId, name, stake, {from: fromAddress});
+        console.log("Awaited applyForNode, the returned log is " + JSON.stringify(res.logs));
+        /** Parse logs and select the relevant one here */
+        return res.logs[0].args;  
+    },
+
+    /**
+     * Wrapper for SmartBudget.approveNode(uint nodeId, uint candidateId)
+     * Returns the emitted event's arguments
+     */
+    approveNode: async function (fromAddress, nodeId, candidateId) {
+        console.log("Called contract.approveNode with parmeters: (" + fromAddress + "," + nodeId + "," + candidateId + ")");
+        /** Do input checks here */
+        var res = await this._instance.approveNode(nodeId, candidateId, {from: fromAddress});
+        console.log("Awaited approveNode, the returned log is " + JSON.stringify(res.logs));
+        /** Parse logs and select the relevant one here */
+        return res.logs[0].args;  
+    },
+
+    /**
+     * Wrapper for SmartBudget.markNodeComplete(uint nodeId)
+     */
+    markNodeComplete: async function (fromAddress, nodeId) {
+        console.log("Called contract.markNodeComplete with parmeters: (" + fromAddress + "," + nodeId + ")");
+        /** Do input checks here */
+        var res = await this._instance.markNodeComplete(nodeId, {from: fromAddress});
+        console.log("Awaited markNodeComplete, the returned log is " + JSON.stringify(res.logs));
+        /** Parse logs and select the relevant one here */
+        return res.logs[0].args;  
     }
 };
