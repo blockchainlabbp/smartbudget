@@ -63,40 +63,24 @@ window.App = {
 
       // Bootstrap the smart contract
       SmartBudgetContract.setProvider(web3.currentProvider);
-      SmartBudgetContract.deployed().then(function(instance) {
-        address = instance.address;
-        SmartBudgetService.init(instance);
-        window.Controller.init();
+      
+      SmartBudgetService.init(SmartBudgetContract);
+      // Find all past instances
+      (async () => { 
+        // Create new instance
+        var sbi2 = await SmartBudgetService.create(100, 1, 200, 1, "SmartBudgetTest2", 0.005, account);
 
-        // Set the callbacks
-        SmartBudgetService.setAddNodeCallback(function(error, result) {
-          console.log("AddNodeCallback was called!");
-          window.Controller.updateTree();
-        });
+        var res = await SmartBudgetService.findAllInstances();
+        console.log("The return values are: " + JSON.stringify(res)); 
 
-        SmartBudgetService.setAddCandidateCallback(function(error, result) {
-          console.log("AddCandidateCallback was called!");
-          window.Controller.updateTree();
-        });
+        var add1 = res[0];
+        var sbi = await SmartBudgetService.fromAddress(add1);
 
-        SmartBudgetService.setApproveCandidateCallback(function(error, result) {
-          console.log("ApproveCandidateCallback was called!");
-          window.Controller.updateTree();
-        });
-
-        SmartBudgetService.setCompletedNodeCallback(function(error, result) {
-          console.log("CompletedNodeCallback was called!");
-          window.Controller.updateTree();
-        });
-
-        web3.eth.filter({address: instance.address}, function(error, result) {
-            if (!error) {
-                console.log('web3.eth.filter: ', result);
-                //new block was added related to contract
-                window.Controller.warnBlockChange();
-            }
-        });
-      });
+        var subTree = await sbi.getSubTree(0,10);
+        var subTree2 = await sbi2.getSubTree(0,10);
+        console.log("The full tree is: " + JSON.stringify(subTree));
+        console.log("The full tree2 is: " + JSON.stringify(subTree));
+      })();
     });
   },
 
