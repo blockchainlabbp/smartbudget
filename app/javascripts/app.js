@@ -33,55 +33,61 @@ $('#pic11Img').attr('src', pic11Data);
 import smartbudget_abi from '../../build/contracts/SmartBudget.json'
 var SmartBudgetContract = contract(smartbudget_abi);
 
-// The following code is simple to show off interacting with your contracts.
-// As your needs grow you will likely need to change its form and structure.
-// For application bootstrapping, check out window.addEventListener below.
-var accounts;
-var account;
-var address;
+// In this simple setting, we're using globals to deal with concept of "selected account in metamask"
+// and "selected contract"
+var activeAccount;  // The metamask account currently in use /type: address
+var contractAddresses; // The list of found contract addresses /type: list(address)
+var activeInstance;   // The currently active contract instance /type: SmartBudgetInstance 
+
+function checkActiveAccount() {
+  return new Promise(function (resolve, reject) {
+    web3.eth.getAccounts(function(err, accs) {
+      if (err != null) {
+        alert("There was an error fetching your accounts.");
+        reject("Could not get any accounts");
+      }
+
+      if (accs.length == 0) {
+        alert("Couldn't get any accounts! Please log in to your metamask account first, then click 'OK' to start!");
+        reject("Could not get any accounts");
+      }
+
+      activeAccount = accs[0];
+      $('#metamaskAddress').html(activeAccount);
+      resolve(activeAccount);
+    });
+  });   
+};
 
 window.App = {
   start: function() {
     var self = this;
 
-    // Get the initial account balance so it can be displayed.
-    web3.eth.getAccounts(function(err, accs) {
-      if (err != null) {
-        alert("There was an error fetching your accounts.");
-        return;
-      }
+    // Set polling of account changes
+    setInterval( checkActiveAccount, 2000);
+    // Configure SmartBudgetService
+    SmartBudgetContract.setProvider(web3.currentProvider);
+    SmartBudgetService.init(SmartBudgetContract);
 
-      if (accs.length == 0) {
-        alert("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
-        return;
-      }
+    // Init the treeview
+    window.Controller.init();
+    
+    // Use async block so that we can use await notation
+    (async () => { 
+      // Check active account
+      await checkActiveAccount();
 
-      accounts = accs;
-      account = accounts[0];
-      
-      $('#metamaskAddress').html(account);
-
-      // Bootstrap the smart contract
-      SmartBudgetContract.setProvider(web3.currentProvider);
-      
-      SmartBudgetService.init(SmartBudgetContract);
       // Find all past instances
-      (async () => { 
-        // Create new instance
-        var sbi2 = await SmartBudgetService.create(100, 1, 200, 1, "SmartBudgetTest2", 0.005, account);
-
-        var res = await SmartBudgetService.findAllInstances();
-        console.log("The return values are: " + JSON.stringify(res)); 
-
-        var add1 = res[0];
-        var sbi = await SmartBudgetService.fromAddress(add1);
-
-        var subTree = await sbi.getSubTree(0,10);
-        var subTree2 = await sbi2.getSubTree(0,10);
-        console.log("The full tree is: " + JSON.stringify(subTree));
-        console.log("The full tree2 is: " + JSON.stringify(subTree));
-      })();
-    });
+      contractAddresses = await SmartBudgetService.findAllInstances();
+      if (contractAddresses.length == 0) {
+        alert("No contract instance deployed yet! Please start with deploying a new instance!");
+      } else {        
+        activeInstance = await SmartBudgetService.fromAddress(contractAddresses[0]);
+        // Set addNode callback
+        activeInstance.setAddNodeCallback(window.Controller.updateTree);
+        console.log("Found contract address(es), will use first: " + JSON.stringify(contractAddresses));
+      }
+    })();
   },
 
   setStatus: function(message) {
@@ -116,6 +122,7 @@ window.TreeView = {
    */
   createTree : function() {
     $("#btnLoadContracts").click(window.Controller.updateTree);
+    $("#btnDeployContract").click(window.Controller.deployContract);
     $("#detailsDialog").dialog().dialog("close");
     $("#addNode", "#detailsDialog").on("click", function(e) {
         //$(this).append("<span>Node insert pending...</span>");
@@ -202,18 +209,22 @@ window.Controller = {
     TreeView.createTree();
   },
 
+  deployContract: function() {
+    SmartBudgetService.create(1000000, 1, 2000000, 1, "NewInstance", 0.005, activeAccount);
+  },
+
   addContractor: function(parentId, desc) {
-    SmartBudgetService.addNode(account, desc, parentId)
+    activeInstance.addNode(activeAccount, desc, parentId)
     .catch((reason) => console.log(reason));
   },
   
   applyForProject: function(nodeId, name, stake) {
-    SmartBudgetService.applyForNode(account, nodeId, name, stake)
+    activeInstance.applyForNode(activeAccount, nodeId, name, stake)
     .catch((reason) => console.log(reason));
   },
   
   approveProject: function(nodeId) {
-    SmartBudgetService.approveNode(account, nodeId, 0)
+    activeInstance.approveNode(activeAccount, nodeId, 0)
     .catch((reason) => console.log(reason));
   },
 
@@ -233,25 +244,16 @@ window.Controller = {
       };
     }
 
-    // Try to load the contract using logs
-    var signature = web3.sha3("SBCreation(address,uint256)");
-    // Find all past logs containing SBCreation event
-    var filter2 = web3.eth.filter({fromBlock: "0x0", toBlock: "latest", topics: [signature]});
-    filter2.get( function(err, res) { 
-      console.log("The found topics are: " + JSON.stringify(res));
-      console.log("The found errors are: " + err);
-     });
-
-    SmartBudgetService.getSubTree(0, 10)
+    activeInstance.getSubTree(0, 10)
     .then(function (val) {
       return [val].map(smartNodeToTreeNodeMapper);
     }).then((val) => window.TreeView.updateTree(val))
     .catch((reason) => console.log(reason));
   },
 
-    warnBlockChange: function () {
-        $("#msgBlockChanged").show();
-    }
+  warnBlockChange: function () {
+      $("#msgBlockChanged").show();
+  }
 };
 
 window.addEventListener('load', function() {

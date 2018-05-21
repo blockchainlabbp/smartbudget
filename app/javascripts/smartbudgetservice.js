@@ -1,4 +1,7 @@
-// export needed for ES6 module dependency
+/**
+ * SmartBudgetService: object for finding, loading and creating SmartBudgetInstance,
+ * which are convenient wrappers around truffle contract instances
+ */
 export const SmartBudgetService = {
     _truffleContract: null,
 
@@ -34,7 +37,7 @@ export const SmartBudgetService = {
     },
 
     /**
-     * Create new SmartBudget instance
+     * Create (Deploy) new SmartBudget instance
      */
     create : async function(tenderLockTime, 
         tenderLockType, deliveryLockTime, 
@@ -149,7 +152,7 @@ function SmartBudgetInstance(instance)  {
     this.addContractor = async function (fromAddress, nodeId, name, stake) {
         console.log("Called contract.addNode with parmeters: (" + fromAddress + "," + description + "," + parentId + ")");
         /** Do input checks here */
-        var res = await this._instance.addNode(description, parentId, {from: fromAddress});
+        var res = await this.instance.addNode(description, parentId, {from: fromAddress});
         console.log("Awaited addNode, the returned log is " + JSON.stringify(res.logs));
         /** Parse logs and select the relevant one here */
         return res.logs[0].args;    
@@ -162,7 +165,7 @@ function SmartBudgetInstance(instance)  {
    this.addNode = async function (fromAddress, description, parentId) {
         console.log("Called contract.addNode with parmeters: (" + fromAddress + "," + description + "," + parentId + ")");
         /** Do input checks here */
-        var res = await this._instance.addNode(description, parentId, {from: fromAddress});
+        var res = await this.instance.addNode(description, parentId, {from: fromAddress});
         console.log("Awaited addNode, the returned log is " + JSON.stringify(res.logs));
         /** Parse logs and select the relevant one here */
         return res.logs[0].args;    
@@ -180,7 +183,7 @@ function SmartBudgetInstance(instance)  {
     this.applyForNode = async function (fromAddress, nodeId, name, stake) {
         console.log("Called contract.applyForNode with parmeters: (" + fromAddress + "," + nodeId + "," + name + "," + stake + ")");
         /** Do input checks here */
-        var res = await this._instance.applyForNode(nodeId, name, stake, {from: fromAddress});
+        var res = await this.instance.applyForNode(nodeId, name, stake, {from: fromAddress});
         console.log("Awaited applyForNode, the returned log is " + JSON.stringify(res.logs));
         /** Parse logs and select the relevant one here */
         return res.logs[0].args;  
@@ -193,7 +196,7 @@ function SmartBudgetInstance(instance)  {
     this.approveNode = async function (fromAddress, nodeId, candidateId) {
         console.log("Called contract.approveNode with parmeters: (" + fromAddress + "," + nodeId + "," + candidateId + ")");
         /** Do input checks here */
-        var res = await this._instance.approveNode(nodeId, candidateId, {from: fromAddress});
+        var res = await this.instance.approveNode(nodeId, candidateId, {from: fromAddress});
         console.log("Awaited approveNode, the returned log is " + JSON.stringify(res.logs));
         /** Parse logs and select the relevant one here */
         return res.logs[0].args;  
@@ -205,7 +208,7 @@ function SmartBudgetInstance(instance)  {
     this.markNodeComplete = async function (fromAddress, nodeId) {
         console.log("Called contract.markNodeComplete with parmeters: (" + fromAddress + "," + nodeId + ")");
         /** Do input checks here */
-        var res = await this._instance.markNodeComplete(nodeId, {from: fromAddress});
+        var res = await this.instance.markNodeComplete(nodeId, {from: fromAddress});
         console.log("Awaited markNodeComplete, the returned log is " + JSON.stringify(res.logs));
         /** Parse logs and select the relevant one here */
         return res.logs[0].args;  
