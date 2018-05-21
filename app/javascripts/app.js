@@ -33,64 +33,61 @@ $('#pic11Img').attr('src', pic11Data);
 import smartbudget_abi from '../../build/contracts/SmartBudget.json'
 var SmartBudgetContract = contract(smartbudget_abi);
 
-// The following code is simple to show off interacting with your contracts.
-// As your needs grow you will likely need to change its form and structure.
-// For application bootstrapping, check out window.addEventListener below.
-var accounts;
-var account;
+// In this simple setting, we're using globals to deal with concept of "selected account in metamask"
+// and "selected contract"
+var activeAccount;  // The metamask account currently in use /type: address
+var contractAddresses; // The list of found contract addresses /type: list(address)
+var activeInstance;   // The currently active contract instance /type: SmartBudgetInstance 
+
+function checkActiveAccount() {
+  return new Promise(function (resolve, reject) {
+    web3.eth.getAccounts(function(err, accs) {
+      if (err != null) {
+        alert("There was an error fetching your accounts.");
+        reject("Could not get any accounts");
+      }
+
+      if (accs.length == 0) {
+        alert("Couldn't get any accounts! Please log in to your metamask account first, then click 'OK' to start!");
+        reject("Could not get any accounts");
+      }
+
+      activeAccount = accs[0];
+      $('#metamaskAddress').html(activeAccount);
+      resolve(activeAccount);
+    });
+  });   
+};
 
 window.App = {
   start: function() {
     var self = this;
 
-    // Get the initial account balance so it can be displayed.
-    web3.eth.getAccounts(function(err, accs) {
-      if (err != null) {
-        alert("There was an error fetching your accounts.");
-        return;
+    // Set polling of account changes
+    setInterval( checkActiveAccount, 2000);
+    // Configure SmartBudgetService
+    SmartBudgetContract.setProvider(web3.currentProvider);
+    SmartBudgetService.init(SmartBudgetContract);
+
+    // Init the treeview
+    window.Controller.init();
+    
+    // Use async block so that we can use await notation
+    (async () => { 
+      // Check active account
+      await checkActiveAccount();
+
+      // Find all past instances
+      contractAddresses = await SmartBudgetService.findAllInstances();
+      if (contractAddresses.length == 0) {
+        alert("No contract instance deployed yet! Please start with deploying a new instance!");
+      } else {        
+        activeInstance = await SmartBudgetService.fromAddress(contractAddresses[0]);
+        // Set addNode callback
+        activeInstance.setAddNodeCallback(window.Controller.updateTree);
+        console.log("Found contract address(es), will use first: " + JSON.stringify(contractAddresses));
       }
-
-      if (accs.length == 0) {
-        alert("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
-        return;
-      }
-
-      accounts = accs;
-      account = accounts[0];
-      
-      $('#metamaskAddress').html(account);
-
-      // Bootstrap the smart contract
-      SmartBudgetContract.setProvider(web3.currentProvider);
-      SmartBudgetService.init(SmartBudgetContract, account);
-      window.Controller.init();
-        
-        SmartBudgetService.getAddress()
-        .then((address) => {
-            web3.eth.filter({address: address}, function(error, result) {
-                if (!error) {
-                    console.log('web3.eth.filter: ', result);
-                    //new block was added related to contract
-                    window.Controller.warnBlockChange();
-                }
-            });
-        })
-        .catch((reason) => console.log(reason));
-
-        SmartBudgetService._smartBudgetContract.deployed().then(function(instance) {
-            var nodeAddedEvent = instance.NodeAdded({ from: self._account });
-            nodeAddedEvent.watch(function(err, result) {
-                if (err) {
-                    console.log(err);
-                    return;
-                }
-                //refresh only if node was added by current address
-                if (result.args.from == account)
-                    window.Controller.updateTree();
-                console.log("nodeAddedEvent:", result);
-            });
-        });
-    });
+    })();
   },
 
   setStatus: function(message) {
@@ -125,6 +122,7 @@ window.TreeView = {
    */
   createTree : function() {
     $("#btnLoadContracts").click(window.Controller.updateTree);
+    $("#btnDeployContract").click(window.Controller.deployContract);
     $("#detailsDialog").dialog().dialog("close");
     $("#addNode", "#detailsDialog").on("click", function(e) {
         //$(this).append("<span>Node insert pending...</span>");
@@ -211,28 +209,30 @@ window.Controller = {
     TreeView.createTree();
   },
 
+  deployContract: function() {
+    SmartBudgetService.create(1000000, 1, 2000000, 1, "NewInstance", 0.005, activeAccount);
+  },
+
   addContractor: function(parentId, desc) {
-    SmartBudgetService.addContractor(parentId, desc)
-    .then((val) => console.log(val))
+    activeInstance.addNode(activeAccount, desc, parentId)
     .catch((reason) => console.log(reason));
   },
   
   applyForProject: function(nodeId, name, stake) {
-    SmartBudgetService.applyForNode(nodeId, name, stake)
-    .then((val) => console.log(val))
+    activeInstance.applyForNode(activeAccount, nodeId, name, stake)
     .catch((reason) => console.log(reason));
   },
   
   approveProject: function(nodeId) {
-    SmartBudgetService.approveNode(nodeId)
-    .then((val) => console.log(val))
+    activeInstance.approveNode(activeAccount, nodeId, 0)
     .catch((reason) => console.log(reason));
   },
 
   updateTree : function() {
     $("#msgBlockChanged").hide();
 
-    function smartNodeToTreeNodeMapper(smartNode) {
+    function smartNodeToTreeNodeMapper(smartNode) { 
+      
       return {
         id: smartNode.id,
         title: smartNode.name,
@@ -244,18 +244,16 @@ window.Controller = {
       };
     }
 
-    const contractors = SmartBudgetService._smartBudgetContract.deployed().then(function (contract) {
-      return SmartBudgetService.getSubTree(contract, 0, 10);
-    }).then(function (val) {
+    activeInstance.getSubTree(0, 10)
+    .then(function (val) {
       return [val].map(smartNodeToTreeNodeMapper);
     }).then((val) => window.TreeView.updateTree(val))
     .catch((reason) => console.log(reason));
-    
   },
 
-    warnBlockChange: function () {
-        $("#msgBlockChanged").show();
-    }
+  warnBlockChange: function () {
+      $("#msgBlockChanged").show();
+  }
 };
 
 window.addEventListener('load', function() {
