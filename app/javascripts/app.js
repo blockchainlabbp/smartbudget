@@ -210,7 +210,7 @@ window.Controller = {
   },
 
   deployContract: function() {
-    SmartBudgetService.create(1000000, 1, 2000000, 1, "NewInstance", 0.005, activeAccount);
+    SmartBudgetService.create(1000000, 1, 2000000, 1, "NewInstance", 0.00005, activeAccount);
   },
 
   addContractor: function(parentId, desc) {

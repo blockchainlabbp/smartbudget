@@ -28,6 +28,9 @@ Metamask is a web3.js provider and Ethereum wallet as a browser extension. It is
 * Full test: `truffle test`
 * Frontend test: `./node_modules/mocha/bin/mocha --require babel-register test/*.js`
 
+## Ropsten test network
+Metamask seed words: `man garbage awesome trash juice hollow genre service verify amount awake shy`
+
 ## Notes
 Do not remove `package-lock.json` from source control, it is intended to be committed: https://github.com/npm/npm/blob/latest/doc/files/package-lock.json.md
 
