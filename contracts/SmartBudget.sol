@@ -95,36 +95,40 @@ contract SmartBudget is TimeLock {
     /** @notice Validates if 0 <= nodeId < nodeCntr
     * @param nodeId The node id to validate
     */
-    function validateNodeId(uint nodeId) public view {
+    function validateNodeId(uint nodeId) public view returns (bool) {
         require(nodeId < nodeCntr);
+        return true;
     }
 
     /** @notice Validates if 0 <= candidateId < candidateCntr
     * @param candidateId The candidate id to validate
     */
-    function validateCandidateId(uint candidateId) public view {
+    function validateCandidateId(uint candidateId) public view returns (bool) {
         require(candidateId < candidateCntr);
+        return true;
     }
 
     /** @notice Requires the contract to be in a specific state
     * @param state The expected state
     */
-    function requireContractState(uint state) public view {
+    function requireContractState(uint state) public view returns (bool) {
         require(getContractState() == state);
+        return true;
     }
 
     /** @notice Requires the selected node to be in a specific state
     * @param nodeId The node Id
     * @param state The expected state of the node
     */
-    function requireNodeState(uint nodeId, uint state) public view {
+    function requireNodeState(uint nodeId, uint state) public view returns (bool) {
         require(uint(nodes[nodeId].state) == state);
+        return true;
     }
 
     /** @notice Verifies if the message sender is the owner of the node
     * @param nodeId The node Id
     */
-    function requireNodeOwner(uint nodeId) public view {    
+    function requireNodeOwner(uint nodeId) public view returns (bool){    
         Node memory node = nodes[nodeId];
         if (node.state == NodeState.OPEN) {
             // The node only has owner after it has been approved
@@ -132,14 +136,16 @@ contract SmartBudget is TimeLock {
         } else {
             require(node.addr == msg.sender); 
         }
+        return true;
     }
 
     /** @notice Verifies if the message sender is the owner of the parent of the node
     * @param nodeId The node Id, whose parent will be checked
     */
-    function requireNodeParentOwner(uint nodeId) public view {    
+    function requireNodeParentOwner(uint nodeId) public view returns (bool) {    
         uint parentId = nodes[nodeId].parent;
         requireNodeOwner(parentId);
+        return true;
     }
 
     /** @notice Gets the contract's state
@@ -166,13 +172,14 @@ contract SmartBudget is TimeLock {
     * @param stake The amount of ethereum planned to be allocated for the new node
     * @param nodeId Id of node
     */
-    function validateStake(uint stake, uint nodeId) private view {
+    function validateStake(uint stake, uint nodeId) public view returns (bool) {
         validateNodeId(nodeId);
         uint availableStake = nodes[nodeId].stake;
 
         if (availableStake < stake) {
             revert();
         }
+        return true;
     }
     
 

@@ -35,6 +35,7 @@ var SmartBudgetContract = contract(smartbudget_abi);
 
 // In this simple setting, we're using globals to deal with concept of "selected account in metamask"
 // and "selected contract"
+var activeNetwork;  // The name of the active network (Mainnet, Ropsten, etc.) /type: string
 var activeAccount;  // The metamask account currently in use /type: address
 var contractAddresses; // The list of found contract addresses /type: list(address)
 var activeInstance;   // The currently active contract instance /type: SmartBudgetInstance 
@@ -123,6 +124,7 @@ window.TreeView = {
   createTree : function() {
     $("#btnLoadContracts").click(window.Controller.updateTree);
     $("#btnDeployContract").click(window.Controller.deployContract);
+    $("#btnTest").click(window.Controller.tenderLockTime);
     $("#detailsDialog").dialog().dialog("close");
     $("#addNode", "#detailsDialog").on("click", function(e) {
         //$(this).append("<span>Node insert pending...</span>");
@@ -209,9 +211,16 @@ window.Controller = {
     TreeView.createTree();
   },
 
+  // Deploy new contract
   deployContract: function() {
-    SmartBudgetService.create(1000000, 1, 2000000, 1, "NewInstance", 0.005, activeAccount);
+    SmartBudgetService.create(1000000, 1, 2000000, 1, "NewInstance", 0.00005, activeAccount);
   },
+
+  tenderLockTime: function() {
+    activeInstance.secondsToTenderEnd();
+  },
+
+  // ----------------------------------- Updaters ---------------------------------------------
 
   addContractor: function(parentId, desc) {
     activeInstance.addNode(activeAccount, desc, parentId)
@@ -237,7 +246,7 @@ window.Controller = {
         id: smartNode.id,
         title: smartNode.name,
         key: smartNode.id,
-        stake: smartNode.stake,
+        stake: web3.fromWei(smartNode.stakeInWei, "ether"),
         address: smartNode.address,
         parentid: smartNode.parentid,
         children: smartNode.children.map(smartNodeToTreeNodeMapper)
@@ -259,14 +268,32 @@ window.Controller = {
 window.addEventListener('load', function() {
   // Checking if Web3 has been injected by the browser (Mist/MetaMask)
   if (typeof web3 !== 'undefined') {
-    console.warn("Using web3 detected from external source. If you find that your accounts don't appear, ensure you've configured that source properly. If using MetaMask, see the following link. Feel free to delete this warning. :) http://truffleframework.com/tutorials/truffle-and-metamask")
-    // Use Mist/MetaMask's provider
     window.web3 = new Web3(web3.currentProvider);
+    web3.version.getNetwork((err, netId) => {
+      switch (netId) {
+        case "1":
+          activeNetwork = "Main";
+          break;
+        case "2":
+          activeNetwork = "Morden";
+          break;
+        case "3":
+          activeNetwork = "Ropsten";
+          break;
+        case "4":
+          activeNetwork = "Rinkeby";
+          break;
+        case "42":
+          activeNetwork = "Kovan";
+          break;
+        default:
+          activeNetwork = "Unknown";
+      };
+      console.log("Detected network: " + activeNetwork);
+      // Start the app
+      App.start();
+    });
   } else {
-    console.warn("No web3 detected. Falling back to http://127.0.0.1:9545. You should remove this fallback when you deploy live, as it's inherently insecure. Consider switching to Metamask for development. More info here: http://truffleframework.com/tutorials/truffle-and-metamask");
-    // fallback - use your fallback strategy (local node / hosted node + in-dapp id mgmt / fail)
-    window.web3 = new Web3(new Web3.providers.HttpProvider("http://127.0.0.1:7545"));
+    alert("No injected web3 instance detected! Please install/reinstall MetaMask and reload the page!");
   }
-
-  App.start();
 });
