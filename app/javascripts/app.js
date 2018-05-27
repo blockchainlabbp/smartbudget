@@ -284,7 +284,7 @@ window.Controller = {
         id: smartNode.id,
         title: smartNode.name,
         key: smartNode.id,
-        stake: web3.fromWei(smartNode.stake,"ether"),
+        stake: web3.fromWei(smartNode.stakeInWei, "ether"),
         address: smartNode.address,
         parentid: smartNode.parentid,
         children: smartNode.children.map(smartNodeToTreeNodeMapper)
