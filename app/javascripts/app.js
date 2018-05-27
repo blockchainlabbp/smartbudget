@@ -124,7 +124,7 @@ window.TreeView = {
   createTree : function() {
     $("#btnLoadContracts").click(window.Controller.updateTree);
     $("#btnDeployContract").click(window.Controller.deployContract);
-    $("#btnTest").click(window.Controller.requireContractState);
+    $("#btnTest").click(window.Controller.tenderLockTime);
     $("#detailsDialog").dialog().dialog("close");
     $("#addNode", "#detailsDialog").on("click", function(e) {
         //$(this).append("<span>Node insert pending...</span>");
@@ -216,46 +216,8 @@ window.Controller = {
     SmartBudgetService.create(1000000, 1, 2000000, 1, "NewInstance", 0.00005, activeAccount);
   },
 
-  // ---------------------------------- Validators -------------------------------------------
-  // TODO: use them with proper arguments
-  validateNodeId: async function() {
-    var status = await activeInstance.validateNodeId(0);
-    console.log("ValidateNode: " + status);
-  },
-
-  validateCandidateId: async function() {
-    var status = await activeInstance.validateCandidateId(0);
-    console.log("ValidateCandidateId: " + status);
-  },
-
-  validateNodeId: async function() {
-    var status = await activeInstance.validateNodeId(0);
-    console.log("ValidateNode: " + status);
-  },
-
-  requireContractState: async function() {
-    var status = await activeInstance.requireContractState(2);
-    console.log("Contract state requirement: " + status);
-  },
-
-  requireNodeOwner: async function() {
-    var status = await activeInstance.requireNodeOwner(activeAccount, 0);
-    console.log("Node ownership requirement: " + status);
-  },
-
-  requireNodeParentOwner: async function() {
-    var status = await activeInstance.requireNodeParentOwner(activeAccount, 0);
-    console.log("ValidateStake: " + status);
-  },
-
-  getContractState: async function() {
-    var state = await activeInstance.getContractState();
-    console.log("Contract state is: " + state);
-  },
-
-  validateStake: async function() {
-    var status = await activeInstance.validateStake(1, 0);
-    console.log("ValidateStake: " + status);
+  tenderLockTime: function() {
+    activeInstance.secondsToTenderEnd();
   },
 
   // ----------------------------------- Updaters ---------------------------------------------

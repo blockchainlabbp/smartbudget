@@ -96,10 +96,50 @@ function SmartBudgetInstance(instance)  {
 
     this.setCompletedNodeCallback = function(cb) {
         // Uninstall any previous filter
-        this._completedNodeEvent.stopWatching();
+        this.completedNodeEvent.stopWatching();
         // Set callback
-        this._completedNodeEvent.watch(cb);  
+        this.completedNodeEvent.watch(cb);  
     };
+
+    /**
+     * Call this when you're done with the object
+     */
+    this.stopAllWatches = function () {
+        this.addNodeEvent.stopWatching();
+        this.addCandidateEvent.stopWatching();
+        this.approveCandidateEvent.stopWatching();
+        this.completedNodeEvent.stopWatching();
+    };
+
+    //------------------------------------- Timing -----------------------------------------------
+
+    this.tenderLockTime = async function() {
+        var tenderLockTime = await this.instance.tenderLockTime();
+        var tenderLockDate = new Date(tenderLockTime*1000);
+        console.log("The tender lock time is: " + tenderLockDate);
+        return tenderLockDate;
+    }
+
+    this.secondsToTenderEnd = async function() {
+        var now = new Date().getTime() / 1000;
+        var tenderLockTime = await this.instance.tenderLockTime();
+        var secsToTenderEnd = tenderLockTime - now;
+        console.log("The remaining seconds until tender time lock end: " + secsToTenderEnd);
+    }
+
+    this.deliveryLockTime = async function() {
+        var deliveryLockTime = await this.instance.deliveryLockTime();
+        var deliveryLockDate = new Date(deliveryLockTime*1000);
+        console.log("The delivery lock time is: " + deliveryLockDate);
+        return deliveryLockDate;
+    }
+
+    this.secondsToDeliveryEnd = async function() {
+        var now = new Date().getTime() / 1000;
+        var deliveryLockTime = await this.instance.deliveryLockTime();
+        var secsToDeliveryEnd = deliveryLockTime - now;
+        console.log("The remaining seconds until delivery time lock end: " + secsToDeliveryEnd);
+    }
 
     //------------------------------------- Validators ------------------------------------------
     // Wraps any smart contract function an transforms revert to failed, and successful execution to passed
@@ -161,6 +201,48 @@ function SmartBudgetInstance(instance)  {
         };
         return await testWrapper(this.instance.requireContractState(stateId), errCallback);
     };
+
+    /**
+     * Requires the contract's state to be after stateName
+     */
+    this.requireContractStateAfter = async function(stateName, errCallback) {
+        /*
+       * ContractState enum disrcibes the state of the smartbudget contract.
+       * INVALID   - 0 - Before initalization is complete
+       * CANCELLED - 1 - Some first-level subprojects of the main project have not been approved
+       * TENDER    - 2 - Contract is in the tender period
+       * DELIVERY  - 3 - Contract is in delivery period
+       * FINISHED  - 4 - Delivery time lock has expired, withdraw is opened
+       */
+      var stateId;
+      switch (stateName) {
+       case "INVALID":
+           stateId = 0;
+           break;
+       case "CANCELLED":
+           stateId = 1;
+           break;
+       case "TENDER":
+           stateId = 2;
+           break;
+       case "DELIVERY":
+           stateId = 3;
+           break;
+       case "FINISHED":
+           stateId = 4;
+           break;
+       default:
+           throw new Error("Contract state can only be one of INVALID/CANCELLED/TENDER/DELIVERY/FINISHED, received " + stateName);
+       };
+       var actualStateId = this.instance.getContractState();
+       return await testWrapper(async () => {
+           if (actualStateId <= stateId) {
+               throw new Error("Invalid state");
+           } else {
+               return true;
+           }
+       }, errCallback);
+   };
 
     /**
      * Requires a specific node state
@@ -299,6 +381,22 @@ function SmartBudgetInstance(instance)  {
 
 
     /**
+     * GetCandidateWeb wrapper
+     */
+    this.getCandidateWeb = async function(candidateId) {
+        /** "name" : "Name of the  candidate",
+        *   "stake" : "Proposed stake of candidate",
+        *   "addr" : "Address of candidate"
+        */
+        var attributes = await this.instance.getCandidateWeb(candidateId, {gas: 500000 });
+        var cand = {id: candidateId, 
+            name: attributes[0].toString(),
+            stakeInWei: attributes[1].toNumber(),
+            addr: attributes[2].toString()};
+        return cand;
+    }
+
+    /**
      * The recursive function that gets the details of the nodes
      */
     this.visitNode = async function (nodeId, currDepth, maxDepth) {
@@ -328,7 +426,6 @@ function SmartBudgetInstance(instance)  {
     };
 
     //------------------------------------- Updaters ---------------------------------------------
-
     /**
     *   Wrapper for SmartBudget.addNode(string desc, uint parentId)
     *   Returns the emitted event's arguments
@@ -359,9 +456,10 @@ function SmartBudgetInstance(instance)  {
         });
         
         var res = await this.instance.addNode(description, parentId, {from: fromAddress});
-        console.log("Awaited addNode, the returned log is " + JSON.stringify(res.logs));
-        /** Parse logs and select the relevant one here */
-        return res.logs[0].args;    
+        // By construction, the transaction will contain a single event
+        var newId = res.logs[0].args.id.toNumber();
+        console.log("Awaited addNode, the new node's id is: " + newId);
+        return newId;    
     };
 
     /**
@@ -409,10 +507,10 @@ function SmartBudgetInstance(instance)  {
         });
 
         var res = await this.instance.applyForNode(nodeId, name, stakeInWei, {from: fromAddress});
-        console.log("Awaited applyForNode, the returned log is " + JSON.stringify(res.logs));
-        /** Parse logs and select the relevant one here */
-        return res.logs[0].args;  
-        
+        // By construction, the transaction will contain a single event
+        var newId = res.logs[0].args.id.toNumber();
+        console.log("Awaited applyForNode, the new candidate's id is: " + newId);
+        return newId;         
     };
 
     /**
@@ -420,12 +518,65 @@ function SmartBudgetInstance(instance)  {
      * Returns the emitted event's arguments
      */
     this.approveNode = async function (fromAddress, nodeId, candidateId) {
+        await this.requireContractState("TENDER", async () => {
+            var actualState = await this.getContractState();
+            var msg = "Cannot approve node, contract is required " +
+                        "to be in TENDER state, but the actual state is " + actualState;
+            alert(msg);
+            return msg;
+        });
+
+        await this.validateNodeId(nodeId, async () => {
+            var msg = "Error: parent id " + nodeId + " is not a valid id!";
+            alert(msg);
+            return msg;
+        });
+
+        await this.validateCandidateId(candidateId, async () => {
+            var msg = "Error: candidate id " + candidateId + " is not a valid id!";
+            alert(msg);
+            return msg;
+        });
+
+        await this.requireNodeState(nodeId, "OPEN", async () => {
+            var node = await this.getNodeWeb(nodeId);
+            var msg = "Cannot apply for node " + node.name + " (id: " + node.id + 
+                        "), because node state should be OPEN, while the actual state is " + 
+                        node.state;
+            alert(msg);
+            return msg;
+        });
+
+        // Validate owner
+        var node = await this.getNodeWeb(nodeId);
+        var parentId = node.parentId;
+        var parentNode = await this.getNodeWeb(parentId);
+        var stakeInWei = parentNode.stakeInWei;
+
+        await this.requireNodeOwner(fromAddress, parentId, async () => {
+            var cand = this.getCandidateWeb(candidateId);
+            var msg = "Cannot approve candidate " + cand.name + " (id: " + cand.id + 
+                        "), because you're not the owner of the parent node " + 
+                        parentNode.name + " (id: " + parentNode.id + ")";
+            alert(msg);
+            return msg;
+        });
+
+        // Validate stake
+        await this.validateStake(stakeInWei, parentId, async () => {
+            var cand = this.getCandidateWeb(candidateId);
+            var msg = "Cannot approve candidate " + cand.name + " (id: " + cand.id + 
+                        "), because the proposed stake (" + web3.fromWei(stakeInWei, "ether") + " ETH)" + 
+                        " is more than the total stake available for the parent node (" + 
+                        web3.fromWei(parentNode.stakeInWei, "ether") + " ETH)";
+            alert(msg);
+            return msg;
+        });
+
         console.log("Called contract.approveNode with parmeters: (" + fromAddress + "," + nodeId + "," + candidateId + ")");
         /** Do input checks here */
         var res = await this.instance.approveNode(nodeId, candidateId, {from: fromAddress});
-        console.log("Awaited approveNode, the returned log is " + JSON.stringify(res.logs));
-        /** Parse logs and select the relevant one here */
-        return res.logs[0].args;  
+        console.log("Node " + nodeId + " successfully approved!");
     };
 
     /**
@@ -433,10 +584,112 @@ function SmartBudgetInstance(instance)  {
      */
     this.markNodeComplete = async function (fromAddress, nodeId) {
         console.log("Called contract.markNodeComplete with parmeters: (" + fromAddress + "," + nodeId + ")");
-        /** Do input checks here */
+
+        await this.requireContractStateAfter("TENDER", async () => {
+            var actualState = await this.getContractState();
+            var msg = "Cannot mark node complete, contract is required " +
+                        "to be past TENDER state, but the actual state is " + actualState;
+            alert(msg);
+            return msg;
+        });
+
+        await this.validateNodeId(nodeId, async () => {
+            var msg = "Error: node id " + nodeId + " is not a valid id!";
+            alert(msg);
+            return msg;
+        });
+
+        var rootId = 0;      
+        await this.requireNodeOwner(fromAddress, rootId, async () => {
+            var rootNode = await this.getNodeWeb(rootId);
+            var msg = "Only the owner of the root project " + 
+                        rootNode.name + " (id: " + rootNode.id + ") can mark nodes complete";
+            alert(msg);
+            return msg;
+        });
+
+        await this.requireNodeState(nodeId, "APPROVED", async () => {
+            var node = await this.getNodeWeb(nodeId);
+            var msg = "Cannot apply for node " + node.name + " (id: " + node.id + 
+                        "), because node state should be OPEN, while the actual state is " + 
+                        node.state;
+            alert(msg);
+            return msg;
+        });
+
         var res = await this.instance.markNodeComplete(nodeId, {from: fromAddress});
-        console.log("Awaited markNodeComplete, the returned log is " + JSON.stringify(res.logs));
-        /** Parse logs and select the relevant one here */
-        return res.logs[0].args;  
+        console.log("Node " + nodeId + " successfully marked complete!");
     }
+
+     //------------------------------------- Payment functions ---------------------------------------------
+     /**
+      * Withdraw function
+      */
+     this.withdraw = async function (fromAddress, nodeId) {
+        console.log("Called contract.withdraw with parmeters: (" + fromAddress + "," + nodeId + ")");
+
+        await this.requireContractState("FINISHED", async () => {
+            var actualState = await this.getContractState();
+            var msg = "Cannot withdraw stake, contract is required " +
+                        "to be in FINISHED state, but the actual state is " + actualState;
+            alert(msg);
+            return msg;
+        });
+
+        await this.validateNodeId(nodeId, async () => {
+            var msg = "Error: node id " + nodeId + " is not a valid id!";
+            alert(msg);
+            return msg;
+        });
+
+        var node = await this.getNodeWeb(nodeId);
+        if (node.state == "COMPLETED") {
+            await this.requireNodeOwner(fromAddress, nodeId, async () => {
+                var msg = "Cannot withdraw stake of node " + node.name + " (id: " + node.id + 
+                            "), because you're not the owner";
+                alert(msg);
+                return msg;
+            });
+        } else if (node.state == "APPROVED") {
+            var rootId = 0;
+            await this.requireNodeOwner(fromAddress, rootId, async () => {
+                var msg = "Cannot withdraw stake of node " + node.name + " (id: " + node.id + 
+                            "), because only the root owner may withdraw the stake, as the task was not marked complete";
+                alert(msg);
+                return msg;
+            });
+        } else {
+            var msg = "Node should be either in COMPLETED or APPROVED state, but its state is " + node.state;
+            alert(msg);
+            throw new Error(msg);
+        }
+
+        var res = await this.instance.withdraw(nodeId, {from: fromAddress});
+        console.log("Withdrawal from node " + nodeId + " successfully completed!");
+     }
+
+     /**
+      * Cancel function
+      */
+     this.cancel = async function (fromAddress) {
+        console.log("Called contract.cancel with parmeters: (" + fromAddress + ")");
+
+        await this.requireContractState("CANCELLED", async () => {
+            var actualState = await this.getContractState();
+            var msg = "Cannot redeem stake from contranct, contract is required " +
+                        "to be in CANCELLED state, but the actual state is " + actualState;
+            alert(msg);
+            return msg;
+        });
+
+        rootId = 0;
+        await this.requireNodeOwner(fromAddress, rootId, async () => {
+            var msg = "Only the root owner can redeem stake from the contract.";
+            alert(msg);
+            return msg;
+        });
+
+        var res = await this.instance.cancel(nodeId, {from: fromAddress});
+        console.log("Stake redemption successfully competed!");
+     }
 };
