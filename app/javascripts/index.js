@@ -18,6 +18,8 @@ import {createTree, fancyTree} from 'jquery.fancytree';
  * <li>calling backend service and smart contract</li> * 
  */
 
+window.lastActiveAccount;
+
 /**
  * Tree rendering
  */
@@ -27,37 +29,9 @@ window.TreeView = {
    * Defining the FancyTree object
    */
   createTree : function() {
-    $("#btnLoadContracts").click(window.Controller.updateTree);
-    $("#btnDeployContract").click(window.Controller.deployContract);
-    $("#btnTest").click(window.Controller.findAllInstances);
-    $("#detailsDialog").dialog().dialog("close");
-    $("#addNode", "#detailsDialog").on("click", function(e) {
-        //$(this).append("<span>Node insert pending...</span>");
-        if ($("#addNodeDesc", "#detailsDialog")[0].checkValidity()) {
-          window.Controller.addContractor(
-            $("#nodeID", "#detailsDialog").val(),
-            $("#addNodeDesc", "#detailsDialog").val());  
-        } else {
-          $("#validationError", "#detailsDialog").show();
-        }
-    });
-    $("#applyForNode", "#detailsDialog").on("click", function(e) {
-        if ($("#applyForNodeName", "#detailsDialog")[0].checkValidity() && 
-            $("#applyForNodeStake", "#detailsDialog")[0].checkValidity()) {
-          window.Controller.applyForProject(
-            $("#nodeID", "#detailsDialog").val(),
-            $("#applyForNodeName", "#detailsDialog").val(),
-            $("#applyForNodeStake", "#detailsDialog").val());  
-        } else {
-          $("#validationError", "#detailsDialog").show();
-        }
-    });
-    $("#approveNode", "#detailsDialog").on("click", function(e) {
-        window.Controller.approveProject($("#nodeID", "#detailsDialog").val());
-    });
-
     TreeView.tree = createTree("#tree",{
       checkbox: false,           // don't render default checkbox column
+      icon: false,
       titlesTabbable: true,        // Add all node titles to TAB chain
       source: null,
       minExpandLevel: 3,
@@ -86,22 +60,16 @@ window.TreeView = {
         // (Column #1 is rendered by fancytree) adding node name and icons
         
         // ...otherwise render remaining columns
-        $tdList.eq(1).text(node.data.title);
-        $tdList.eq(2).text(node.data.address);
-        $tdList.eq(3).text(node.data.stake);
+        $tdList.eq(0).text(node.data.title);
+        $tdList.eq(1).text(node.data.address);
+        $tdList.eq(2).text(node.data.stake);
 
-        $tdList.eq(4).append("<button type='button'>Details</button>")
-        .click(function() {
-            $("#nodeID", "#detailsDialog").val(node.data.id);
-            $("#nodeDetails", "#detailsDialog").html("Project ID: " + node.data.id);
-            $("#validationError", "#detailsDialog").hide();
-            $("#detailsDialog").dialog("open");
-        });
+        $tdList.eq(3).append("<button type='button'>Project Overview</button>")
       }
     });
   },
 
-  updateTree : function(contractors) {
+  updateTree : async function(contractors) {
     // How to update data: https://github.com/mar10/fancytree/wiki/TutorialLoadData
     TreeView.tree.reload(contractors);
   }
@@ -112,55 +80,30 @@ window.TreeView = {
  * client side validation
  */
 window.Controller = {
-  init : function() {
+  init : async function() {
     TreeView.createTree();
   },
 
-  findAllInstances: async function() {
-    // Find all past instances
-    window.contractAddresses = await SmartBudgetService.findAllInstances();
-    if (window.contractAddresses.length == 0) {
-      alert("No contract instance deployed yet! Please start with deploying a new instance!");
-    } else {        
-      window.activeInstance = await SmartBudgetService.fromAddress(window.contractAddresses[0]);
-      window.App.saveActiveInstance();
-      // Set addNode callback
-      window.activeInstance.setAddNodeCallback(window.Controller.updateTree);
-      console.log("Found contract address(es), will use first: " + JSON.stringify(window.contractAddresses));
-    }
+  findMyInstances: async function() {
+    // Find all instance addresses
+    var addresses = await SmartBudgetService.findAllInstances();
+    // Load all of them
+    var instancesAndRoots = await Promise.all(addresses.map( async (addr) => {
+      var inst = await SmartBudgetService.fromAddress(addr);
+      var rootNode = await inst.getNodeWeb(0);
+      return {instance: inst, root: rootNode};
+    }));
+    // Find the relevant ones
+    var myInstancesAndRoots = instancesAndRoots.filter( (instAndRoot) => {
+      return instAndRoot.root.address == activeAccount;
+    });
+    return myInstancesAndRoots;
   },
 
-  // Deploy new contract
-  deployContract: function() {
-    SmartBudgetService.create(1000000, 1, 2000000, 1, "NewInstance", 0.00005, window.activeAccount);
-  },
-
-  tenderLockTime: function() {
-    window.activeInstance.secondsToTenderEnd();
-  },
-
-  // ----------------------------------- Updaters ---------------------------------------------
-
-  addContractor: function(parentId, desc) {
-    window.activeInstance.addNode(window.activeAccount, desc, parentId)
-    .catch((reason) => console.log(reason));
-  },
-  
-  applyForProject: function(nodeId, name, stake) {
-    window.activeInstance.applyForNode(window.activeAccount, nodeId, name, stake)
-    .catch((reason) => console.log(reason));
-  },
-  
-  approveProject: function(nodeId) {
-    window.activeInstance.approveNode(window.activeAccount, nodeId, 0)
-    .catch((reason) => console.log(reason));
-  },
-
-  updateTree : function() {
-    $("#msgBlockChanged").hide();
+  findMyRootProjects: async function() {
+    var myInstancesAndRoots = await window.Controller.findMyInstances();
 
     function smartNodeToTreeNodeMapper(smartNode) { 
-      
       return {
         id: smartNode.id,
         title: smartNode.name,
@@ -168,24 +111,27 @@ window.Controller = {
         stake: web3.fromWei(smartNode.stakeInWei, "ether"),
         address: smartNode.address,
         parentid: smartNode.parentid,
-        children: smartNode.children.map(smartNodeToTreeNodeMapper)
+        children: []
       };
     }
 
-    window.activeInstance.getSubTree(0, 10)
-    .then(function (val) {
-      return [val].map(smartNodeToTreeNodeMapper);
-    }).then((val) => window.TreeView.updateTree(val))
-    .catch((reason) => console.log(reason));
+    var myTreeRoots = myInstancesAndRoots.map( (instAndRoot) => smartNodeToTreeNodeMapper(instAndRoot.root) );
+    window.TreeView.updateTree(myTreeRoots);
   },
 
-  warnBlockChange: function () {
-      $("#msgBlockChanged").show();
+  scanMyRootProjects: async function() {
+    if (window.lastActiveAccount != window.activeAccount) {
+      console.log("Loading my projects...");
+      window.lastActiveAccount = window.activeAccount;
+      await window.Controller.findMyRootProjects();
+    }
   }
 };
 
-window.addEventListener('load', function() {
-  window.App.start();
-  window.Controller.init();
+window.addEventListener('load', async function() {
+  await window.App.start();
+  await window.Controller.init();
+  await window.Controller.scanMyRootProjects();
+  setInterval(window.Controller.scanMyRootProjects, 2000);
 });
 

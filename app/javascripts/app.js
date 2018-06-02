@@ -62,7 +62,7 @@ function checkActiveAccount() {
 };
 
 window.App = {
-  start: function() {
+  start: async function() {
     // Checking if Web3 has been injected by the browser (Mist/MetaMask)
     window.App.checkMetaMask();
 
@@ -75,7 +75,7 @@ window.App = {
     window.SmartBudgetService = SmartBudgetService.init(SmartBudgetContract);
 
     // Check if we have already an activeInstance
-    window.App.loadActiveInstance();
+    await window.App.loadActiveInstance();
   },
 
   checkMetaMask: function() {
