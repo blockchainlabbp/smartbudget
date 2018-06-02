@@ -5,7 +5,8 @@ const webpack = require('webpack');
 module.exports = {
   entry: {
     index: './app/javascripts/index.js',
-    search: './app/javascripts/search.js'
+    search: './app/javascripts/search.js',
+    create_project: './app/javascripts/create_project.js',
   },
   output: {
     path: path.resolve(__dirname, 'build'),
@@ -18,9 +19,9 @@ module.exports = {
     // Copy our app's index.html to the build folder.
     new CopyWebpackPlugin([
       { from: './app/about.html', to: "about.html" },
-      { from: './app/blank.html', to: "blank.html" },
       { from: './app/find.html', to: "find.html" },
       { from: './app/index.html', to: "index.html" },
+      { from: './app/create_project.html', to: "create_project.html" },
       { from: './app/webelements.html', to: "webelements.html" },
     ]), 
     new webpack.ProvidePlugin({
