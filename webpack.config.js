@@ -4,8 +4,7 @@ const webpack = require('webpack');
 
 module.exports = {
   entry: {
-    app: './app/javascripts/app.js',
-    smartbudgetservice: './app/javascripts/smartbudgetservice.js'
+    index: './app/javascripts/index.js',
   },
   output: {
     path: path.resolve(__dirname, 'build'),

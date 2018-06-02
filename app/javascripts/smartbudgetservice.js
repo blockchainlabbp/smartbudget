@@ -8,6 +8,7 @@ export const SmartBudgetService = {
     init: function (truffleContract) {
         var self = this;
         self._truffleContract = truffleContract;
+        return self;
     },
 
     /**
