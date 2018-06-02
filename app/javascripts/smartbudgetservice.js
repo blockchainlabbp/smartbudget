@@ -418,6 +418,50 @@ function SmartBudgetInstance(instance)  {
         }
     };
 
+
+    /**
+     * The recursive function that gets the details of the nodes
+     */
+    this.visitFilteredNode = async function (nodeId, currDepth, maxDepth, searchTerm) {
+        // Get node by ID    
+        // Check if we have reached the max depth
+        if (currDepth >= maxDepth) {
+            return {};
+        } else {
+            var node = await this.getNodeWeb(nodeId);
+            // Add field children, which will be parsed by fancytree
+            if (node.childIds.length > 0) {
+                node.children = await Promise.all(node.childIds.map(async (childId) => await this.visitFilteredNode(childId, currDepth + 1, maxDepth, searchTerm)));
+            } else {
+                node.children = [];
+            }
+
+            if(searchTerm[1] != ""){
+                if (node.name.toUpperCase().includes(searchTerm[0].toUpperCase()) && node.state == searchTerm[1]) {
+                    var temp = {stake: node.stake, state: node.state, name: node.name}
+                    this.smartNodes.push(temp);                    
+                }
+            }else{
+                if (node.name.toUpperCase().includes(searchTerm[0].toUpperCase())) {
+                    var temp = {stake: node.stake, state: node.state, name: node.name}
+                    this.smartNodes.push(temp);                    
+                }
+            }
+           
+
+            return node;
+        }
+    };
+
+    /**
+     * Get the complete node subtree starting from startNode filtered by <searchterm [name, state]>. The maximum allowed depth is maxDepth
+     */
+    this.getFilteredNodes = async function (startNode, maxDepth, searchTerm) {
+        this.smartNodes = [];
+        var subTree = await this.visitFilteredNode(startNode, 0, maxDepth, searchTerm);
+        return this.smartNodes;
+    };
+
     /**
      * Get the complete node subtree starting from startNode. The maximum allowed depth is maxDepth
      */
