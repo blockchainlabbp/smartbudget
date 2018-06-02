@@ -1,3 +1,4 @@
+// --------------- Main js app, app page-specific js files should require this first! ------------------
 // Import the page's CSS. Webpack will know what to do with it.
 import "../stylesheets/app.css";
 import "../stylesheets/main.css";
@@ -5,7 +6,6 @@ import {SmartBudgetService} from "./smartbudgetservice.js";
 
 // Import fancytree https://github.com/mar10/fancytree/wiki
 import 'jquery.fancytree/dist/skin-lion/ui.fancytree.less';
-import {createTree, fancyTree} from 'jquery.fancytree';
 import 'jquery.fancytree/dist/modules/jquery.fancytree.edit';
 import 'jquery.fancytree/dist/modules/jquery.fancytree.filter';  
 import 'jquery.fancytree/dist/modules/jquery.fancytree.table';
@@ -35,10 +35,11 @@ var SmartBudgetContract = contract(smartbudget_abi);
 
 // In this simple setting, we're using globals to deal with concept of "selected account in metamask"
 // and "selected contract"
-var activeNetwork;  // The name of the active network (Mainnet, Ropsten, etc.) /type: string
-var activeAccount;  // The metamask account currently in use /type: address
-var contractAddresses; // The list of found contract addresses /type: list(address)
-var activeInstance;   // The currently active contract instance /type: SmartBudgetInstance 
+window.activeNetwork;  // The name of the active network (Mainnet, Ropsten, etc.) /type: string
+window.activeAccount;  // The metamask account currently in use /type: address
+window.contractAddresses; // The list of found contract addresses /type: list(address)
+window.activeInstance;   // The currently active contract instance /type: SmartBudgetInstance 
+window.SmartBudgetService;
 
 function checkActiveAccount() {
   return new Promise(function (resolve, reject) {
@@ -53,247 +54,103 @@ function checkActiveAccount() {
         reject("Could not get any accounts");
       }
 
-      activeAccount = accs[0];
-      $('#metamaskAddress').html(activeAccount);
-      resolve(activeAccount);
+      window.activeAccount = accs[0];
+      $('#metamaskAddress').html(window.activeAccount);
+      resolve(window.activeAccount);
     });
   });   
 };
 
 window.App = {
   start: function() {
-    var self = this;
+    // Checking if Web3 has been injected by the browser (Mist/MetaMask)
+    window.App.checkMetaMask();
 
     // Set polling of account changes
-    setInterval( checkActiveAccount, 2000);
+    checkActiveAccount();
+    setInterval(checkActiveAccount, 2000);
+
     // Configure SmartBudgetService
     SmartBudgetContract.setProvider(web3.currentProvider);
-    SmartBudgetService.init(SmartBudgetContract);
+    window.SmartBudgetService = SmartBudgetService.init(SmartBudgetContract);
 
-    // Init the treeview
-    window.Controller.init();
-    
-    // Use async block so that we can use await notation
-    (async () => { 
-      // Check active account
-      await checkActiveAccount();
+    // Check if we have already an activeInstance
+    window.App.loadActiveInstance();
+  },
 
-      // Find all past instances
-      contractAddresses = await SmartBudgetService.findAllInstances();
-      if (contractAddresses.length == 0) {
-        alert("No contract instance deployed yet! Please start with deploying a new instance!");
-      } else {        
-        activeInstance = await SmartBudgetService.fromAddress(contractAddresses[0]);
-        // Set addNode callback
-        activeInstance.setAddNodeCallback(window.Controller.updateTree);
-        console.log("Found contract address(es), will use first: " + JSON.stringify(contractAddresses));
+  checkMetaMask: function() {
+    if (typeof web3 !== 'undefined') {
+      window.web3 = new Web3(web3.currentProvider);
+      web3.version.getNetwork((err, netId) => {
+        switch (netId) {
+          case "1":
+            window.activeNetwork = "Main";
+            break;
+          case "2":
+            window.activeNetwork = "Morden";
+            break;
+          case "3":
+            window.activeNetwork = "Ropsten";
+            break;
+          case "4":
+            window.activeNetwork = "Rinkeby";
+            break;
+          case "42":
+            window.activeNetwork = "Kovan";
+            break;
+          default:
+            window.activeNetwork = "Unknown";
+        };
+        console.log("Detected network: " + activeNetwork);
+      });
+    } else {
+      alert("No injected web3 instance detected! Please install/reinstall MetaMask and reload the page!");
+    } 
+  },
+
+  loadActiveInstance: async function() {
+    if (typeof window.activeInstance == 'undefined') {
+      var lastActiveInstanceAddress = getCookie('activeInstanceAddress');
+      if (lastActiveInstanceAddress != "") {
+        console.log(`Loaded active instance from cookie at address ${lastActiveInstanceAddress}`);
+        window.activeInstance = await SmartBudgetService.fromAddress(lastActiveInstanceAddress);
+      } else {
+        console.log("Could not find cookie with name activeInstanceAddress!");
       }
-    })();
-  },
-
-  setStatus: function(message) {
-    var status = document.getElementById("status");
-    status.innerHTML = message;
-  }
-};
-
-/**
- * 
- * View: 
- * <li>HTML and DOM manipulation</li>
- * <li>assigns event listeners from controller to DOM</li>
- * <li>knows about Controller</li>
- * 
- * Controller: 
- * <li>event callbacks from view</li>
- * <li>call to service (SmartContract)</li>
- * <li>update view from service return</li>
- * 
- * Service:
- * <li>calling backend service and smart contract</li> * 
- */
-
-/**
- * Tree rendering
- */
-window.TreeView = {
-
-  /**
-   * Defining the FancyTree object
-   */
-  createTree : function() {
-    $("#btnLoadContracts").click(window.Controller.updateTree);
-    $("#btnDeployContract").click(window.Controller.deployContract);
-    $("#btnTest").click(window.Controller.tenderLockTime);
-    $("#detailsDialog").dialog().dialog("close");
-    $("#addNode", "#detailsDialog").on("click", function(e) {
-        //$(this).append("<span>Node insert pending...</span>");
-        if ($("#addNodeDesc", "#detailsDialog")[0].checkValidity()) {
-          window.Controller.addContractor(
-            $("#nodeID", "#detailsDialog").val(),
-            $("#addNodeDesc", "#detailsDialog").val());  
-        } else {
-          $("#validationError", "#detailsDialog").show();
-        }
-    });
-    $("#applyForNode", "#detailsDialog").on("click", function(e) {
-        if ($("#applyForNodeName", "#detailsDialog")[0].checkValidity() && 
-            $("#applyForNodeStake", "#detailsDialog")[0].checkValidity()) {
-          window.Controller.applyForProject(
-            $("#nodeID", "#detailsDialog").val(),
-            $("#applyForNodeName", "#detailsDialog").val(),
-            $("#applyForNodeStake", "#detailsDialog").val());  
-        } else {
-          $("#validationError", "#detailsDialog").show();
-        }
-    });
-    $("#approveNode", "#detailsDialog").on("click", function(e) {
-        window.Controller.approveProject($("#nodeID", "#detailsDialog").val());
-    });
-
-    TreeView.tree = createTree("#tree",{
-      checkbox: false,           // don't render default checkbox column
-      titlesTabbable: true,        // Add all node titles to TAB chain
-      source: null,
-      minExpandLevel: 3,
-      extensions: ["table", "gridnav"],
-      table: {
-        checkboxColumnIdx: null,    // render the checkboxes into the this column index (default: nodeColumnIdx)
-        indentation: 16,         // indent every node level by 16px
-        nodeColumnIdx: null         // render node expander, icon, and title to this column (default: #0)
-      },
-      gridnav: {
-        autofocusInput:   false, // Focus first embedded input if node gets activated
-        handleCursorKeys: true   // Allow UP/DOWN in inputs to move to prev/next node
-      },
-    
-      //	renderStatusColumns: false,	 
-      // false: default renderer
-      // true: generate renderColumns events, even for status nodes
-      // function: specific callback for status nodes
-    
-      renderColumns: function(event, data) {
-
-        var node = data.node;
-        var $tdList = $(node.tr).find(">td");
-    
-        // (Column #0 is rendered by fancytree by adding the checkbox)
-        // (Column #1 is rendered by fancytree) adding node name and icons
-        
-        // ...otherwise render remaining columns
-        $tdList.eq(1).text(node.data.title);
-        $tdList.eq(2).text(node.data.address);
-        $tdList.eq(3).text(node.data.stake);
-
-        $tdList.eq(4).append("<button type='button'>Details</button>")
-        .click(function() {
-            $("#nodeID", "#detailsDialog").val(node.data.id);
-            $("#nodeDetails", "#detailsDialog").html("Project ID: " + node.data.id);
-            $("#validationError", "#detailsDialog").hide();
-            $("#detailsDialog").dialog("open");
-        });
-      }
-    });
-  },
-
-  updateTree : function(contractors) {
-    // How to update data: https://github.com/mar10/fancytree/wiki/TutorialLoadData
-    TreeView.tree.reload(contractors);
-  }
-};
-
-/**
- * Control flow
- * client side validation
- */
-window.Controller = {
-  init : function() {
-    TreeView.createTree();
-  },
-
-  // Deploy new contract
-  deployContract: function() {
-    SmartBudgetService.create(1000000, 1, 2000000, 1, "NewInstance", 0.00005, activeAccount);
-  },
-
-  tenderLockTime: function() {
-    activeInstance.secondsToTenderEnd();
-  },
-
-  // ----------------------------------- Updaters ---------------------------------------------
-
-  addContractor: function(parentId, desc) {
-    activeInstance.addNode(activeAccount, desc, parentId)
-    .catch((reason) => console.log(reason));
-  },
-  
-  applyForProject: function(nodeId, name, stake) {
-    activeInstance.applyForNode(activeAccount, nodeId, name, stake)
-    .catch((reason) => console.log(reason));
-  },
-  
-  approveProject: function(nodeId) {
-    activeInstance.approveNode(activeAccount, nodeId, 0)
-    .catch((reason) => console.log(reason));
-  },
-
-  updateTree : function() {
-    $("#msgBlockChanged").hide();
-
-    function smartNodeToTreeNodeMapper(smartNode) { 
-      
-      return {
-        id: smartNode.id,
-        title: smartNode.name,
-        key: smartNode.id,
-        stake: web3.fromWei(smartNode.stakeInWei, "ether"),
-        address: smartNode.address,
-        parentid: smartNode.parentid,
-        children: smartNode.children.map(smartNodeToTreeNodeMapper)
-      };
     }
-
-    activeInstance.getSubTree(0, 10)
-    .then(function (val) {
-      return [val].map(smartNodeToTreeNodeMapper);
-    }).then((val) => window.TreeView.updateTree(val))
-    .catch((reason) => console.log(reason));
   },
 
-  warnBlockChange: function () {
-      $("#msgBlockChanged").show();
+  saveActiveInstance: function () {
+    if (typeof window.activeInstance == 'undefined') {
+      console.error("Cannot save active instance, as it is still undefined!");
+    } else {
+      setCookie('activeInstanceAddress', window.activeInstance.instance.address);
+      console.log(`Saved active instance with address ${window.activeInstance.instance.address}`);
+    }
   }
 };
 
-window.addEventListener('load', function() {
-  // Checking if Web3 has been injected by the browser (Mist/MetaMask)
-  if (typeof web3 !== 'undefined') {
-    window.web3 = new Web3(web3.currentProvider);
-    web3.version.getNetwork((err, netId) => {
-      switch (netId) {
-        case "1":
-          activeNetwork = "Main";
-          break;
-        case "2":
-          activeNetwork = "Morden";
-          break;
-        case "3":
-          activeNetwork = "Ropsten";
-          break;
-        case "4":
-          activeNetwork = "Rinkeby";
-          break;
-        case "42":
-          activeNetwork = "Kovan";
-          break;
-        default:
-          activeNetwork = "Unknown";
-      };
-      console.log("Detected network: " + activeNetwork);
-      // Start the app
-      App.start();
-    });
-  } else {
-    alert("No injected web3 instance detected! Please install/reinstall MetaMask and reload the page!");
+// ----------------------------------- Cookie management ---------------------------------------------
+function setCookie(cname, cvalue, exdays=10) {
+  var d = new Date();
+  d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+  var expires = "expires="+d.toUTCString();
+  document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+}
+
+function getCookie(cname) {
+  var name = cname + "=";
+  var ca = document.cookie.split(';');
+  for(var i = 0; i < ca.length; i++) {
+      var c = ca[i];
+      while (c.charAt(0) == ' ') {
+          c = c.substring(1);
+      }
+      if (c.indexOf(name) == 0) {
+          return c.substring(name.length, c.length);
+      }
   }
-});
+  return "";
+}
+
+
