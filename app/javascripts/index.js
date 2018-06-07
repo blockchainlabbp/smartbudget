@@ -24,12 +24,8 @@ window.lastActiveAccount;
  * Tree rendering
  */
 window.TreeView = {
-
-  /**
-   * Defining the FancyTree object
-   */
-  createTree : function() {
-    TreeView.tree = createTree("#tree",{
+  createTreeBase : function(id, renderCB) {
+    return createTree(id,{
       checkbox: false,           // don't render default checkbox column
       icon: false,
       titlesTabbable: true,        // Add all node titles to TAB chain
@@ -51,27 +47,72 @@ window.TreeView = {
       // true: generate renderColumns events, even for status nodes
       // function: specific callback for status nodes
     
-      renderColumns: function(event, data) {
-
-        var node = data.node;
-        var $tdList = $(node.tr).find(">td");
-    
-        // (Column #0 is rendered by fancytree by adding the checkbox)
-        // (Column #1 is rendered by fancytree) adding node name and icons
-        
-        // ...otherwise render remaining columns
-        $tdList.eq(0).text(node.data.title);
-        $tdList.eq(1).text(node.data.address);
-        $tdList.eq(2).text(node.data.stake);
-
-        $tdList.eq(3).append("<button type='button'>Project Overview</button>")
-      }
+      renderColumns: renderCB
     });
   },
 
-  updateTree : async function(contractors) {
+  /**
+   * Defining the FancyTree object for the root project
+   */
+  createTreeMyRootProjects : function() {
+    TreeView.myRootsTree = createTreeBase("#tree", function(event, data) {
+        var node = data.node;
+        var $tdList = $(node.tr).find(">td");
+  
+        $tdList.eq(0).text(node.data.title);
+        $tdList.eq(1).text(node.data.state);
+        $tdList.eq(2).text(window.App.formatDate(node.data.tenderLT));
+        $tdList.eq(3).text(window.App.formatDate(node.data.deliveryLT));
+        $tdList.eq(4).text(node.data.stake);
+        $tdList.eq(5).append("<button type='button'>Project Overview</button>")
+      });
+  },
+
+  /**
+   * Defining the FancyTree object for the nodes
+   */
+  createTreeNodes : function() {
+    TreeView.nodesTree = createTreeBase("#subProjectTree", function(event, data) {
+        var node = data.node;
+        var $tdList = $(node.tr).find(">td");
+  
+        $tdList.eq(0).text(node.data.title);
+        $tdList.eq(1).text(node.data.state);
+        $tdList.eq(2).text(window.App.formatDate(node.data.tenderLT));
+        $tdList.eq(3).text(window.App.formatDate(node.data.deliveryLT));
+        $tdList.eq(4).text(node.data.stake);
+        $tdList.eq(5).append("<button type='button'>Project Overview</button>")
+      });
+  },
+
+  /**
+   * Defining the FancyTree object for the candidates
+   */
+  createTreeCandidates : function() {
+    TreeView.candidatesTree = createTreeBase("#candidateTree", function(event, data) {
+        var node = data.node;
+        var $tdList = $(node.tr).find(">td");
+  
+        $tdList.eq(0).text(node.data.title);
+        $tdList.eq(1).text(node.data.state);
+        $tdList.eq(2).text(window.App.formatDate(node.data.tenderLT));
+        $tdList.eq(3).text(window.App.formatDate(node.data.deliveryLT));
+        $tdList.eq(4).text(node.data.stake);
+        $tdList.eq(5).append("<button type='button'>Project Overview</button>")
+      });
+  },
+
+  createTrees: function() {
+    TreeView.createTreeMyRootProjects();
+    TreeView.createTreeNodes();
+    TreeView.createTreeCandidates();
+  },
+
+  updateTrees : async function(roots, nodes, candidates) {
     // How to update data: https://github.com/mar10/fancytree/wiki/TutorialLoadData
-    TreeView.tree.reload(contractors);
+    TreeView.myRootsTree.reload(roots);
+    TreeView.nodesTree.reload(nodes);
+    TreeView.candidatesTree.reload(candidates);
   }
 };
 
@@ -81,33 +122,40 @@ window.TreeView = {
  */
 window.Controller = {
   init : async function() {
-    TreeView.createTree();
+    TreeView.createTrees();
   },
 
   findMyInstances: async function() {
     // Find all instance addresses
     var addresses = await SmartBudgetService.findAllInstances();
+    console.log("The found addresses: " + addresses);
     // Load all of them
-    var instancesAndRoots = await Promise.all(addresses.map( async (addr) => {
+    var instanceObjs = await Promise.all(addresses.map( async (addr) => {
       var inst = await SmartBudgetService.fromAddress(addr);
       var rootNode = await inst.getNodeWeb(0);
-      return {instance: inst, root: rootNode};
+      var tender = await inst.tenderLockTime();
+      var delivery = await inst.deliveryLockTime();
+      var contractState = await inst.getContractState();
+      return {instance: inst, root: rootNode, tenderLT: tender, deliveryLT: delivery, state: contractState};
     }));
     // Find the relevant ones
-    var myInstancesAndRoots = instancesAndRoots.filter( (instAndRoot) => {
+    var myInstanceObjs = instanceObjs.filter( (instAndRoot) => {
       return instAndRoot.root.address == activeAccount;
     });
-    return myInstancesAndRoots;
+    return myInstanceObjs;
   },
 
   findMyRootProjects: async function() {
-    var myInstancesAndRoots = await window.Controller.findMyInstances();
+    var myInstanceObjs = await window.Controller.findMyInstances();
 
-    function smartNodeToTreeNodeMapper(smartNode) { 
+    function smartNodeToTreeNodeMapper(smartNode, tenderLT, deliveryLT, state) { 
       return {
         id: smartNode.id,
         title: smartNode.name,
+        tenderLT: tenderLT,
+        deliveryLT: deliveryLT,
         key: smartNode.id,
+        state: state,
         stake: web3.fromWei(smartNode.stakeInWei, "ether"),
         address: smartNode.address,
         parentid: smartNode.parentid,
@@ -115,7 +163,117 @@ window.Controller = {
       };
     }
 
-    var myTreeRoots = myInstancesAndRoots.map( (instAndRoot) => smartNodeToTreeNodeMapper(instAndRoot.root) );
+    var myTreeRoots = myInstanceObjs.map( (instObj) => 
+      smartNodeToTreeNodeMapper(instObj.root, instObj.tenderLT, instObj.deliveryLT, instObj.state) );
+    window.TreeView.updateTree(myTreeRoots);
+  },
+
+  scanMyRootProjects: async function() {
+    if (window.lastActiveAccount != window.activeAccount) {
+      console.log("Loading my projects...");
+      window.lastActiveAccount = window.activeAccount;
+      await window.Controller.findMyRootProjects();
+    }
+  },
+
+  // --------------------------------------- Find nodes ------------------------------------------------
+  filterMyProjects: async function(inst, myAddress) {
+    var allNodes = await inst.getNodesFlat();
+    var myNodes = [];
+    for (var node in myNodes) {
+      // Only collect non-root project (id != 0)
+      if (node.id > 0 && node.address == myAddress) {
+        myNodes.push(node);
+      }
+    }
+  },
+
+  findMyProjects: async function() {
+    var myProjects = [];
+    // Find all instance addresses
+    var addresses = await SmartBudgetService.findAllInstances();
+    // find all projects owned by me that are not root projects
+    var instanceObjs = await Promise.all(addresses.map( async (addr) => {
+      var inst = await SmartBudgetService.fromAddress(addr);
+      var proj = await window.Controller.filterMyProjects(inst, activeAccount);
+      myProjects = myProjects.concat(proj);
+    }));
+    console.log("Found the following my non-root projects: " + myProjects);
+    return myProjects;
+  },
+
+  findMyRootProjects: async function() {
+    var myInstanceObjs = await window.Controller.findMyInstances();
+
+    function smartNodeToTreeNodeMapper(smartNode, tenderLT, deliveryLT, state) { 
+      return {
+        id: smartNode.id,
+        title: smartNode.name,
+        tenderLT: tenderLT,
+        deliveryLT: deliveryLT,
+        key: smartNode.id,
+        state: state,
+        stake: web3.fromWei(smartNode.stakeInWei, "ether"),
+        address: smartNode.address,
+        parentid: smartNode.parentid,
+        children: []
+      };
+    }
+
+    var myTreeRoots = myInstanceObjs.map( (instObj) => 
+      smartNodeToTreeNodeMapper(instObj.root, instObj.tenderLT, instObj.deliveryLT, instObj.state) );
+    window.TreeView.updateTree(myTreeRoots);
+  },
+
+  scanMyRootProjects: async function() {
+    if (window.lastActiveAccount != window.activeAccount) {
+      console.log("Loading my projects...");
+      window.lastActiveAccount = window.activeAccount;
+      await window.Controller.findMyRootProjects();
+    }
+  },
+
+  // -------------------------------------- Find candidates --------------------------------------------
+  findMyInstances: async function() {
+    // Find all instance addresses
+    var addresses = await SmartBudgetService.findAllInstances();
+    console.log("The found addresses: " + addresses);
+    // Load all of them
+    var instanceObjs = await Promise.all(addresses.map( async (addr) => {
+      var inst = await SmartBudgetService.fromAddress(addr);
+      var rootNode = await inst.getNodeWeb(0);
+      var tender = await inst.tenderLockTime();
+      var delivery = await inst.deliveryLockTime();
+      var contractState = await inst.getContractState();
+      return {instance: inst, root: rootNode, tenderLT: tender, deliveryLT: delivery, state: contractState};
+    }));
+    // Find the relevant ones
+    var myInstanceObjs = instanceObjs.filter( (instAndRoot) => {
+      return instAndRoot.root.address == activeAccount;
+    });
+    return myInstanceObjs;
+  },
+
+  findMyRootProjects: async function() {
+    var myInstanceObjs = await window.Controller.findMyInstances();
+
+    function smartNodeToTreeNodeMapper(smartNode, tenderLT, deliveryLT, state) { 
+      return {
+        id: smartNode.id,
+        title: smartNode.name,
+        tenderLT: tenderLT,
+        deliveryLT: deliveryLT,
+        key: smartNode.id,
+        state: state,
+        stake: web3.fromWei(smartNode.stakeInWei, "ether"),
+        address: smartNode.address,
+        parentid: smartNode.parentid,
+        children: []
+      };
+    }
+
+    var myTreeRoots = myInstanceObjs.map( (instObj) => 
+      smartNodeToTreeNodeMapper(instObj.root, instObj.tenderLT, instObj.deliveryLT, instObj.state) );
     window.TreeView.updateTree(myTreeRoots);
   },
 

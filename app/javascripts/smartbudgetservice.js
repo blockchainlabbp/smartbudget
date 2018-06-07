@@ -372,7 +372,7 @@ function SmartBudgetInstance(instance)  {
         var smartNode = {id: nodeId, 
             stakeInWei: attributes[0].toNumber(),
             address: attributes[1].toString(),
-            state: [attributes[2]].map((stateId) => parseNodeState(stateId))[0],
+            state: parseNodeState(attributes[2]),
             candidateIds: attributes[3].map((id) => id.toNumber()),
             name: attributes[4].toString(),
             parentId: attributes[5].toNumber(),
@@ -418,6 +418,16 @@ function SmartBudgetInstance(instance)  {
         }
     };
 
+    /**
+     * The function that gets the details of the nodes in a flat list
+     */
+    this.getNotesFlat = async function () {
+        var numNodes = await this.nodeCntr();
+        allNodes = [];
+        for (var i=0; i < numNodes; i++) {
+            allNodes.push(await this.getNodeWeb(nodeId));
+        }   
+    };
 
     /**
      * The recursive function that gets the details of the nodes

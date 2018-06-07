@@ -112,10 +112,16 @@ window.App = {
     if (typeof window.activeInstance == 'undefined') {
       var lastActiveInstanceAddress = getCookie('activeInstanceAddress');
       if (lastActiveInstanceAddress != "") {
-        console.log(`Loaded active instance from cookie at address ${lastActiveInstanceAddress}`);
-        window.activeInstance = await SmartBudgetService.fromAddress(lastActiveInstanceAddress);
+        try {
+          window.activeInstance = await SmartBudgetService.fromAddress(lastActiveInstanceAddress);
+          console.log(`Loaded active instance from cookie at address ${lastActiveInstanceAddress}`); 
+        } catch (error) {
+          // Probably the address that we saved was on a different network, and is invalid. Set the cookie to empty
+          setCookie('activeInstanceAddress',"");
+          console.log(`The stored cookie contained an invald address, removing it`); 
+        }
       } else {
-        console.log("Could not find cookie with name activeInstanceAddress!");
+        console.log("Could not find valid cookie with name activeInstanceAddress!");
       }
     }
   },
@@ -127,6 +133,11 @@ window.App = {
       setCookie('activeInstanceAddress', window.activeInstance.instance.address);
       console.log(`Saved active instance with address ${window.activeInstance.instance.address}`);
     }
+  },
+
+  formatDate: function (date) {
+    return date.getFullYear() + "-" + ("0"+(date.getMonth()+1)).slice(-2) + "-" + ("0" + date.getDate()).slice(-2) +
+     " " + ("0" + date.getHours()).slice(-2) + ":" + ("0" + date.getMinutes()).slice(-2);
   }
 };
 
