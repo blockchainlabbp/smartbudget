@@ -424,8 +424,19 @@ function SmartBudgetInstance(instance)  {
     this.getNotesFlat = async function () {
         var numNodes = await this.nodeCntr();
         allNodes = [];
-        for (var i=0; i < numNodes; i++) {
+        for (var i=0; i < numNodes; ++i) {
             allNodes.push(await this.getNodeWeb(nodeId));
+        }   
+    };
+
+    /**
+     * The function that gets the details of the candidates in a flat list
+     */
+    this.getCandidatesFlat = async function () {
+        var numCandidates = await this.candidateCntr();
+        allCandidates = [];
+        for (var i=0; i < numCandidates; ++i) {
+            allCandidates.push(await this.getCandidateWeb(nodeId));
         }   
     };
 
