@@ -55,7 +55,7 @@ window.TreeView = {
    * Defining the FancyTree object for the root project
    */
   createTreeMyRootProjects : function() {
-    TreeView.myRootsTree = createTreeBase("#tree", function(event, data) {
+    TreeView.myRootsTree = TreeView.createTreeBase("#tree", function(event, data) {
         var node = data.node;
         var $tdList = $(node.tr).find(">td");
   
@@ -72,7 +72,7 @@ window.TreeView = {
    * Defining the FancyTree object for the nodes
    */
   createTreeNodes : function() {
-    TreeView.nodesTree = createTreeBase("#subProjectTree", function(event, data) {
+    TreeView.nodesTree = TreeView.createTreeBase("#subProjectTree", function(event, data) {
         var node = data.node;
         var $tdList = $(node.tr).find(">td");
   
@@ -88,7 +88,7 @@ window.TreeView = {
    * Defining the FancyTree object for the candidates
    */
   createTreeCandidates : function() {
-    TreeView.candidatesTree = createTreeBase("#candidateTree", function(event, data) {
+    TreeView.candidatesTree = TreeView.createTreeBase("#candidateTree", function(event, data) {
         var node = data.node;
         var $tdList = $(node.tr).find(">td");
   
@@ -202,7 +202,10 @@ window.Controller = {
       };
     }
     
-    var myNodes = myProjects.map(node2TreeNode);
+    var myNodes = [];
+    if (myProjects[0] !== undefined) {
+      myNodes = myProjects.map((node) => node2TreeNode(node));
+    }
     return myNodes;
   },
 
@@ -224,8 +227,8 @@ window.Controller = {
     // find all projects owned by me that are not root projects
     var instanceObjs = await Promise.all(addresses.map( async (addr) => {
       var inst = await SmartBudgetService.fromAddress(addr);
-      var proj = await window.Controller.filterMyCandidates(inst, activeAccount);
-      myCandidates = myCandidates.concat(proj);
+      var cand = await window.Controller.filterMyCandidates(inst, activeAccount);
+      myCandidates = myCandidates.concat(cand);
     }));
     console.log("Found the following my candidates: " + myCandidates);
 
@@ -238,7 +241,10 @@ window.Controller = {
       };
     }
     
-    var myCand = myCandidates.map(cand2TreeCand);
+    var myCand = [];
+    if (myCandidates[0] !== undefined) {
+      myCand = myCandidates.map(cand2TreeCand);
+    }
     return myCand;
   },
 
@@ -251,7 +257,7 @@ window.Controller = {
       var roots = await window.Controller.findMyRootProjects();
       var proj = await window.Controller.findMyProjects();
       var cand = await window.Controller.findMyCandidates();
-      await window.Controller.updateTrees(roots, proj, cand);
+      await window.TreeView.updateTrees(roots, proj, cand);
     }
   }
 };
@@ -259,7 +265,7 @@ window.Controller = {
 window.addEventListener('load', async function() {
   await window.App.start();
   await window.Controller.init();
-  await window.Controller.scanMyRootProjects();
-  setInterval(window.Controller.scanMyRootProjects, 2000);
+  await window.Controller.scanProjects();
+  setInterval(window.Controller.scanProjects, 2000);
 });
 

@@ -421,11 +421,11 @@ function SmartBudgetInstance(instance)  {
     /**
      * The function that gets the details of the nodes in a flat list
      */
-    this.getNotesFlat = async function () {
-        var numNodes = await this.nodeCntr();
-        allNodes = [];
+    this.getNodesFlat = async function () {
+        var numNodes = await this.instance.nodeCntr();
+        var allNodes = [];
         for (var i=0; i < numNodes; ++i) {
-            allNodes.push(await this.getNodeWeb(nodeId));
+            allNodes.push(await this.instance.getNodeWeb(i));
         }   
     };
 
@@ -433,10 +433,10 @@ function SmartBudgetInstance(instance)  {
      * The function that gets the details of the candidates in a flat list
      */
     this.getCandidatesFlat = async function () {
-        var numCandidates = await this.candidateCntr();
-        allCandidates = [];
+        var numCandidates = await this.instance.candidateCntr();
+        var allCandidates = [];
         for (var i=0; i < numCandidates; ++i) {
-            allCandidates.push(await this.getCandidateWeb(nodeId));
+            allCandidates.push(await this.instance.getCandidateWeb(i));
         }   
     };
 
