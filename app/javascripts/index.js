@@ -21,7 +21,7 @@ import {createTree, fancyTree} from 'jquery.fancytree';
 window.lastActiveAccount;
 
 /**
- * Tree rendering
+ * Tree rendering - shared logic
  */
 window.TreeView = {
   createTreeBase : function(id, renderCB) {
@@ -63,7 +63,7 @@ window.TreeView = {
         $tdList.eq(1).text(node.data.state);
         $tdList.eq(2).text(window.App.formatDate(node.data.tenderLT));
         $tdList.eq(3).text(window.App.formatDate(node.data.deliveryLT));
-        $tdList.eq(4).text(node.data.stake);
+        $tdList.eq(4).text(web3.fromWei(node.data.stakeInWei, "ether"));
         $tdList.eq(5).append("<button type='button'>Project Overview</button>")
       });
   },
@@ -77,9 +77,9 @@ window.TreeView = {
         var $tdList = $(node.tr).find(">td");
   
         $tdList.eq(0).text(node.data.name);
-        $tdList.eq(1).text(node.data.owner);
+        $tdList.eq(1).text(node.data.address);
         $tdList.eq(2).text(node.data.state);
-        $tdList.eq(3).text(node.data.stake);
+        $tdList.eq(3).text(web3.fromWei(node.data.stakeInWei, "ether"));
         $tdList.eq(4).append("<button type='button'>Project Overview</button>")
       });
   },
@@ -93,8 +93,8 @@ window.TreeView = {
         var $tdList = $(node.tr).find(">td");
   
         $tdList.eq(0).text(node.data.name);
-        $tdList.eq(1).text(node.data.address);
-        $tdList.eq(2).text(node.data.stake);
+        $tdList.eq(1).text(node.data.addr);
+        $tdList.eq(2).text(web3.fromWei(node.data.stakeInWei, "ether"));
         $tdList.eq(3).append("<button type='button'>Project Overview</button>")
       });
   },
@@ -122,146 +122,84 @@ window.Controller = {
     TreeView.createTrees();
   },
 
-  // ---------------------------------------- Find roots owned by me -------------------------------------
-  findMyInstances: async function() {
-    // Find all instance addresses
-    var addresses = await SmartBudgetService.findAllInstances();
-    console.log("The found addresses: " + addresses);
-    // Load all of them
-    var instanceObjs = await Promise.all(addresses.map( async (addr) => {
-      var inst = await SmartBudgetService.fromAddress(addr);
-      var rootNode = await inst.getNodeWeb(0);
-      var tender = await inst.tenderLockTime();
-      var delivery = await inst.deliveryLockTime();
-      var contractState = await inst.getContractState();
-      return {instance: inst, root: rootNode, tenderLT: tender, deliveryLT: delivery, state: contractState};
-    }));
-    // Find the relevant ones
-    var myInstanceObjs = instanceObjs.filter( (instAndRoot) => {
-      return instAndRoot.root.address == activeAccount;
-    });
-    return myInstanceObjs;
-  },
-
-  findMyRootProjects: async function() {
-    var myInstanceObjs = await window.Controller.findMyInstances();
-
-    function root2TreeNode(smartNode, tenderLT, deliveryLT, state) { 
+  /**
+   * Filters my root nodes. Return a one-element array if it is my root, and an empty array if not
+   */
+  filterMyInstance: async function(instDataFlat) {
+    function root2TreeInst(instDataFlat) {
       return {
-        id: smartNode.id,
-        title: smartNode.name,
-        tenderLT: tenderLT,
-        deliveryLT: deliveryLT,
-        key: smartNode.id,
-        state: state,
-        stake: web3.fromWei(smartNode.stakeInWei, "ether"),
-        address: smartNode.address,
-        parentid: smartNode.parentid,
-        children: []
+        title: instDataFlat.root.name,
+        tenderLT: instDataFlat.tenderLT,
+        deliveryLT: instDataFlat.deliveryLT,
+        state: instDataFlat.state,
+        stakeInWei: instDataFlat.root.stakeInWei,
+        address: instDataFlat.root.address,
       };
     }
 
-    var myTreeRoots = myInstanceObjs.map( (instObj) => 
-      root2TreeNode(instObj.root, instObj.tenderLT, instObj.deliveryLT, instObj.state) );
-    return myTreeRoots;
+    if (instDataFlat.root.address == activeAccount) {
+      return [root2TreeInst(instDataFlat)];
+    } else {
+      return [];
+    }
   },
 
-  // --------------------------------------- Find nodes ------------------------------------------------
-  filterMyProjects: async function(inst, myAddress) {
-    var allNodes = await inst.getNodesFlat();
+  /**
+   * Returns an array of nodes owner by me. Returns an empty array if none of the nodes belong to me.
+   */
+  filterMyNodes: async function(instDataFlat) {
     var myNodes = [];
-    for (var node in myNodes) {
-      // Only collect non-root project (id != 0)
-      if (node.id > 0 && node.address == myAddress) {
+    for (var node in instDataFlat.nodes) {
+      if (node.address == activeAccount && node.id > 0) {
         myNodes.push(node);
       }
-    }
-  },
-
-  findMyProjects: async function() {
-    var myProjects = [];
-    // Find all instance addresses
-    var addresses = await SmartBudgetService.findAllInstances();
-    // find all projects owned by me that are not root projects
-    var instanceObjs = await Promise.all(addresses.map( async (addr) => {
-      var inst = await SmartBudgetService.fromAddress(addr);
-      var proj = await window.Controller.filterMyProjects(inst, activeAccount);
-      myProjects = myProjects.concat(proj);
-    }));
-    console.log("Found the following my non-root projects: " + myProjects);
-
-    function node2TreeNode(smartNode) { 
-      return {
-        id: smartNode.id,
-        title: smartNode.name,
-        state: smartNode.state,
-        stake: web3.fromWei(smartNode.stakeInWei, "ether"),
-        address: smartNode.address,
-        parentId: smartNode.parentId,
-        childIds: smartNode.childIds
-      };
-    }
-    
-    var myNodes = [];
-    if (myProjects[0] !== undefined) {
-      myNodes = myProjects.map((node) => node2TreeNode(node));
     }
     return myNodes;
   },
 
-  // -------------------------------------- Find candidates --------------------------------------------
-  filterMyCandidates: async function(inst, myAddress) {
-    var allCandidates = await inst.getCandidatesFlat();
+  /**
+   * Return the array of candidates owned by me. Returns an empty array if none of the candidates belong to me.
+   */
+  filterMyCandidates: async function(instDataFlat) {
     var myCandidates = [];
-    for (var cand in allCandidates) {
-      if (cand.address == myAddress) {
-        myCandidates.push(node);
+    for (var cand in instDataFlat.candidates) {
+      if (cand.address == activeAccount) {
+        myCandidates.push(cand);
       }
     }
+    return myCandidates;
   },
 
-  findMyCandidates: async function() {
-    var myCandidates = [];
-    // Find all instance addresses
-    var addresses = await SmartBudgetService.findAllInstances();
-    // find all projects owned by me that are not root projects
-    var instanceObjs = await Promise.all(addresses.map( async (addr) => {
-      var inst = await SmartBudgetService.fromAddress(addr);
-      var cand = await window.Controller.filterMyCandidates(inst, activeAccount);
-      myCandidates = myCandidates.concat(cand);
-    }));
-    console.log("Found the following my candidates: " + myCandidates);
-
-    function cand2TreeCand(smartCand) { 
-      return {
-        id: smartCand.id,
-        title: smartCand.name,
-        stake: web3.fromWei(smartCand.stakeInWei, "ether"),
-        address: smartCand.addr
-      };
-    }
-    
-    var myCand = [];
-    if (myCandidates[0] !== undefined) {
-      myCand = myCandidates.map(cand2TreeCand);
-    }
-    return myCand;
-  },
-
-  // ------------------------------------------------------------------------------------------------
-
+  /**
+   * Scans through all contract instances and find the instances, nodes and candidates owned by
+   * the active account
+   */
   scanProjects: async function() {
     if (window.lastActiveAccount != window.activeAccount) {
-      console.log("Loading my projects...");
       window.lastActiveAccount = window.activeAccount;
-      var roots = await window.Controller.findMyRootProjects();
-      var proj = await window.Controller.findMyProjects();
-      var cand = await window.Controller.findMyCandidates();
-      await window.TreeView.updateTrees(roots, proj, cand);
+      console.log("Loading my projects, nodes and candidates...");
+      var myRoots = [];
+      var myNodes = [];
+      var myCandidates = [];
+      var addresses = await SmartBudgetService.findAllInstances();
+      // For loop notation that can handle async calls   
+      for (const address of addresses) {
+        console.log("Scanning instace at address " + address);
+        var inst = await SmartBudgetService.fromAddress(address);
+        var instDataFlat = await inst.loadInstanceDataFlat();
+        myRoots = myRoots.concat(await window.Controller.filterMyInstance(instDataFlat));
+        myNodes = myNodes.concat(await window.Controller.filterMyNodes(instDataFlat));
+        myCandidates = myCandidates.concat(await window.Controller.filterMyCandidates(instDataFlat));      
+      }
+      await window.TreeView.updateTrees(myRoots, myNodes, myCandidates);
     }
   }
 };
 
+/**
+ * Tasks to do on page load
+ * Always start with window.App.start(), this is where the shared logic resides
+ */
 window.addEventListener('load', async function() {
   await window.App.start();
   await window.Controller.init();

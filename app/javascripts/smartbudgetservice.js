@@ -117,7 +117,7 @@ function SmartBudgetInstance(instance)  {
     this.tenderLockTime = async function() {
         var tenderLockTime = await this.instance.tenderLockTime();
         var tenderLockDate = new Date(tenderLockTime*1000);
-        console.log("The tender lock time is: " + tenderLockDate);
+        //console.log("The tender lock time is: " + tenderLockDate);
         return tenderLockDate;
     }
 
@@ -125,13 +125,14 @@ function SmartBudgetInstance(instance)  {
         var now = new Date().getTime() / 1000;
         var tenderLockTime = await this.instance.tenderLockTime();
         var secsToTenderEnd = tenderLockTime - now;
-        console.log("The remaining seconds until tender time lock end: " + secsToTenderEnd);
+        //console.log("The remaining seconds until tender time lock end: " + secsToTenderEnd);
+        return secsToTenderEnd;
     }
 
     this.deliveryLockTime = async function() {
         var deliveryLockTime = await this.instance.deliveryLockTime();
         var deliveryLockDate = new Date(deliveryLockTime*1000);
-        console.log("The delivery lock time is: " + deliveryLockDate);
+        //console.log("The delivery lock time is: " + deliveryLockDate);
         return deliveryLockDate;
     }
 
@@ -139,7 +140,8 @@ function SmartBudgetInstance(instance)  {
         var now = new Date().getTime() / 1000;
         var deliveryLockTime = await this.instance.deliveryLockTime();
         var secsToDeliveryEnd = deliveryLockTime - now;
-        console.log("The remaining seconds until delivery time lock end: " + secsToDeliveryEnd);
+        //console.log("The remaining seconds until delivery time lock end: " + secsToDeliveryEnd);
+        return secsToDeliveryEnd;
     }
 
     //------------------------------------- Validators ------------------------------------------
@@ -425,8 +427,9 @@ function SmartBudgetInstance(instance)  {
         var numNodes = await this.instance.nodeCntr();
         var allNodes = [];
         for (var i=0; i < numNodes; ++i) {
-            allNodes.push(await this.instance.getNodeWeb(i));
-        }   
+            allNodes.push(await this.getNodeWeb(i));
+        }
+        return allNodes;
     };
 
     /**
@@ -436,8 +439,39 @@ function SmartBudgetInstance(instance)  {
         var numCandidates = await this.instance.candidateCntr();
         var allCandidates = [];
         for (var i=0; i < numCandidates; ++i) {
-            allCandidates.push(await this.instance.getCandidateWeb(i));
+            allCandidates.push(await this.getCandidateWeb(i));
         }   
+        return allCandidates;
+    };
+
+    /**
+     * The function that gets all details from a given instance, in a flat structure
+     * Useful for searching
+     */
+    this.loadInstanceDataFlat = async function () {
+        var allNodes = await this.getNodesFlat();   
+        var rootNode = allNodes.find((node) => { return node.id == 0});
+        var allTopSubNodes = allNodes.filter((node) => { return node.parentId == 0 && node.id > 0 });
+        var allOtherNodes = allNodes.filter((node) => { return node.parentId > 0 });
+        // Verify it's a partitioning
+        if (allNodes.length != allTopSubNodes.length + allOtherNodes.length + 1) {
+            console.error("Could not partition nodes into root, topSubNodes and otherNodes categories!");
+            console.error("root: " + JSON.stringify(root));
+            console.error("allTopSubNodes: " + JSON.stringify(allTopSubNodes));
+            console.error("allOtherNodes: " + JSON.stringify(allOtherNodes));
+        }
+        var allCandidates = await this.getCandidatesFlat();
+        var tender = await this.tenderLockTime();
+        var delivery = await this.deliveryLockTime();
+        var contractState = await this.getContractState();
+        return {root: rootNode,
+            topSubNodes: allTopSubNodes,
+            otherNodes: allOtherNodes,
+            nodes: allNodes,
+            candidates: allCandidates,
+            tenderLT: tender, 
+            deliveryLT: delivery, 
+            state: contractState};
     };
 
     /**
