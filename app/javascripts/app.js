@@ -35,6 +35,7 @@ var SmartBudgetContract = contract(smartbudget_abi);
 
 // In this simple setting, we're using globals to deal with concept of "selected account in metamask"
 // and "selected contract"
+window.version;  // The version of the SmartBudget solidity code
 window.activeNetwork;  // The name of the active network (Mainnet, Ropsten, etc.) /type: string
 window.activeAccount;  // The metamask account currently in use /type: address
 window.contractAddresses; // The list of found contract addresses /type: list(address)
@@ -63,6 +64,9 @@ function checkActiveAccount() {
 
 window.App = {
   start: async function() {
+    // Set the version we'll be using
+    window.version = 1;
+
     // Checking if Web3 has been injected by the browser (Mist/MetaMask)
     window.App.checkMetaMask();
 

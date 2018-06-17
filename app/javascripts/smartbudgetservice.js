@@ -14,15 +14,30 @@ export const SmartBudgetService = {
     /**
      * Find all SmartBudget instances on the chain
      */
-    findAllInstances: function (_fromBlock = 0x0) {
+    findAllInstances: function (version = 1, _fromBlock = 0x0) {
+        // Calculate the padded variant of the version
+        function paddedVersion(ver) {
+            var hexVer = web3.toHex(ver);
+            var len = hexVer.length - 2; // Because hexVer contains already 0x at the beginning
+            if (len < 0) {
+                console.error("hexVer is not a valid number: " + hexVer);
+            }
+            if (len > 64) {
+                console.error("hexVer is too large: " + hexVer);
+            }
+            var padlen = 64 - len;
+            return "0x" + "0".repeat(padlen) + hexVer.slice(2);
+        }
+
         return new Promise(function (resolve, reject) {
             // Try to load the contract using logs
-            var signature = web3.sha3("SBCreation(address,uint256)");
+            var signature = web3.sha3("SBCreation(address,uint256,uint256)");
+            var paddedVer = paddedVersion(version);
             // Find all past logs containing SBCreation event
-            var filter = web3.eth.filter({fromBlock: _fromBlock, toBlock: "latest", topics: [signature]});
+            var filter = web3.eth.filter({fromBlock: _fromBlock, toBlock: "latest", topics: [signature, null, paddedVer]});
             return filter.get(function(error, result) {
                 if (!error)
-                    resolve(result.map((item, index) => item.address));
+                    resolve(result.map((item) => item.address));
                 else
                     reject(error);
             });

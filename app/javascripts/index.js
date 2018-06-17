@@ -148,26 +148,18 @@ window.Controller = {
    * Returns an array of nodes owner by me. Returns an empty array if none of the nodes belong to me.
    */
   filterMyNodes: async function(instDataFlat) {
-    var myNodes = [];
-    for (var node in instDataFlat.nodes) {
-      if (node.address == activeAccount && node.id > 0) {
-        myNodes.push(node);
-      }
-    }
-    return myNodes;
+    return instDataFlat.nodes.filter((node) => {
+      return (node.address == activeAccount && node.id > 0);
+    });
   },
 
   /**
    * Return the array of candidates owned by me. Returns an empty array if none of the candidates belong to me.
    */
   filterMyCandidates: async function(instDataFlat) {
-    var myCandidates = [];
-    for (var cand in instDataFlat.candidates) {
-      if (cand.address == activeAccount) {
-        myCandidates.push(cand);
-      }
-    }
-    return myCandidates;
+    return instDataFlat.candidates.filter((cand) => {
+      return cand.address == activeAccount;
+    });
   },
 
   /**
@@ -181,7 +173,7 @@ window.Controller = {
       var myRoots = [];
       var myNodes = [];
       var myCandidates = [];
-      var addresses = await SmartBudgetService.findAllInstances();
+      var addresses = await SmartBudgetService.findAllInstances(window.activeVersion);
       // For loop notation that can handle async calls   
       for (const address of addresses) {
         console.log("Scanning instace at address " + address);
