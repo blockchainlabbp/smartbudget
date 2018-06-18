@@ -4,9 +4,14 @@ const webpack = require('webpack');
 
 module.exports = {
   entry: {
-    index: './app/javascripts/index.js',
-    search: './app/javascripts/search.js',
+    about: './app/javascripts/about.js',
+    apply_node: './app/javascripts/apply_node.js',
+    create_node: './app/javascripts/create_node.js',
     create_project: './app/javascripts/create_project.js',
+    find: './app/javascripts/find.js',
+    index: './app/javascripts/index.js',
+    node_details: './app/javascripts/node_details.js',
+    project_details: './app/javascripts/project_details.js',
   },
   output: {
     path: path.resolve(__dirname, 'build'),
@@ -19,9 +24,13 @@ module.exports = {
     // Copy our app's index.html to the build folder.
     new CopyWebpackPlugin([
       { from: './app/about.html', to: "about.html" },
+      { from: './app/apply_node.html', to: "apply_node.html" },
+      { from: './app/create_node.html', to: "create_node.html" },
+      { from: './app/create_project.html', to: "create_project.html" },
       { from: './app/find.html', to: "find.html" },
       { from: './app/index.html', to: "index.html" },
-      { from: './app/create_project.html', to: "create_project.html" },
+      { from: './app/node_details.html', to: "node_details.html" },
+      { from: './app/project_details.html', to: "project_details.html" },
       { from: './app/webelements.html', to: "webelements.html" },
     ]), 
     new webpack.ProvidePlugin({

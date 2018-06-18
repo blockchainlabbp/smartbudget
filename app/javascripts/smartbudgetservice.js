@@ -48,8 +48,12 @@ export const SmartBudgetService = {
      * Load SmartBudgetInstance from address
      */
     fromAddress: async function(address) {
-        var instance = await this._truffleContract.at(address);
-        return new SmartBudgetInstance(instance);
+        // Need to use then() and catch() becasue .at() is not an actual Promise
+        return await this._truffleContract.at(address).then((instance) => {
+                return new SmartBudgetInstance(instance);
+        }).catch( (err) => {
+            throw err;
+        });
     },
 
     /**
@@ -479,7 +483,8 @@ function SmartBudgetInstance(instance)  {
         var tender = await this.tenderLockTime();
         var delivery = await this.deliveryLockTime();
         var contractState = await this.getContractState();
-        return {root: rootNode,
+        return {address: this.instance.address,
+            root: rootNode,
             topSubNodes: allTopSubNodes,
             otherNodes: allOtherNodes,
             nodes: allNodes,

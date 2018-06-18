@@ -64,7 +64,10 @@ window.TreeView = {
         $tdList.eq(2).text(window.App.formatDate(node.data.tenderLT));
         $tdList.eq(3).text(window.App.formatDate(node.data.deliveryLT));
         $tdList.eq(4).text(web3.fromWei(node.data.stakeInWei, "ether"));
-        $tdList.eq(5).append("<button type='button'>Project Overview</button>")
+        $tdList.eq(5).append("<button type='button'>Project Overview</button>").click( function() {
+          window.App.saveActiveInstanceAddress(node.data.address);
+          window.location.href = '/project_details.html';
+        });
       });
   },
 
@@ -133,7 +136,7 @@ window.Controller = {
         deliveryLT: instDataFlat.deliveryLT,
         state: instDataFlat.state,
         stakeInWei: instDataFlat.root.stakeInWei,
-        address: instDataFlat.root.address,
+        address: instDataFlat.address,
       };
     }
 
