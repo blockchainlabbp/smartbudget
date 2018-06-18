@@ -35,6 +35,7 @@ var SmartBudgetContract = contract(smartbudget_abi);
 
 // In this simple setting, we're using globals to deal with concept of "selected account in metamask"
 // and "selected contract"
+window.activeVersion;  // The version of the SmartBudget solidity code
 window.activeNetwork;  // The name of the active network (Mainnet, Ropsten, etc.) /type: string
 window.activeAccount;  // The metamask account currently in use /type: address
 window.contractAddresses; // The list of found contract addresses /type: list(address)
@@ -61,8 +62,50 @@ function checkActiveAccount() {
   });   
 };
 
+function setSidebar() {
+   $('#sidebar').html(`
+      <div class="inner">
+        <!-- Search -->
+          <section id="search" class="alt">					
+          <a href="#" class="image"><img id="metamask3img" alt="" width="200" class="limage"/></a>
+        </section>
+        <!-- Menu -->
+        <nav id="menu">
+        <header class="major">
+          <h2>MENU</h2>
+        </header>
+          <ul>
+            <li><a href="index.html">My projects</a></li>
+            <li><a href="create_project.html">Create new project</a></li>
+            <li><a href="find.html">Find project</a></li>
+            <li><a href="about.html">About Us</a></li>      
+          </ul>
+        </nav>
+        <!-- Contact -->
+        <section>
+          <header class="major">
+            <h2>CONTACT</h2>
+          </header>
+          <ul class="contact">
+            <li class="fa-envelope-o"><a href="#">info@blokklancmuhely.hu</a></li>
+          </ul>
+        </section>
+        <!-- Footer -->
+        <footer id="footer">
+          <img id="logo2Img" alt="" width="200" class="limage"/></a>
+            <p class="copyright">&copy; 2018. All rights reserved.<a href="https://blokklancmuhely.club/" target="_blank"> Blokklánc Műhely</a></p>
+        </footer>
+      </div>`);
+};
+
 window.App = {
   start: async function() {
+    // Set the menu
+    setSidebar();
+
+    // Set the version we'll be using
+    window.activeVersion = 1;
+
     // Checking if Web3 has been injected by the browser (Mist/MetaMask)
     window.App.checkMetaMask();
 
@@ -112,10 +155,16 @@ window.App = {
     if (typeof window.activeInstance == 'undefined') {
       var lastActiveInstanceAddress = getCookie('activeInstanceAddress');
       if (lastActiveInstanceAddress != "") {
-        console.log(`Loaded active instance from cookie at address ${lastActiveInstanceAddress}`);
-        window.activeInstance = await SmartBudgetService.fromAddress(lastActiveInstanceAddress);
+        try {
+          window.activeInstance = await SmartBudgetService.fromAddress(lastActiveInstanceAddress);
+          console.log(`Loaded active instance from cookie at address ${lastActiveInstanceAddress}`); 
+        } catch (error) {
+          // Probably the address that we saved was on a different network, and is invalid. Set the cookie to empty
+          setCookie('activeInstanceAddress',"");
+          console.log(`The stored cookie contained an invalid address, removing it`); 
+        }
       } else {
-        console.log("Could not find cookie with name activeInstanceAddress!");
+        console.log("Could not find valid cookie with name activeInstanceAddress!");
       }
     }
   },
@@ -127,6 +176,16 @@ window.App = {
       setCookie('activeInstanceAddress', window.activeInstance.instance.address);
       console.log(`Saved active instance with address ${window.activeInstance.instance.address}`);
     }
+  },
+
+  saveActiveInstanceAddress: function (address) {
+      setCookie('activeInstanceAddress', address);
+      console.log(`Saved active instance address ${address}`);
+  },
+
+  formatDate: function (date) {
+    return date.getFullYear() + "-" + ("0"+(date.getMonth()+1)).slice(-2) + "-" + ("0" + date.getDate()).slice(-2) +
+     " " + ("0" + date.getHours()).slice(-2) + ":" + ("0" + date.getMinutes()).slice(-2);
   }
 };
 

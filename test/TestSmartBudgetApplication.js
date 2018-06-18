@@ -88,7 +88,7 @@ contract('SmartBudget:ApplicationTests', function(accounts) {
     var root_acc = accounts[0];
     var child_acc = accounts[1];
 
-    var tenderLockTime = 1; // in seconds or unix timestamp
+    var tenderLockTime = 2; // in seconds or unix timestamp
     var tenderLockType = 1; // 0 = absolute, 1 = relative
     var deliveryLockTime = 2000; // in seconds or unix timestamp
     var deliveryLockType = 1; // 0 = absolute, 1 = relative
@@ -108,7 +108,7 @@ contract('SmartBudget:ApplicationTests', function(accounts) {
         console.log("       Adding new child node to root");
         return contract.addNode("First node", parentId);
       }).then( function(result) {
-        sleep(2);
+        sleep(3);
         console.log("       Trying to apply for child node after the TENDER period");
         return expect(
           contract.applyForNode(childId, candidateName, candidateStake, {from: child_acc})

@@ -21,15 +21,11 @@ import {createTree, fancyTree} from 'jquery.fancytree';
 window.lastActiveAccount;
 
 /**
- * Tree rendering
+ * Tree rendering - shared logic
  */
 window.TreeView = {
-
-  /**
-   * Defining the FancyTree object
-   */
-  createTree : function() {
-    TreeView.tree = createTree("#tree",{
+  createTreeBase : function(id, renderCB) {
+    return createTree(id,{
       checkbox: false,           // don't render default checkbox column
       icon: false,
       titlesTabbable: true,        // Add all node titles to TAB chain
@@ -51,27 +47,72 @@ window.TreeView = {
       // true: generate renderColumns events, even for status nodes
       // function: specific callback for status nodes
     
-      renderColumns: function(event, data) {
-
-        var node = data.node;
-        var $tdList = $(node.tr).find(">td");
-    
-        // (Column #0 is rendered by fancytree by adding the checkbox)
-        // (Column #1 is rendered by fancytree) adding node name and icons
-        
-        // ...otherwise render remaining columns
-        $tdList.eq(0).text(node.data.title);
-        $tdList.eq(1).text(node.data.address);
-        $tdList.eq(2).text(node.data.stake);
-
-        $tdList.eq(3).append("<button type='button'>Project Overview</button>")
-      }
+      renderColumns: renderCB
     });
   },
 
-  updateTree : async function(contractors) {
+  /**
+   * Defining the FancyTree object for the root project
+   */
+  createTreeMyRootProjects : function() {
+    TreeView.myRootsTree = TreeView.createTreeBase("#tree", function(event, data) {
+        var node = data.node;
+        var $tdList = $(node.tr).find(">td");
+  
+        $tdList.eq(0).text(node.data.title);
+        $tdList.eq(1).text(node.data.state);
+        $tdList.eq(2).text(window.App.formatDate(node.data.tenderLT));
+        $tdList.eq(3).text(window.App.formatDate(node.data.deliveryLT));
+        $tdList.eq(4).text(web3.fromWei(node.data.stakeInWei, "ether"));
+        $tdList.eq(5).append("<button type='button'>Project Overview</button>").click( function() {
+          window.App.saveActiveInstanceAddress(node.data.address);
+          window.location.href = '/project_details.html';
+        });
+      });
+  },
+
+  /**
+   * Defining the FancyTree object for the nodes
+   */
+  createTreeNodes : function() {
+    TreeView.nodesTree = TreeView.createTreeBase("#subProjectTree", function(event, data) {
+        var node = data.node;
+        var $tdList = $(node.tr).find(">td");
+  
+        $tdList.eq(0).text(node.data.name);
+        $tdList.eq(1).text(node.data.address);
+        $tdList.eq(2).text(node.data.state);
+        $tdList.eq(3).text(web3.fromWei(node.data.stakeInWei, "ether"));
+        $tdList.eq(4).append("<button type='button'>Project Overview</button>")
+      });
+  },
+
+  /**
+   * Defining the FancyTree object for the candidates
+   */
+  createTreeCandidates : function() {
+    TreeView.candidatesTree = TreeView.createTreeBase("#candidateTree", function(event, data) {
+        var node = data.node;
+        var $tdList = $(node.tr).find(">td");
+  
+        $tdList.eq(0).text(node.data.name);
+        $tdList.eq(1).text(node.data.addr);
+        $tdList.eq(2).text(web3.fromWei(node.data.stakeInWei, "ether"));
+        $tdList.eq(3).append("<button type='button'>Project Overview</button>")
+      });
+  },
+
+  createTrees: function() {
+    TreeView.createTreeMyRootProjects();
+    TreeView.createTreeNodes();
+    TreeView.createTreeCandidates();
+  },
+
+  updateTrees : async function(roots, nodes, candidates) {
     // How to update data: https://github.com/mar10/fancytree/wiki/TutorialLoadData
-    TreeView.tree.reload(contractors);
+    TreeView.myRootsTree.reload(roots);
+    TreeView.nodesTree.reload(nodes);
+    TreeView.candidatesTree.reload(candidates);
   }
 };
 
@@ -81,57 +122,83 @@ window.TreeView = {
  */
 window.Controller = {
   init : async function() {
-    TreeView.createTree();
+    TreeView.createTrees();
   },
 
-  findMyInstances: async function() {
-    // Find all instance addresses
-    var addresses = await SmartBudgetService.findAllInstances();
-    // Load all of them
-    var instancesAndRoots = await Promise.all(addresses.map( async (addr) => {
-      var inst = await SmartBudgetService.fromAddress(addr);
-      var rootNode = await inst.getNodeWeb(0);
-      return {instance: inst, root: rootNode};
-    }));
-    // Find the relevant ones
-    var myInstancesAndRoots = instancesAndRoots.filter( (instAndRoot) => {
-      return instAndRoot.root.address == activeAccount;
-    });
-    return myInstancesAndRoots;
-  },
-
-  findMyRootProjects: async function() {
-    var myInstancesAndRoots = await window.Controller.findMyInstances();
-
-    function smartNodeToTreeNodeMapper(smartNode) { 
+  /**
+   * Filters my root nodes. Return a one-element array if it is my root, and an empty array if not
+   */
+  filterMyInstance: async function(instDataFlat) {
+    function root2TreeInst(instDataFlat) {
       return {
-        id: smartNode.id,
-        title: smartNode.name,
-        key: smartNode.id,
-        stake: web3.fromWei(smartNode.stakeInWei, "ether"),
-        address: smartNode.address,
-        parentid: smartNode.parentid,
-        children: []
+        title: instDataFlat.root.name,
+        tenderLT: instDataFlat.tenderLT,
+        deliveryLT: instDataFlat.deliveryLT,
+        state: instDataFlat.state,
+        stakeInWei: instDataFlat.root.stakeInWei,
+        address: instDataFlat.address,
       };
     }
 
-    var myTreeRoots = myInstancesAndRoots.map( (instAndRoot) => smartNodeToTreeNodeMapper(instAndRoot.root) );
-    window.TreeView.updateTree(myTreeRoots);
+    if (instDataFlat.root.address == activeAccount) {
+      return [root2TreeInst(instDataFlat)];
+    } else {
+      return [];
+    }
   },
 
-  scanMyRootProjects: async function() {
+  /**
+   * Returns an array of nodes owner by me. Returns an empty array if none of the nodes belong to me.
+   */
+  filterMyNodes: async function(instDataFlat) {
+    return instDataFlat.nodes.filter((node) => {
+      return (node.address == activeAccount && node.id > 0);
+    });
+  },
+
+  /**
+   * Return the array of candidates owned by me. Returns an empty array if none of the candidates belong to me.
+   */
+  filterMyCandidates: async function(instDataFlat) {
+    return instDataFlat.candidates.filter((cand) => {
+      return cand.address == activeAccount;
+    });
+  },
+
+  /**
+   * Scans through all contract instances and find the instances, nodes and candidates owned by
+   * the active account
+   */
+  scanProjects: async function() {
     if (window.lastActiveAccount != window.activeAccount) {
-      console.log("Loading my projects...");
       window.lastActiveAccount = window.activeAccount;
-      await window.Controller.findMyRootProjects();
+      console.log("Loading my projects, nodes and candidates...");
+      var myRoots = [];
+      var myNodes = [];
+      var myCandidates = [];
+      var addresses = await SmartBudgetService.findAllInstances(window.activeVersion);
+      // For loop notation that can handle async calls   
+      for (const address of addresses) {
+        console.log("Scanning instace at address " + address);
+        var inst = await SmartBudgetService.fromAddress(address);
+        var instDataFlat = await inst.loadInstanceDataFlat();
+        myRoots = myRoots.concat(await window.Controller.filterMyInstance(instDataFlat));
+        myNodes = myNodes.concat(await window.Controller.filterMyNodes(instDataFlat));
+        myCandidates = myCandidates.concat(await window.Controller.filterMyCandidates(instDataFlat));      
+      }
+      await window.TreeView.updateTrees(myRoots, myNodes, myCandidates);
     }
   }
 };
 
+/**
+ * Tasks to do on page load
+ * Always start with window.App.start(), this is where the shared logic resides
+ */
 window.addEventListener('load', async function() {
   await window.App.start();
   await window.Controller.init();
-  await window.Controller.scanMyRootProjects();
-  setInterval(window.Controller.scanMyRootProjects, 2000);
+  await window.Controller.scanProjects();
+  setInterval(window.Controller.scanProjects, 2000);
 });
 

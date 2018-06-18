@@ -3,8 +3,11 @@ pragma solidity ^0.4.21;
 import "./TimeLock.sol";
 
 contract SmartBudget is TimeLock {
+    //------------------------------Version------------------------------------------------
+    uint constant ver = 1;
+
     //------------------------------Events-------------------------------------------------
-    event SBCreation(address indexed owner, uint stake);
+    event SBCreation(address indexed owner, uint indexed version, uint stake);
     event SBNodeAdded(address indexed owner, uint id);
     event SBCandidateAdded(address indexed owner, uint id);
     event SBCandidateApproved(address indexed owner, uint id);
@@ -90,7 +93,11 @@ contract SmartBudget is TimeLock {
 
 
     //---------------Validators and access control functions-------------------------------------
-
+    /** @notice Returns the version of the contract
+    */
+    function version() public pure returns (uint) {
+        return ver;
+    }
 
     /** @notice Validates if 0 <= nodeId < nodeCntr
     * @param nodeId The node id to validate
@@ -193,7 +200,7 @@ contract SmartBudget is TimeLock {
     * @param _deliveryLockType Delivery lock type, 0 for absolute, 1 for relative
     */
     function SmartBudget(uint _tenderLockTime, uint _tenderLockType, uint _deliveryLockTime, uint _deliveryLockType, string desc) TimeLock(_tenderLockTime, _tenderLockType, _deliveryLockTime, _deliveryLockType) public payable {
-        emit SBCreation(msg.sender, msg.value);
+        emit SBCreation(msg.sender, ver, msg.value);
 
         topSubProjectsNum = 0;
         approvedTopSubProjectsNum = 0;

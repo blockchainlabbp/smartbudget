@@ -28,7 +28,7 @@ window.Controller = {
     findNodes: function (searchTerm) {
         (async () => {
            var temp = [];
-           contractAddresses = await SmartBudgetService.findAllInstances();
+           contractAddresses = await SmartBudgetService.findAllInstances(window.activeVersion);
             for (var i in contractAddresses) {
                 var contract = await SmartBudgetService.fromAddress(window.contractAddresses[i]);
                 var result = await contract.getFilteredNodes(0, 10, searchTerm);

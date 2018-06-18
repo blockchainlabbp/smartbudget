@@ -14,15 +14,30 @@ export const SmartBudgetService = {
     /**
      * Find all SmartBudget instances on the chain
      */
-    findAllInstances: function (_fromBlock = 0x0) {
+    findAllInstances: function (version = 1, _fromBlock = 0x0) {
+        // Calculate the padded variant of the version
+        function paddedVersion(ver) {
+            var hexVer = web3.toHex(ver);
+            var len = hexVer.length - 2; // Because hexVer contains already 0x at the beginning
+            if (len < 0) {
+                console.error("hexVer is not a valid number: " + hexVer);
+            }
+            if (len > 64) {
+                console.error("hexVer is too large: " + hexVer);
+            }
+            var padlen = 64 - len;
+            return "0x" + "0".repeat(padlen) + hexVer.slice(2);
+        }
+
         return new Promise(function (resolve, reject) {
             // Try to load the contract using logs
-            var signature = web3.sha3("SBCreation(address,uint256)");
+            var signature = web3.sha3("SBCreation(address,uint256,uint256)");
+            var paddedVer = paddedVersion(version);
             // Find all past logs containing SBCreation event
-            var filter = web3.eth.filter({fromBlock: _fromBlock, toBlock: "latest", topics: [signature]});
+            var filter = web3.eth.filter({fromBlock: _fromBlock, toBlock: "latest", topics: [signature, null, paddedVer]});
             return filter.get(function(error, result) {
                 if (!error)
-                    resolve(result.map((item, index) => item.address));
+                    resolve(result.map((item) => item.address));
                 else
                     reject(error);
             });
@@ -33,8 +48,12 @@ export const SmartBudgetService = {
      * Load SmartBudgetInstance from address
      */
     fromAddress: async function(address) {
-        var instance = await this._truffleContract.at(address);
-        return new SmartBudgetInstance(instance);
+        // Need to use then() and catch() becasue .at() is not an actual Promise
+        return await this._truffleContract.at(address).then((instance) => {
+                return new SmartBudgetInstance(instance);
+        }).catch( (err) => {
+            throw err;
+        });
     },
 
     /**
@@ -117,7 +136,7 @@ function SmartBudgetInstance(instance)  {
     this.tenderLockTime = async function() {
         var tenderLockTime = await this.instance.tenderLockTime();
         var tenderLockDate = new Date(tenderLockTime*1000);
-        console.log("The tender lock time is: " + tenderLockDate);
+        //console.log("The tender lock time is: " + tenderLockDate);
         return tenderLockDate;
     }
 
@@ -125,13 +144,14 @@ function SmartBudgetInstance(instance)  {
         var now = new Date().getTime() / 1000;
         var tenderLockTime = await this.instance.tenderLockTime();
         var secsToTenderEnd = tenderLockTime - now;
-        console.log("The remaining seconds until tender time lock end: " + secsToTenderEnd);
+        //console.log("The remaining seconds until tender time lock end: " + secsToTenderEnd);
+        return secsToTenderEnd;
     }
 
     this.deliveryLockTime = async function() {
         var deliveryLockTime = await this.instance.deliveryLockTime();
         var deliveryLockDate = new Date(deliveryLockTime*1000);
-        console.log("The delivery lock time is: " + deliveryLockDate);
+        //console.log("The delivery lock time is: " + deliveryLockDate);
         return deliveryLockDate;
     }
 
@@ -139,7 +159,8 @@ function SmartBudgetInstance(instance)  {
         var now = new Date().getTime() / 1000;
         var deliveryLockTime = await this.instance.deliveryLockTime();
         var secsToDeliveryEnd = deliveryLockTime - now;
-        console.log("The remaining seconds until delivery time lock end: " + secsToDeliveryEnd);
+        //console.log("The remaining seconds until delivery time lock end: " + secsToDeliveryEnd);
+        return secsToDeliveryEnd;
     }
 
     //------------------------------------- Validators ------------------------------------------
@@ -372,7 +393,7 @@ function SmartBudgetInstance(instance)  {
         var smartNode = {id: nodeId, 
             stakeInWei: attributes[0].toNumber(),
             address: attributes[1].toString(),
-            state: [attributes[2]].map((stateId) => parseNodeState(stateId))[0],
+            state: parseNodeState(attributes[2]),
             candidateIds: attributes[3].map((id) => id.toNumber()),
             name: attributes[4].toString(),
             parentId: attributes[5].toNumber(),
@@ -418,6 +439,60 @@ function SmartBudgetInstance(instance)  {
         }
     };
 
+    /**
+     * The function that gets the details of the nodes in a flat list
+     */
+    this.getNodesFlat = async function () {
+        var numNodes = await this.instance.nodeCntr();
+        var allNodes = [];
+        for (var i=0; i < numNodes; ++i) {
+            allNodes.push(await this.getNodeWeb(i));
+        }
+        return allNodes;
+    };
+
+    /**
+     * The function that gets the details of the candidates in a flat list
+     */
+    this.getCandidatesFlat = async function () {
+        var numCandidates = await this.instance.candidateCntr();
+        var allCandidates = [];
+        for (var i=0; i < numCandidates; ++i) {
+            allCandidates.push(await this.getCandidateWeb(i));
+        }   
+        return allCandidates;
+    };
+
+    /**
+     * The function that gets all details from a given instance, in a flat structure
+     * Useful for searching
+     */
+    this.loadInstanceDataFlat = async function () {
+        var allNodes = await this.getNodesFlat();   
+        var rootNode = allNodes.find((node) => { return node.id == 0});
+        var allTopSubNodes = allNodes.filter((node) => { return node.parentId == 0 && node.id > 0 });
+        var allOtherNodes = allNodes.filter((node) => { return node.parentId > 0 });
+        // Verify it's a partitioning
+        if (allNodes.length != allTopSubNodes.length + allOtherNodes.length + 1) {
+            console.error("Could not partition nodes into root, topSubNodes and otherNodes categories!");
+            console.error("root: " + JSON.stringify(root));
+            console.error("allTopSubNodes: " + JSON.stringify(allTopSubNodes));
+            console.error("allOtherNodes: " + JSON.stringify(allOtherNodes));
+        }
+        var allCandidates = await this.getCandidatesFlat();
+        var tender = await this.tenderLockTime();
+        var delivery = await this.deliveryLockTime();
+        var contractState = await this.getContractState();
+        return {address: this.instance.address,
+            root: rootNode,
+            topSubNodes: allTopSubNodes,
+            otherNodes: allOtherNodes,
+            nodes: allNodes,
+            candidates: allCandidates,
+            tenderLT: tender, 
+            deliveryLT: delivery, 
+            state: contractState};
+    };
 
     /**
      * The recursive function that gets the details of the nodes
