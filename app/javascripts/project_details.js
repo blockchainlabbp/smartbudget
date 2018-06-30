@@ -66,6 +66,8 @@ window.TreeView = {
                 $tdList.eq(2).text(node.data.state);
                 $tdList.eq(3).text(web3.fromWei(node.data.stakeInWei, "ether"));
                 $tdList.eq(4).append("<button type='button'>Node details</button>").click( function() {
+                    window.activeNode = node.data.id;
+                    window.App.saveActiveNode();
                     window.location.href = '/node_details.html';
                 });
             }

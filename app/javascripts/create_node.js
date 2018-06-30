@@ -4,7 +4,6 @@ window.CreateNodeController = {
     init: async function () {
         // Load the name and the stake of the active node   
         var nodeId = window.App.loadActiveNode();
-        console.log(`Loading node ${nodeId} from contract ${window.activeInstance}`);
         var node = await window.activeInstance.getNodeWeb(nodeId);
         $("#selectedProject").append(node.name);
         $("#ownerAddress").append(node.address);

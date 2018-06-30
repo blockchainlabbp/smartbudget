@@ -39,7 +39,7 @@ window.activeVersion;  // The version of the SmartBudget solidity code
 window.activeNetwork;  // The name of the active network (Mainnet, Ropsten, etc.) /type: string
 window.activeAccount;  // The metamask account currently in use /type: address
 window.activeNode;     // The node currently in use /type: uint
-window.activeContractor;     // The node currently in use /type: uint
+window.activeCandidate;     // The node currently in use /type: uint
 window.contractAddresses; // The list of found contract addresses /type: list(address)
 window.activeInstance;   // The currently active contract instance /type: SmartBudgetInstance 
 window.SmartBudgetService;
@@ -187,8 +187,8 @@ window.App = {
     return window.App.loadActive('activeNode');
   },
 
-  loadActiveContractor: function() {
-    return window.App.loadActive('activeContractor');
+  loadActiveCandidate: function() {
+    return window.App.loadActive('activeCandidate');
   },
 
   saveActiveInstance: function () {
@@ -217,8 +217,8 @@ window.App = {
     window.App.saveActive('activeNode', window.activeNode);
   },
 
-  saveActiveContractor: function () {
-    window.App.saveActive('activeContractor', window.activeContractor);
+  saveActiveCandidate: function () {
+    window.App.saveActive('activeCandidate', window.activeCandidate);
   },
 
   formatDate: function (date) {
