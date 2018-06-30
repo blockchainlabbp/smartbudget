@@ -26,12 +26,42 @@
 
 							<!-- Content -->
 							<section>
-								<header class="main">
-									<h1>Project</h1>
+								<header class="major">
+									<h2>Create new subproject</h2>
 								</header>
-
-								<span class="image main"><img id="pic11Img" alt="" /></span>
-
+								<div>
+									<table id="tree">
+											<colgroup>
+												<col width="25%"></col>
+											</colgroup>
+											<thead>
+													<tr>
+														<th >
+															<h3 id="selectedProject">Selected project: </h3>
+														</th>
+													</tr>
+												</thead>
+											<tbody>
+												<tr>
+													<td id="ownerAddress">Owner addres: </td>
+												</tr>
+												<tr>
+													<td id="nodeStatus">Status: </td>
+												</tr>
+												<tr>
+													<td id="availStake">Available stake: </td>
+												</tr>
+											</tbody>
+									</table>
+								</div>
+								<div id="formContainer" class="box">
+										<form id="newSubprojectForm">
+											<label for="subprojectName">Subproject name</label>
+											<input id="subprojectName" type="text" required />
+											<br>
+											<button type="button" id="btnNewSubproject">Submit new project</button>
+										</form>
+								</div>
 								<p></p>	
 							</section>
 						</div>

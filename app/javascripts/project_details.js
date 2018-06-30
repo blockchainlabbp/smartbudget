@@ -44,7 +44,8 @@ window.TreeView = {
                 $tdList.eq(3).text(window.App.formatDate(node.data.deliveryLT));
                 $tdList.eq(4).text(web3.fromWei(node.data.stakeInWei, "ether"));
                 $tdList.eq(5).append("<button type='button'>New subproject</button>").click( function() {
-                    window.App.saveActiveInstanceAddress(node.data.address);
+                    window.activeNode = 0;
+                    window.App.saveActiveNode();
                     window.location.href = '/create_node.html';
                 });
             }
@@ -65,7 +66,6 @@ window.TreeView = {
                 $tdList.eq(2).text(node.data.state);
                 $tdList.eq(3).text(web3.fromWei(node.data.stakeInWei, "ether"));
                 $tdList.eq(4).append("<button type='button'>Node details</button>").click( function() {
-                    window.App.saveActiveInstanceAddress(node.data.address);
                     window.location.href = '/node_details.html';
                 });
             }
