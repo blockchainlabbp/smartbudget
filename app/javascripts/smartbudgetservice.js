@@ -396,6 +396,7 @@ function SmartBudgetInstance(instance)  {
             state: parseNodeState(attributes[2]),
             candidateIds: attributes[3].map((id) => id.toNumber()),
             name: attributes[4].toString(),
+            title: attributes[4].toString(),
             parentId: attributes[5].toNumber(),
             childIds: attributes[6].map((id) => id.toNumber())};
         return smartNode;

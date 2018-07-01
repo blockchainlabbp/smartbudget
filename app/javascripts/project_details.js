@@ -8,12 +8,14 @@ window.TreeView = {
         icon: false,
         titlesTabbable: true,        // Add all node titles to TAB chain
         source: null,
-        minExpandLevel: 3,
-        extensions: ["table", "gridnav"],
+        minExpandLevel: 1,
+        extensions: ["table"],
+        clickFolderMode: 4,
+        selectMode: 1,
         table: {
-          checkboxColumnIdx: null,    // render the checkboxes into the this column index (default: nodeColumnIdx)
-          indentation: 16,         // indent every node level by 16px
-          nodeColumnIdx: null         // render node expander, icon, and title to this column (default: #0)
+          checkboxColumnIdx: 0,    // render the checkboxes into the this column index (default: nodeColumnIdx)
+          indentation: 8,         // indent every node level by 16px
+          nodeColumnIdx: 0         // render node expander, icon, and title to this column (default: #0)
         },
         gridnav: {
           autofocusInput:   false, // Focus first embedded input if node gets activated
@@ -61,11 +63,11 @@ window.TreeView = {
                 var node = data.node;
                 var $tdList = $(node.tr).find(">td");
 
-                $tdList.eq(0).text(node.data.name);
-                $tdList.eq(1).text(node.data.address);
+
+                $tdList.eq(1).text(node.data.address.slice(0,10) + "...");
                 $tdList.eq(2).text(node.data.state);
                 $tdList.eq(3).text(web3.fromWei(node.data.stakeInWei, "ether"));
-                $tdList.eq(4).append("<button type='button'>Node details</button>").click( function() {
+                $tdList.eq(4).append("<button type='button'>Subproject details</button>").click( function() {
                     window.activeNode = node.data.id;
                     window.App.saveActiveNode();
                     window.location.href = '/node_details.html';

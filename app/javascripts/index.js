@@ -79,11 +79,11 @@ window.TreeView = {
         var node = data.node;
         var $tdList = $(node.tr).find(">td");
   
-        $tdList.eq(0).text(node.data.name);
-        $tdList.eq(1).text(node.data.address);
+        $tdList.eq(0).text(node.data.title);
+        $tdList.eq(1).text(node.data.address.slice(0,10) + "...");
         $tdList.eq(2).text(node.data.state);
         $tdList.eq(3).text(web3.fromWei(node.data.stakeInWei, "ether"));
-        $tdList.eq(4).append("<button type='button'>Project Overview</button>")
+        $tdList.eq(4).append("<button type='button'>Subproject details</button>")
       });
   },
 
@@ -96,9 +96,9 @@ window.TreeView = {
         var $tdList = $(node.tr).find(">td");
   
         $tdList.eq(0).text(node.data.name);
-        $tdList.eq(1).text(node.data.addr);
+        $tdList.eq(1).text(node.data.addr.slice(0,10) + "...");
         $tdList.eq(2).text(web3.fromWei(node.data.stakeInWei, "ether"));
-        $tdList.eq(3).append("<button type='button'>Project Overview</button>")
+        $tdList.eq(3).append("<button type='button'>Application details</button>")
       });
   },
 
@@ -161,7 +161,7 @@ window.Controller = {
    */
   filterMyCandidates: async function(instDataFlat) {
     return instDataFlat.candidates.filter((cand) => {
-      return cand.address == activeAccount;
+      return cand.addr == activeAccount;
     });
   },
 
