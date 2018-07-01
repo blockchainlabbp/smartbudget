@@ -123,6 +123,18 @@ window.App = {
     await window.App.loadActiveInstance();
   },
 
+  onAccountChange: async function(callback) {
+    // First run once
+    await callback();
+    // Then schedule
+    setInterval(async function() {
+      if (window.lastActiveAccount != window.activeAccount) {
+        window.lastActiveAccount = window.activeAccount;
+        await callback();
+      }
+    }, 2000);
+  },
+
   checkMetaMask: function() {
     if (typeof web3 !== 'undefined') {
       window.web3 = new Web3(web3.currentProvider);

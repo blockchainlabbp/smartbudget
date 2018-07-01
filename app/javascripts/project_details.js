@@ -2,7 +2,7 @@ var app = require("./app");
 import {createTree, fancyTree} from 'jquery.fancytree';
 
 window.TreeView = {
-    createTreeBase : function(id, renderCB) {
+    createTreeBase : function(id, renderCB, colIdx = null) {
       return createTree(id,{
         checkbox: false,           // don't render default checkbox column
         icon: false,
@@ -13,9 +13,9 @@ window.TreeView = {
         clickFolderMode: 4,
         selectMode: 1,
         table: {
-          checkboxColumnIdx: 0,    // render the checkboxes into the this column index (default: nodeColumnIdx)
+          checkboxColumnIdx: colIdx,    // render the checkboxes into the this column index (default: nodeColumnIdx)
           indentation: 8,         // indent every node level by 16px
-          nodeColumnIdx: 0         // render node expander, icon, and title to this column (default: #0)
+          nodeColumnIdx: colIdx         // render node expander, icon, and title to this column (default: #0)
         },
         gridnav: {
           autofocusInput:   false, // Focus first embedded input if node gets activated
@@ -35,22 +35,24 @@ window.TreeView = {
      * Defining the FancyTree object for the root project
      */
     createTreeMyRootProjects : function() {
-        TreeView.myRootsTree = TreeView.createTreeBase("#rootTree", 
+        TreeView.myRootsTree = TreeView.createTreeBase(
+            "#rootTree", 
             function(event, data) {
                 var node = data.node;
                 var $tdList = $(node.tr).find(">td");
         
                 $tdList.eq(0).text(node.data.title);
-                $tdList.eq(1).text(node.data.state);
-                $tdList.eq(2).text(window.App.formatDate(node.data.tenderLT));
-                $tdList.eq(3).text(window.App.formatDate(node.data.deliveryLT));
-                $tdList.eq(4).text(web3.fromWei(node.data.stakeInWei, "ether"));
-                $tdList.eq(5).append("<button type='button'>New subproject</button>").click( function() {
+                $tdList.eq(1).text(node.data.rootAddress.slice(0,10) + "...");
+                $tdList.eq(2).text(node.data.state);
+                $tdList.eq(3).text(window.App.formatDate(node.data.tenderLT));
+                $tdList.eq(4).text(window.App.formatDate(node.data.deliveryLT));
+                $tdList.eq(5).text(web3.fromWei(node.data.stakeInWei, "ether"));
+                $tdList.eq(6).append("<button type='button'>New subproject</button>").click( function() {
                     window.activeNode = 0;
                     window.App.saveActiveNode();
                     window.location.href = '/create_node.html';
                 });
-            }
+            }, 
         );
     },
 
@@ -63,17 +65,17 @@ window.TreeView = {
                 var node = data.node;
                 var $tdList = $(node.tr).find(">td");
 
-
+                $tdList.eq(0).text(node.data.title);
                 $tdList.eq(1).text(node.data.address.slice(0,10) + "...");
                 $tdList.eq(2).text(node.data.state);
                 $tdList.eq(3).text(web3.fromWei(node.data.stakeInWei, "ether"));
-                $tdList.eq(4).append("<button type='button'>Subproject details</button>").click( function() {
+                $tdList.eq(4).append("<button type='button'>Details</button>").click( function() {
                     window.activeNode = node.data.id;
                     window.App.saveActiveNode();
                     window.location.href = '/node_details.html';
                 });
-            }
-        );
+            },
+            0);
     },
   
     updateProject : async function() {
@@ -86,13 +88,16 @@ window.TreeView = {
         deliveryLT: instDataFlat.deliveryLT,
         state: instDataFlat.state,
         stakeInWei: instDataFlat.root.stakeInWei,
-        address: instDataFlat.address,
+        rootAddress: instDataFlat.root.address,
+        contractAddress: instDataFlat.address
       }
       TreeView.myRootsTree.reload([myRoot]);
 
+      // Update the title
+      $('#contractAddress').append(myRoot.contractAddress);
+
       // Load the project details until 10 levels of depth
       var subTree = await window.activeInstance.getSubTree(0,10);
-      console.log(subTree);
       // Now we want to exclude the root project, so 
       TreeView.nodesTree.reload(subTree.children);
     }

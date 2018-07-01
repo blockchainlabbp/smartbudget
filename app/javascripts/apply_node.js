@@ -17,6 +17,9 @@ window.ApplyNodeController = {
             var name = $("#candidateName").val();
             var stakeInWei = web3.toWei($("#candidateStake").val(), "ether");
             window.activeInstance.applyForNode(window.activeAccount, nodeId, name, stakeInWei);
+            window.activeNode = nodeId;
+            window.App.saveActiveNode();
+            window.location.href = '/node_details.html';
         });
     }
 };

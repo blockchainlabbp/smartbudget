@@ -24,19 +24,31 @@ window.NodeDetailsController = {
                 window.activeNode = node.parentId;
                 window.App.saveActiveNode();
                 window.location.href = '/node_details.html';
-              });;
+              });
         }
         // Add new subproject button if owner
-        if (node.address == window.activeAccount) {
-            $("#subprojects").append("<button type='button'>Add new subproject</button>").click( function() {
-                window.activeNode = node.id;
-                window.App.saveActiveNode();
-                window.location.href = '/create_node.html';
-            });
-        }
+        window.App.onAccountChange( async function() {
+            if (node.address == window.activeAccount) {
+                $("#newSubproject").click( async function() {
+                    window.activeNode = node.id;
+                    window.App.saveActiveNode();
+                    window.location.href = '/create_node.html';
+                }).show();
+            } else {
+                $("#newSubproject").hide();
+            }
+        });
 
         // Parse subprojects
-
+        await Promise.all(node.childIds.map( async (id) => {
+            var n = await window.activeInstance.getNodeWeb(id);
+            $('#subprojects').append(` <button id='node${id}' type='button'>${n.name}</button>`);
+            $(`#node${id}`).click( function() {
+                window.activeNode = id;
+                window.App.saveActiveNode();
+                window.location.href = '/node_details.html';
+              });
+        }));
 
         // Add apply button if state is open
         if (node.state == 'OPEN') {
@@ -48,7 +60,6 @@ window.NodeDetailsController = {
               });
         }
 
-        console.log(node);
         // Parse candidates
         await Promise.all(node.candidateIds.map( async (candidateId) => {
             var candidate = await window.activeInstance.getCandidateWeb(candidateId);

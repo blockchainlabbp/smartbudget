@@ -21,9 +21,15 @@ window.CreateNodeController = {
             window.location.href = '/project_details.html';
         }
         // Set the button callback
-        $("#btnNewSubproject").click(function() {
+        $("#btnNewSubproject").click(async function() {
             var desc = $("#subprojectName").val();
-            window.activeInstance.addNode(window.activeAccount, desc, nodeId);
+            var newId = await window.activeInstance.addNode(window.activeAccount, desc, nodeId);
+            $("#buttonsDiv").append(` <button id='node${newId}' type='button'>View subproject ${desc}</button>`);
+            $(`#node${newId}`).click( function() {
+                window.activeNode = newId;
+                window.App.saveActiveNode();
+                window.location.href = '/node_details.html';
+              });
         });
     }
 };
