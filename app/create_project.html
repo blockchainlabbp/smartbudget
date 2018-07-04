@@ -30,29 +30,28 @@
 									<header class="major">
 										<h2>Create new project</h2>
 									</header>                              
-                  <!-- New Project form -->    
-                  <form id="newProjectForm">
-                      <label for="projectName">Project name</label>
-                      <input id="projectName" type="text" required />
+									<!-- New Project form -->    
+									<form id="newProjectForm">
+											<label for="projectName">Project name</label>
+											<input id="projectName" type="text" required />
 
-                      <label for="projectTenderDateTime">Tender end time</label>
-                      <input id="projectTenderDateTime" type="datetime-local" required />
-                      
-                      <label for="projectDeliveryDateTime">Project end time</label>
-                      <input id="projectDeliveryDateTime" type="datetime-local" required />
+											<label for="projectTenderDateTime">Tender end time</label>
+											<input id="projectTenderDateTime" required />
 
-                      <label for="projectStake">Project budget</label>
-                      <input id="projectStake" type="number" placeholder="0.01" step="0.00001" min="0" required />
+											<label for="projectDeliveryDateTime">Project end time</label>
+											<input id="projectDeliveryDateTime" required />
 
-                      <div id="validationErrorDate" class="error" style="display: none;">Tender end date is bigger then delivery date!</div>
-                      <div id="validationError" class="error" style="display: none;">Fill the corresponding inputs!</div>
-                      <br>
-                      <button type="submit" id="btnDeployContract">Submit new project</button>
-                  </form>
+											<label for="projectStake">Project budget</label>
+											<input id="projectStake" placeholder="0.0001" min="0" required />
+											<br>
+											<div id="validationErrorDate" class="error" style="display: none;">Tender end date is bigger then delivery date!</div>
+											<div id="validationError" class="error" style="display: none;">Fill the corresponding inputs!</div>
+											<br>
+											<button type="submit" id="btnDeployContract">Submit new project</button>
+										</form>
 
-                  <div id="infoSuccess" class="info" style="display: none;"></div>                                 
+									<div id="infoSuccess" class="info" style="display: none;">Project was created successfully!</div>
 								</section>
-
 					  </div>
 					</div>
 

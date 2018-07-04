@@ -12,6 +12,8 @@ import 'jquery.fancytree/dist/modules/jquery.fancytree.table';
 import 'jquery.fancytree/dist/modules/jquery.fancytree.gridnav';
 
 import 'jquery-ui/ui/widgets/dialog';
+import 'jquery-ui/ui/widgets/datepicker';
+import 'jquery-ui/ui/widgets/spinner';
 import 'jquery-ui/themes/base/all.css';
 
 // Import libraries we need.
