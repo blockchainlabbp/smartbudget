@@ -26,14 +26,44 @@
 
 							<!-- Content -->
 							<section>
-								<header class="main">
-									<h1>Project</h1>
-								</header>
+									<header class="major">
+										<h2>Apply to subproject</h2>
+									</header>
+									<div>
+										<table id="tree">
+												<colgroup>
+													<col width="25%"></col>
+												</colgroup>
+												<thead>
+														<tr>
+															<th >
+																<h3 id="selectedProject">Project to apply to: </h3>
+															</th>
+														</tr>
+													</thead>
+												<tbody>
+													<tr>
+														<td id="parentName">Parent project's name: </td>
+													</tr>
+													<tr>
+														<td id="availStake">Available stake in parent: </td>
+													</tr>
+												</tbody>
+										</table>
+									</div>
+									<div id="formContainer" class="box">
+											<form id="newCandidateForm">
+												<label for="candidatetName">Candidate name</label>
+												<input id="candidateName" type="text" required />
 
-								<span class="image main"><img id="pic11Img" alt="" /></span>
-
-								<p></p>	
-							</section>
+												<label for="candidatetStake">Proposed stake</label>
+												<input id="candidateStake" type="number" placeholder="0.001" step="0.0001" min="0" required />
+												<br>
+												<button type="button" id="btnNewCandidate">Apply</button>
+											</form>
+									</div>
+									<p></p>	
+								</section>
 						</div>
 					</div>
 

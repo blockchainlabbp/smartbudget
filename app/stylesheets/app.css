@@ -28,6 +28,18 @@ input{
   font-size: 24px;
 }
 
-#projectContainer table.fancytree-ext-table tbody tr.fancytree-active {
-  background-color: rgba(61, 58, 58, 0.1);
+#fancyTreeContainer .fancytree-active {
+  background-color: rgba(61, 58, 58, 0);
+}
+
+#fancyTreeContainer .fancytree-container {
+  outline: none;
+}
+
+#fancyTreeContainer .fancytree-title {
+  outline: none;
+}
+
+#fancyTreeContainer .fancytree-expander {
+  vertical-align: middle;
 }

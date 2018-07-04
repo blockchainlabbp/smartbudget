@@ -55,7 +55,7 @@ window.TreeView = {
    * Defining the FancyTree object for the root project
    */
   createTreeMyRootProjects : function() {
-    TreeView.myRootsTree = TreeView.createTreeBase("#tree", function(event, data) {
+    TreeView.myRootsTree = TreeView.createTreeBase("#rootTree", function(event, data) {
         var node = data.node;
         var $tdList = $(node.tr).find(">td");
   
@@ -79,11 +79,14 @@ window.TreeView = {
         var node = data.node;
         var $tdList = $(node.tr).find(">td");
   
-        $tdList.eq(0).text(node.data.name);
-        $tdList.eq(1).text(node.data.address);
-        $tdList.eq(2).text(node.data.state);
-        $tdList.eq(3).text(web3.fromWei(node.data.stakeInWei, "ether"));
-        $tdList.eq(4).append("<button type='button'>Project Overview</button>")
+        $tdList.eq(0).text(node.data.title);
+        $tdList.eq(1).text(node.data.state);
+        $tdList.eq(2).text(web3.fromWei(node.data.stakeInWei, "ether"));
+        $tdList.eq(3).append("<button type='button'>Subproject details</button>").click( function() {
+          window.activeNode = node.data.id;
+          window.App.saveActiveNode();
+          window.location.href = '/node_details.html';
+        });
       });
   },
 
@@ -95,10 +98,15 @@ window.TreeView = {
         var node = data.node;
         var $tdList = $(node.tr).find(">td");
   
-        $tdList.eq(0).text(node.data.name);
-        $tdList.eq(1).text(node.data.addr);
-        $tdList.eq(2).text(web3.fromWei(node.data.stakeInWei, "ether"));
-        $tdList.eq(3).append("<button type='button'>Project Overview</button>")
+        $tdList.eq(0).text(node.data.title);
+        $tdList.eq(1).text(web3.fromWei(node.data.stakeInWei, "ether"));
+        $tdList.eq(2).append("<button type='button'>Candidate details</button>").click( function() {
+          window.activeCandidate = node.data.id;
+          window.App.saveActiveCandidate();
+          window.activeNode = '';
+          window.App.saveActiveNode();
+          window.location.href = '/candidate_details.html';
+        });
       });
   },
 
@@ -161,7 +169,7 @@ window.Controller = {
    */
   filterMyCandidates: async function(instDataFlat) {
     return instDataFlat.candidates.filter((cand) => {
-      return cand.address == activeAccount;
+      return cand.addr == activeAccount;
     });
   },
 

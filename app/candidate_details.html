@@ -4,7 +4,7 @@
 -->
 <html>
 	<head>
-		<title>Project details</title>
+		<title>Candidate details</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 	</head>
@@ -27,10 +27,40 @@
 							<!-- Content -->
 							<section>
 									<header class="major">
-										<h2>Subproject details</h2>
+										<h2 id="candidateScreenTitle">Candidate details</h2>
 									</header>
 									<div>
-										<table id="subproject">
+										<table id="nodeDetails" style="display: none;">
+											<colgroup>
+												<col width="20%"></col>
+												<col width="80%"></col>
+											</colgroup>
+											<thead>
+												<tr>
+													<th >
+														<h3>Subproject: </h3>
+													</th>
+													<th >
+														<h3 id="subproject"></h3>
+													</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr>
+													<td>Parent subproject: </td>
+													<td id="parentSubproject"></td>
+												</tr>
+												<tr>
+													<td>Parent subproject's owner: </td>
+													<td id="parentOwner"></td>
+												</tr>
+												<tr>
+													<td>Available stake in parent subproject: </td>
+													<td id="availStake"></td>
+												</tr>					
+											</tbody>
+										</table>
+										<table id="candidateDetails">
 												<colgroup>
 													<col width="20%"></col>
 													<col width="80%"></col>
@@ -38,10 +68,10 @@
 												<thead>
 														<tr>
 															<th >
-																<h3>Selected project: </h3>
+																<h3>Selected candidate: </h3>
 															</th>
 															<th >
-																	<h3 id="selectedProject"></h3>
+																	<h3 id="selectedCandidate"></h3>
 															</th>
 														</tr>
 													</thead>
@@ -51,25 +81,13 @@
 														<td id="ownerAddress"></td>
 													</tr>
 													<tr>
-														<td>Status: </td>
-														<td id="nodeStatus"></td>
+														<td>Proposed stake: </td>
+														<td id="proposedStake"></td>
 													</tr>
 													<tr>
-														<td>Available stake: </td>
-														<td id="availStake"></td>
-													</tr>
-													<tr>
-														<td>Parent: </td>
-														<td id="parent"></td>
-													</tr>
-													<tr>
-														<td>Direct subprojects:</td>
-														<td id="subprojects"><button id='newSubproject' type='button'>Add new subproject</button></td>
-													</tr>
-													<tr>
-														<td>Candidates: </td>
-														<td id="candidates"></td>
-													</tr>
+														<td>Actions: </td>
+														<td id="actions"><button id='backToNode' type='button' style="display: none;"/> <button id='approveCandidate' type='button' style="display: none;"/></td>
+													</tr>						
 												</tbody>
 										</table>
 									</div>
@@ -93,6 +111,6 @@
         <!--
 			<script src="assets/js/main.js"></script>
         -->
-            <script src="./node_details.bundle.js"></script>
+            <script src="./candidate_details.bundle.js"></script>
 	</body>
 </html>

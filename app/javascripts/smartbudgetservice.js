@@ -83,6 +83,7 @@ function SmartBudgetInstance(instance)  {
      * This is the truffle-contract instance, which already has an address
      */
     this.instance = instance;
+    this.address = instance.address;
 
     //------------------------------------- Events ---------------------------------------------
     /**
@@ -396,6 +397,7 @@ function SmartBudgetInstance(instance)  {
             state: parseNodeState(attributes[2]),
             candidateIds: attributes[3].map((id) => id.toNumber()),
             name: attributes[4].toString(),
+            title: attributes[4].toString(),
             parentId: attributes[5].toNumber(),
             childIds: attributes[6].map((id) => id.toNumber())};
         return smartNode;
@@ -411,7 +413,8 @@ function SmartBudgetInstance(instance)  {
         *   "addr" : "Address of candidate"
         */
         var attributes = await this.instance.getCandidateWeb(candidateId, {gas: 500000 });
-        var cand = {id: candidateId, 
+        var cand = {id: candidateId,
+            title: attributes[0].toString(),
             name: attributes[0].toString(),
             stakeInWei: attributes[1].toNumber(),
             addr: attributes[2].toString()};

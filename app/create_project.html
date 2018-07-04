@@ -29,59 +29,29 @@
 								<section>
 									<header class="major">
 										<h2>Create new project</h2>
-									</header>
-                                                    
-                                    <!-- Load contract tree -->    
-                                    <div id="projectContainer">
-                                        <fieldset>
-                                            <form id="newProjectForm">
-                                                <label for="projectName">Project name</label>
-                                                <input id="projectName" type="text" required />
+									</header>                              
+									<!-- New Project form -->    
+									<form id="newProjectForm">
+											<label for="projectName">Project name</label>
+											<input id="projectName" type="text" required />
 
-                                                <label for="projectTenderDateTime">Tender end time</label>
-                                                <input id="projectTenderDateTime" required />
+											<label for="projectTenderDateTime">Tender end time</label>
+											<input id="projectTenderDateTime" required />
 
-                                                <label for="projectDeliveryDateTime">Project end time</label>
-                                                <input id="projectDeliveryDateTime" required />
+											<label for="projectDeliveryDateTime">Project end time</label>
+											<input id="projectDeliveryDateTime" required />
 
-                                                <label for="projectStake">Project budget</label>
-                                                <input id="projectStake" placeholder="0.0001" min="0" required />
-                                                <br>
-                                                <div id="validationErrorDate" class="error" style="display: none;">Tender end date is bigger then delivery date!</div>
-                                                <div id="validationError" class="error" style="display: none;">Fill the corresponding inputs!</div>
-                                                <br>
-                                                <button type="submit" id="btnDeployContract">Submit new project</button>
-                                            </form>
+											<label for="projectStake">Project budget</label>
+											<input id="projectStake" placeholder="0.0001" min="0" required />
+											<br>
+											<div id="validationErrorDate" class="error" style="display: none;">Tender end date is bigger then delivery date!</div>
+											<div id="validationError" class="error" style="display: none;">Fill the corresponding inputs!</div>
+											<br>
+											<button type="submit" id="btnDeployContract">Submit new project</button>
+										</form>
 
-                                            <div id="infoSuccess" class="info" style="display: none;">Project was created successfully!</div>
-                                        </fieldset>
-
-                                    </div>
-                                      <div id="detailsDialog" style="display:none" title="Details">
-                                        <input id="nodeID" type="hidden" value="-1">
-                                        <p id="nodeDetails"></p>
-                                        <div id="validationError" class="error">Fill the corresponding inputs!</div>
-                                        <fieldset>
-                                          <legend>Add sub project</legend>
-                                          <label for="addNodeDesc">Description</label>
-                                          <input id="addNodeDesc" type="text" required />
-                                          <button id="addNode" type='button'>Add sub project</button>
-                                        </fieldset>
-                                        <fieldset>
-                                          <legend>Apply for project</legend>
-                                          <label for="applyForNodeName">Name</label>
-                                          <input id="applyForNodeName" type="text" required />
-                                          <label for="applyForNodeStake">Stake</label>
-                                          <input id="applyForNodeStake" type="number"required />
-                                          <button id="applyForNode" type='button'>Apply for project</button>
-                                        </fieldset>
-                                        <fieldset>
-                                          <legend>Approve candidate</legend>
-                                          <button id="approveNode" type='button'>Approve candidate</button>
-                                        </fieldset>
-                                      </div>                                          
+									<div id="infoSuccess" class="info" style="display: none;">Project was created successfully!</div>
 								</section>
-
 					  </div>
 					</div>
 

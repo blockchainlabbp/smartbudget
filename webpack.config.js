@@ -6,6 +6,7 @@ module.exports = {
   entry: {
     about: './app/javascripts/about.js',
     apply_node: './app/javascripts/apply_node.js',
+    candidate_details: './app/javascripts/candidate_details.js',
     create_node: './app/javascripts/create_node.js',
     create_project: './app/javascripts/create_project.js',
     find: './app/javascripts/find.js',
@@ -25,6 +26,7 @@ module.exports = {
     new CopyWebpackPlugin([
       { from: './app/about.html', to: "about.html" },
       { from: './app/apply_node.html', to: "apply_node.html" },
+      { from: './app/candidate_details.html', to: "candidate_details.html" },
       { from: './app/create_node.html', to: "create_node.html" },
       { from: './app/create_project.html', to: "create_project.html" },
       { from: './app/find.html', to: "find.html" },

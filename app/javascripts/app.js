@@ -40,6 +40,8 @@ var SmartBudgetContract = contract(smartbudget_abi);
 window.activeVersion;  // The version of the SmartBudget solidity code
 window.activeNetwork;  // The name of the active network (Mainnet, Ropsten, etc.) /type: string
 window.activeAccount;  // The metamask account currently in use /type: address
+window.activeNode;     // The node currently in use /type: uint
+window.activeCandidate;     // The node currently in use /type: uint
 window.contractAddresses; // The list of found contract addresses /type: list(address)
 window.activeInstance;   // The currently active contract instance /type: SmartBudgetInstance 
 window.SmartBudgetService;
@@ -119,8 +121,20 @@ window.App = {
     SmartBudgetContract.setProvider(web3.currentProvider);
     window.SmartBudgetService = SmartBudgetService.init(SmartBudgetContract);
 
-    // Check if we have already an activeInstance
+    // Check if we have already an activeInstance, node and contractor
     await window.App.loadActiveInstance();
+  },
+
+  onAccountChange: async function(callback) {
+    // First run once
+    await callback();
+    // Then schedule
+    setInterval(async function() {
+      if (window.lastActiveAccount != window.activeAccount) {
+        window.lastActiveAccount = window.activeAccount;
+        await callback();
+      }
+    }, 2000);
   },
 
   checkMetaMask: function() {
@@ -171,6 +185,26 @@ window.App = {
     }
   },
 
+  loadActive: function(cookieName) {
+    if (typeof target == 'undefined') {
+      var lastValue = getCookie(cookieName);
+      if (lastValue != "") {
+        console.log(`Loaded ${cookieName}: ${lastValue}`); 
+        return lastValue;
+      } else {
+        console.log(`Could not find valid cookie with name ${cookieName}!`);
+      }
+    }
+  },
+
+  loadActiveNode: function() {
+    return window.App.loadActive('activeNode');
+  },
+
+  loadActiveCandidate: function() {
+    return window.App.loadActive('activeCandidate');
+  },
+
   saveActiveInstance: function () {
     if (typeof window.activeInstance == 'undefined') {
       console.error("Cannot save active instance, as it is still undefined!");
@@ -180,9 +214,25 @@ window.App = {
     }
   },
 
+  saveActive: function(cookieName, value) {
+    if (typeof value == 'undefined') {
+      console.error(`Cannot save value to ${cookieName}, as it is undefined`);
+    } else {
+      setCookie(cookieName, value);
+      console.log(`Saved cookie ${cookieName} with value ${value}`);
+    }
+  },
+
   saveActiveInstanceAddress: function (address) {
-      setCookie('activeInstanceAddress', address);
-      console.log(`Saved active instance address ${address}`);
+    window.App.saveActive('activeInstanceAddress', address);
+  },
+
+  saveActiveNode: function () {
+    window.App.saveActive('activeNode', window.activeNode);
+  },
+
+  saveActiveCandidate: function () {
+    window.App.saveActive('activeCandidate', window.activeCandidate);
   },
 
   formatDate: function (date) {
