@@ -24,7 +24,7 @@ window.CreateNodeController = {
         $("#btnNewSubproject").click(async function() {
             var desc = $("#subprojectName").val();
             var newId = await window.activeInstance.addNode(window.activeAccount, desc, nodeId);
-            $("#buttonsDiv").append(` <button id='node${newId}' type='button'>View subproject ${desc}</button>`);
+            $("#buttonsDiv").append(` <button id='node${newId}' type='button' class='button node'>View subproject ${desc}</button>`);
             $(`#node${newId}`).click( function() {
                 window.activeNode = newId;
                 window.App.saveActiveNode();

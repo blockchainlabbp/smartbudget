@@ -89,12 +89,13 @@ function SmartBudgetInstance(instance)  {
     /**
      * Events & watch callback setters
      */
-    this.addNodeEvent = this.instance.SBNodeAdded();
-    this.addCandidateEvent = this.instance.SBCandidateAdded();
-    this.approveCandidateEvent = this.instance.SBCandidateApproved();
-    this.completedNodeEvent = this.instance.SBNodeCompleted();
+    this.addNodeEvent;
+    this.addCandidateEvent;
+    this.approveCandidateEvent;
+    this.completedNodeEvent;
 
-    this.setAddNodeCallback = function(cb) {
+    this.setAddNodeCallback = async function(cb) {
+        this.addNodeEvent = this.instance.SBNodeAdded();
         // Uninstall any previous filter
         this.addNodeEvent.stopWatching();
         // Set callback
@@ -102,6 +103,7 @@ function SmartBudgetInstance(instance)  {
     };
 
     this.setAddCandidateCallback = function(cb) {
+        this.addCandidateEvent = this.instance.SBCandidateAdded();
         // Uninstall any previous filter
         this.addCandidateEvent.stopWatching();
         // Set callback
@@ -109,6 +111,7 @@ function SmartBudgetInstance(instance)  {
     };
 
     this.setApproveCandidateCallback = function(cb) {
+        this.approveCandidateEvent = this.instance.SBCandidateApproved();
         // Uninstall any previous filter
         this.approveCandidateEvent.stopWatching();
         // Set callback
@@ -116,6 +119,7 @@ function SmartBudgetInstance(instance)  {
     };
 
     this.setCompletedNodeCallback = function(cb) {
+        this.completedNodeEvent = this.instance.SBNodeCompleted();
         // Uninstall any previous filter
         this.completedNodeEvent.stopWatching();
         // Set callback

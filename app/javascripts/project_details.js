@@ -14,7 +14,7 @@ window.TreeView = {
         selectMode: 1,
         table: {
           checkboxColumnIdx: colIdx,    // render the checkboxes into the this column index (default: nodeColumnIdx)
-          indentation: 8,         // indent every node level by 16px
+          indentation: 16,         // indent every node level by 16px
           nodeColumnIdx: colIdx         // render node expander, icon, and title to this column (default: #0)
         },
         gridnav: {
@@ -47,7 +47,7 @@ window.TreeView = {
                 $tdList.eq(3).text(window.App.formatDate(node.data.tenderLT));
                 $tdList.eq(4).text(window.App.formatDate(node.data.deliveryLT));
                 $tdList.eq(5).text(web3.fromWei(node.data.stakeInWei, "ether"));
-                $tdList.eq(6).append("<button type='button'>New subproject</button>").click( function() {
+                $tdList.eq(6).append("<button type='button' class='button apply'>New subproject</button>").click( function() {
                     window.activeNode = 0;
                     window.App.saveActiveNode();
                     window.location.href = '/create_node.html';
@@ -69,7 +69,7 @@ window.TreeView = {
                 $tdList.eq(1).text(node.data.address.slice(0,10) + "...");
                 $tdList.eq(2).text(node.data.state);
                 $tdList.eq(3).text(web3.fromWei(node.data.stakeInWei, "ether"));
-                $tdList.eq(4).append("<button type='button'>Details</button>").click( function() {
+                $tdList.eq(4).append("<button type='button' class='button node'>Details</button>").click( function() {
                     window.activeNode = node.data.id;
                     window.App.saveActiveNode();
                     window.location.href = '/node_details.html';

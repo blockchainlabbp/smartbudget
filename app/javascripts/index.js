@@ -64,7 +64,7 @@ window.TreeView = {
         $tdList.eq(2).text(window.App.formatDate(node.data.tenderLT));
         $tdList.eq(3).text(window.App.formatDate(node.data.deliveryLT));
         $tdList.eq(4).text(web3.fromWei(node.data.stakeInWei, "ether"));
-        $tdList.eq(5).append("<button type='button'>Project Overview</button>").click( function() {
+        $tdList.eq(5).append("<button type='button' class='button project'>Project Overview</button>").click( function() {
           window.App.saveActiveInstanceAddress(node.data.address);
           window.location.href = '/project_details.html';
         });
@@ -82,7 +82,7 @@ window.TreeView = {
         $tdList.eq(0).text(node.data.title);
         $tdList.eq(1).text(node.data.state);
         $tdList.eq(2).text(web3.fromWei(node.data.stakeInWei, "ether"));
-        $tdList.eq(3).append("<button type='button'>Subproject details</button>").click( function() {
+        $tdList.eq(3).append("<button type='button' class='button node'>Subproject details</button>").click( function() {
           window.activeNode = node.data.id;
           window.App.saveActiveNode();
           window.location.href = '/node_details.html';
@@ -100,7 +100,7 @@ window.TreeView = {
   
         $tdList.eq(0).text(node.data.title);
         $tdList.eq(1).text(web3.fromWei(node.data.stakeInWei, "ether"));
-        $tdList.eq(2).append("<button type='button'>Candidate details</button>").click( function() {
+        $tdList.eq(2).append("<button type='button' class='button candidate'>Candidate details</button>").click( function() {
           window.activeCandidate = node.data.id;
           window.App.saveActiveCandidate();
           window.activeNode = '';

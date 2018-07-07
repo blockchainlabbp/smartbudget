@@ -1,3 +1,10 @@
+:root {
+  --project-color:#ff9000;
+  --apply-color:#06ce16;
+  --node-color:#d4b60a;
+  --candidate-color:#d450c3;
+}
+
 body {
   margin-left: 25%;
   margin-right: 25%;
@@ -42,4 +49,40 @@ input{
 
 #fancyTreeContainer .fancytree-expander {
   vertical-align: middle;
+}
+
+input[type="submit"].project,
+input[type="reset"].project,
+input[type="button"].project,
+button.project,
+.button.project {
+  box-shadow: inset 0 0 0 2px var(--project-color);
+	color: var(--project-color) !important;
+}
+
+input[type="submit"].apply,
+input[type="reset"].apply,
+input[type="button"].apply,
+button.apply,
+.button.apply {
+  box-shadow: inset 0 0 0 2px var(--apply-color);
+	color: var(--apply-color) !important;
+}
+
+input[type="submit"].node,
+input[type="reset"].node,
+input[type="button"].node,
+button.node,
+.button.node {
+  box-shadow: inset 0 0 0 2px var(--node-color);
+	color: var(--node-color) !important;
+}
+
+input[type="submit"].candidate,
+input[type="reset"].candidate,
+input[type="button"].candidate,
+button.candidate,
+.button.candidate {
+  box-shadow: inset 0 0 0 2px var(--candidate-color);
+	color: var(--candidate-color) !important;
 }

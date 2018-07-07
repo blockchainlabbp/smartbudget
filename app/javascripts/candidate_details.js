@@ -8,21 +8,30 @@ window.CandidateDetailsController = {
         $("#selectedCandidate").append(candidate.name);
         $("#ownerAddress").append(candidate.addr);
         $("#proposedStake").append(web3.fromWei(candidate.stakeInWei, "ether"));
+        // Add project overview button
+        var root = await window.activeInstance.getNodeWeb(0);
+        $("#contractBtn").text(root.name).click( function() {
+            window.App.saveActiveInstance();
+            window.location.href = '/project_details.html';
+          });
         // Approve button
         var nodeId = window.App.loadActiveNode();
-        if (nodeId) { 
-            // Update title
-            $("#candidateScreenTitle").text("Applicant details");
-            var node = await window.activeInstance.getNodeWeb(nodeId);
+        if (nodeId) {
+            var node = await window.activeInstance.getNodeWeb(nodeId); 
             // Get the parent
             var parentNode = await window.activeInstance.getNodeWeb(node.parentId);
-            // Show the node
-            $("#subproject").text(node.name);
-            $("#parentSubproject").text(parentNode.name);
-            $("#parentOwner").text(parentNode.address);
-            $("#availStake").text(web3.fromWei(parentNode.stakeInWei, "ether"));
-            $("#nodeDetails").show();
+            if (node.state == "OPEN") {
+                $("#candidateScreenTitle").text("Applicant details");             
+                // Show the node
+                $("#subproject").text(node.name);
+                $("#status").text(node.state);
+                $("#parentSubproject").text(parentNode.name);
+                $("#parentOwner").text(parentNode.address);
+                $("#availStake").text(web3.fromWei(parentNode.stakeInWei, "ether"));
+                $("#nodeDetails").show();
+            }
             window.App.onAccountChange(async function() {
+                console.log("Executing");
                 if (node.state == "OPEN" && parentNode.address == window.activeAccount) {
                     $(`#backToNode`).hide();
                     $(`#approveCandidate`).text("Approve candidate").show().click( async function() {
