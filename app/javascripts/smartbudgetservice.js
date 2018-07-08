@@ -4,17 +4,38 @@
  */
 export const SmartBudgetService = {
     _truffleContract: null,
+    _fromBlock: null,
 
-    init: function (truffleContract) {
+    init: function (truffleContract, activeNetwork) {
         var self = this;
         self._truffleContract = truffleContract;
+        self._truffleContract.defaults({
+            gasPrice: 11000000000
+          });
+        switch (activeNetwork) {
+            case "Main":
+              self._fromBlock = 5928031;
+              break;
+            case "Ropsten":
+              self._fromBlock = 3594825;
+              break;
+            case "Rinkeby":
+              self._fromBlock = 2599614;
+              break;
+            case "Kovan":
+              self._fromBlock = 7920392;
+              break;
+            default:
+              self._fromBlock = 0x0;
+          };
         return self;
     },
 
     /**
      * Find all SmartBudget instances on the chain
      */
-    findAllInstances: function (version = 1, _fromBlock = 0x0) {
+    findAllInstances: function (version = 1) {
+        var fromBlockNum = this._fromBlock;
         // Calculate the padded variant of the version
         function paddedVersion(ver) {
             var hexVer = web3.toHex(ver);
@@ -34,7 +55,7 @@ export const SmartBudgetService = {
             var signature = web3.sha3("SBCreation(address,uint256,uint256)");
             var paddedVer = paddedVersion(version);
             // Find all past logs containing SBCreation event
-            var filter = web3.eth.filter({fromBlock: _fromBlock, toBlock: "latest", topics: [signature, null, paddedVer]});
+            var filter = web3.eth.filter({fromBlock: fromBlockNum, toBlock: "latest", topics: [signature, null, paddedVer]});
             return filter.get(function(error, result) {
                 if (!error)
                     resolve(result.map((item) => item.address));
@@ -89,12 +110,13 @@ function SmartBudgetInstance(instance)  {
     /**
      * Events & watch callback setters
      */
-    this.addNodeEvent = this.instance.SBNodeAdded();
-    this.addCandidateEvent = this.instance.SBCandidateAdded();
-    this.approveCandidateEvent = this.instance.SBCandidateApproved();
-    this.completedNodeEvent = this.instance.SBNodeCompleted();
+    this.addNodeEvent;
+    this.addCandidateEvent;
+    this.approveCandidateEvent;
+    this.completedNodeEvent;
 
-    this.setAddNodeCallback = function(cb) {
+    this.setAddNodeCallback = async function(cb) {
+        this.addNodeEvent = this.instance.SBNodeAdded();
         // Uninstall any previous filter
         this.addNodeEvent.stopWatching();
         // Set callback
@@ -102,6 +124,7 @@ function SmartBudgetInstance(instance)  {
     };
 
     this.setAddCandidateCallback = function(cb) {
+        this.addCandidateEvent = this.instance.SBCandidateAdded();
         // Uninstall any previous filter
         this.addCandidateEvent.stopWatching();
         // Set callback
@@ -109,6 +132,7 @@ function SmartBudgetInstance(instance)  {
     };
 
     this.setApproveCandidateCallback = function(cb) {
+        this.approveCandidateEvent = this.instance.SBCandidateApproved();
         // Uninstall any previous filter
         this.approveCandidateEvent.stopWatching();
         // Set callback
@@ -116,6 +140,7 @@ function SmartBudgetInstance(instance)  {
     };
 
     this.setCompletedNodeCallback = function(cb) {
+        this.completedNodeEvent = this.instance.SBNodeCompleted();
         // Uninstall any previous filter
         this.completedNodeEvent.stopWatching();
         // Set callback
@@ -383,6 +408,7 @@ function SmartBudgetInstance(instance)  {
      */
     this.getNodeWeb = async function(nodeId) {
         /** "stake" : "Stake of node",
+        *   "totalStake" : "Total stake of node and children" 
         *   "addr" : "Address of node",
         *   "state" : "State of node",
         *   "cands" : "Array of candidate ids",
@@ -390,16 +416,18 @@ function SmartBudgetInstance(instance)  {
         *   "parent" : "Id of parent node",
         *   "childs" : "Array of child node ids"
         */
-        var attributes = await this.instance.getNodeWeb(nodeId, {gas: 500000 });
+        var vars = await this.instance.getNodeVars(nodeId, {gas: 500000 });
+        var statics = await this.instance.getNodeStatic(nodeId, {gas: 500000 });
         var smartNode = {id: nodeId, 
-            stakeInWei: attributes[0].toNumber(),
-            address: attributes[1].toString(),
-            state: parseNodeState(attributes[2]),
-            candidateIds: attributes[3].map((id) => id.toNumber()),
-            name: attributes[4].toString(),
-            title: attributes[4].toString(),
-            parentId: attributes[5].toNumber(),
-            childIds: attributes[6].map((id) => id.toNumber())};
+            stakeInWei: vars[0].toNumber(),
+            totalStakeInWei: statics[0].toNumber(),
+            address: statics[1].toString(),
+            state: parseNodeState(vars[1]),
+            candidateIds: vars[2].map((id) => id.toNumber()),
+            name: statics[2].toString(),
+            title: statics[2].toString(),
+            parentId: statics[3].toNumber(),
+            childIds: vars[3].map((id) => id.toNumber())};
         return smartNode;
     }
 

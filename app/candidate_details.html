@@ -41,18 +41,26 @@
 														<h3>Subproject: </h3>
 													</th>
 													<th >
-														<h3 id="subproject"></h3>
+															<button id='subprojectBtn' type='button' class='button node'></button>
 													</th>
 												</tr>
 											</thead>
 											<tbody>
 												<tr>
+													<td><h4>Status: </h4></td>
+													<td><h4 id="status">Status: </h4></td>
+												</tr>
+												<tr>
 													<td>Parent subproject: </td>
-													<td id="parentSubproject"></td>
+													<td><button id='parentNodeBtn' type='button' class='button node'></button></td>
 												</tr>
 												<tr>
 													<td>Parent subproject's owner: </td>
 													<td id="parentOwner"></td>
+												</tr>
+												<tr>
+													<td>Total stake in parent subproject: </td>
+													<td id="totalStake"></td>
 												</tr>
 												<tr>
 													<td>Available stake in parent subproject: </td>
@@ -77,6 +85,10 @@
 													</thead>
 												<tbody>
 													<tr>
+														<td>Contract: </td>
+														<td id="contract"><button id='contractBtn' type='button' class='button project'></button></td>
+													</tr>
+													<tr>
 														<td>Owner address: </td>
 														<td id="ownerAddress"></td>
 													</tr>
@@ -86,7 +98,7 @@
 													</tr>
 													<tr>
 														<td>Actions: </td>
-														<td id="actions"><button id='backToNode' type='button' style="display: none;"/> <button id='approveCandidate' type='button' style="display: none;"/></td>
+														<td id="actions"><button id='backToNode' type='button' style="display: none;" class='button node'/> <button id='approveCandidate' type='button' style="display: none;" class='button apply'/></td>
 													</tr>						
 												</tbody>
 										</table>

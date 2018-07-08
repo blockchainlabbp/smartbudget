@@ -38,7 +38,7 @@
 												<thead>
 														<tr>
 															<th >
-																<h3>Selected project: </h3>
+																<h3>Selected subproject: </h3>
 															</th>
 															<th >
 																	<h3 id="selectedProject"></h3>
@@ -46,6 +46,10 @@
 														</tr>
 													</thead>
 												<tbody>
+													<tr>
+														<td>Contract: </td>
+														<td id="contract"><button id='contractBtn' type='button' class='button project'></button></td>
+													</tr>
 													<tr>
 														<td>Owner address: </td>
 														<td id="ownerAddress"></td>
@@ -55,20 +59,24 @@
 														<td id="nodeStatus"></td>
 													</tr>
 													<tr>
+														<td>Total stake: </td>
+														<td id="totalStake"></td>
+													</tr>
+													<tr>
 														<td>Available stake: </td>
 														<td id="availStake"></td>
 													</tr>
 													<tr>
 														<td>Parent: </td>
-														<td id="parent"></td>
+														<td id="parent"><button id='parentBtn' type='button' class='button node'></button></td>
 													</tr>
 													<tr>
 														<td>Direct subprojects:</td>
-														<td id="subprojects"><button id='newSubproject' type='button'>Add new subproject</button></td>
+														<td id="subprojects"><button id='newSubproject' type='button' class='button apply' style="display: none;">Add new subproject</button></td>
 													</tr>
 													<tr>
 														<td>Candidates: </td>
-														<td id="candidates"></td>
+														<td id="candidates"><button id='applyToSubprojectBtn' type='button' class='button apply' style="display: none;">Apply to subproject</button></td>
 													</tr>
 												</tbody>
 										</table>

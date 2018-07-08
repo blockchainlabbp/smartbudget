@@ -55,13 +55,28 @@ function checkActiveAccount() {
       }
 
       if (accs.length == 0) {
-        alert("Couldn't get any accounts! Please log in to your metamask account first, then click 'OK' to start!");
+        //alert("Couldn't get any accounts! Please log in to your metamask account first, then click 'OK' to start!");
         reject("Could not get any accounts");
+      } else {
+        window.activeAccount = accs[0];
+        switch (activeNetwork) {
+          case "Main":
+            $('#metamaskAddress').removeClass("error").html(`<a href='https://etherscan.io/address/${window.activeAccount}'>${window.activeAccount}</a>`);
+            break;
+          case "Ropsten":
+            $('#metamaskAddress').removeClass("error").html(`<a href='https://ropsten.etherscan.io/address/${window.activeAccount}'>${window.activeAccount}</a>`);
+            break;
+          case "Rinkeby":
+            $('#metamaskAddress').removeClass("error").html(`<a href='https://rinkeby.etherscan.io/address/${window.activeAccount}'>${window.activeAccount}</a>`);
+            break;
+          case "Kovan":
+            $('#metamaskAddress').removeClass("error").html(`<a href='https://kovan.etherscan.io/address/${window.activeAccount}'>${window.activeAccount}</a>`);
+            break;
+          default:
+            $('#metamaskAddress').removeClass("error").html(window.activeAccount);
+        };
+        resolve(window.activeAccount);
       }
-
-      window.activeAccount = accs[0];
-      $('#metamaskAddress').html(window.activeAccount);
-      resolve(window.activeAccount);
     });
   });   
 };
@@ -69,19 +84,16 @@ function checkActiveAccount() {
 function setSidebar() {
    $('#sidebar').html(`
       <div class="inner">
-        <!-- Search -->
-          <section id="search" class="alt">					
-          <a href="#" class="image"><img id="metamask3img" alt="" width="200" class="limage"/></a>
-        </section>
         <!-- Menu -->
         <nav id="menu">
         <header class="major">
           <h2>MENU</h2>
         </header>
           <ul>
-            <li><a href="index.html">My projects</a></li>
+            <li><a href="index.html">What is SmartBudget?</a></li>
+            <li><a href="my_projects.html">My projects</a></li>
             <li><a href="create_project.html">Create new project</a></li>
-            <li><a href="find.html">Find project</a></li>
+            <li><a href="find.html">Search</a></li>
             <li><a href="about.html">About Us</a></li>      
           </ul>
         </nav>
@@ -91,7 +103,7 @@ function setSidebar() {
             <h2>CONTACT</h2>
           </header>
           <ul class="contact">
-            <li class="fa-envelope-o"><a href="#">info@blokklancmuhely.hu</a></li>
+            <li class="fa-envelope-o"><a href="mailto:info@blokklancmuhely.hu">info@blokklancmuhely.hu</a></li>
           </ul>
         </section>
         <!-- Footer -->
@@ -111,15 +123,16 @@ window.App = {
     window.activeVersion = 1;
 
     // Checking if Web3 has been injected by the browser (Mist/MetaMask)
-    window.App.checkMetaMask();
+    await window.App.checkMetaMask();
 
     // Set polling of account changes
+    $('#metamaskAddress').addClass("error").text("Could find active address!");
     checkActiveAccount();
     setInterval(checkActiveAccount, 2000);
 
     // Configure SmartBudgetService
     SmartBudgetContract.setProvider(web3.currentProvider);
-    window.SmartBudgetService = SmartBudgetService.init(SmartBudgetContract);
+    window.SmartBudgetService = SmartBudgetService.init(SmartBudgetContract, window.activeNetwork);
 
     // Check if we have already an activeInstance, node and contractor
     await window.App.loadActiveInstance();
@@ -137,34 +150,39 @@ window.App = {
     }, 2000);
   },
 
-  checkMetaMask: function() {
+  checkMetaMask: async function() {
     if (typeof web3 !== 'undefined') {
       window.web3 = new Web3(web3.currentProvider);
-      web3.version.getNetwork((err, netId) => {
-        switch (netId) {
-          case "1":
-            window.activeNetwork = "Main";
-            break;
-          case "2":
-            window.activeNetwork = "Morden";
-            break;
-          case "3":
-            window.activeNetwork = "Ropsten";
-            break;
-          case "4":
-            window.activeNetwork = "Rinkeby";
-            break;
-          case "42":
-            window.activeNetwork = "Kovan";
-            break;
-          default:
-            window.activeNetwork = "Unknown";
-        };
-        console.log("Detected network: " + activeNetwork);
+      var checkNetwork = new Promise(function (resolve, reject) { 
+          web3.version.getNetwork((err, netId) => {
+          switch (netId) {
+            case "1":
+              window.activeNetwork = "Main";
+              break;
+            case "2":
+              window.activeNetwork = "Morden";
+              break;
+            case "3":
+              window.activeNetwork = "Ropsten";
+              break;
+            case "4":
+              window.activeNetwork = "Rinkeby";
+              break;
+            case "42":
+              window.activeNetwork = "Kovan";
+              break;
+            default:
+              window.activeNetwork = "Unknown";
+          };
+          console.log("Detected network: " + activeNetwork);
+          resolve(1);
+        });
       });
+      await checkNetwork;
     } else {
       alert("No injected web3 instance detected! Please install/reinstall MetaMask and reload the page!");
     } 
+    
   },
 
   loadActiveInstance: async function() {

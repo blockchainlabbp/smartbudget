@@ -14,7 +14,7 @@ window.TreeView = {
         selectMode: 1,
         table: {
           checkboxColumnIdx: colIdx,    // render the checkboxes into the this column index (default: nodeColumnIdx)
-          indentation: 8,         // indent every node level by 16px
+          indentation: 16,         // indent every node level by 16px
           nodeColumnIdx: colIdx         // render node expander, icon, and title to this column (default: #0)
         },
         gridnav: {
@@ -46,8 +46,8 @@ window.TreeView = {
                 $tdList.eq(2).text(node.data.state);
                 $tdList.eq(3).text(window.App.formatDate(node.data.tenderLT));
                 $tdList.eq(4).text(window.App.formatDate(node.data.deliveryLT));
-                $tdList.eq(5).text(web3.fromWei(node.data.stakeInWei, "ether"));
-                $tdList.eq(6).append("<button type='button'>New subproject</button>").click( function() {
+                $tdList.eq(5).text(web3.fromWei(node.data.totalStakeInWei, "ether") + "/" + web3.fromWei(node.data.stakeInWei, "ether"));
+                $tdList.eq(6).append("<button type='button' class='button apply'>New subproject</button>").click( function() {
                     window.activeNode = 0;
                     window.App.saveActiveNode();
                     window.location.href = '/create_node.html';
@@ -68,8 +68,8 @@ window.TreeView = {
                 $tdList.eq(0).text(node.data.title);
                 $tdList.eq(1).text(node.data.address.slice(0,10) + "...");
                 $tdList.eq(2).text(node.data.state);
-                $tdList.eq(3).text(web3.fromWei(node.data.stakeInWei, "ether"));
-                $tdList.eq(4).append("<button type='button'>Details</button>").click( function() {
+                $tdList.eq(3).text(web3.fromWei(node.data.totalStakeInWei, "ether") + "/" + web3.fromWei(node.data.stakeInWei, "ether"));
+                $tdList.eq(4).append("<button type='button' class='button node'>Details</button>").click( function() {
                     window.activeNode = node.data.id;
                     window.App.saveActiveNode();
                     window.location.href = '/node_details.html';
@@ -87,14 +87,30 @@ window.TreeView = {
         tenderLT: instDataFlat.tenderLT,
         deliveryLT: instDataFlat.deliveryLT,
         state: instDataFlat.state,
+        totalStakeInWei: instDataFlat.root.totalStakeInWei,
         stakeInWei: instDataFlat.root.stakeInWei,
         rootAddress: instDataFlat.root.address,
         contractAddress: instDataFlat.address
       }
       TreeView.myRootsTree.reload([myRoot]);
 
-      // Update the title
-      $('#contractAddress').append(myRoot.contractAddress);
+      // Update the title with contract address
+      switch (activeNetwork) {
+        case "Main":
+          $('#contractAddress').append(`<a href='https://etherscan.io/address/${myRoot.contractAddress}'>${myRoot.contractAddress}</a>`);
+          break;
+        case "Ropsten":
+          $('#contractAddress').append(`<a href='https://ropsten.etherscan.io/address/${myRoot.contractAddress}'>${myRoot.contractAddress}</a>`);
+          break;
+        case "Rinkeby":
+        $('#contractAddress').append(`<a href='https://rinkeby.etherscan.io/address/${myRoot.contractAddress}'>${myRoot.contractAddress}</a>`);
+          break;
+        case "Kovan":
+        $('#contractAddress').append(`<a href='https://kovan.etherscan.io/address/${myRoot.contractAddress}'>${myRoot.contractAddress}</a>`);
+          break;
+        default:
+        $('#contractAddress').append(myRoot.contractAddress);
+      };
 
       // Load the project details until 10 levels of depth
       var subTree = await window.activeInstance.getSubTree(0,10);

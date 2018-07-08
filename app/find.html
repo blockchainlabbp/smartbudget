@@ -11,7 +11,6 @@
 </head>
 
 <body>
-
 	<!-- Wrapper -->
 	<div id="wrapper">
 
@@ -30,52 +29,150 @@
 						<span id="metamaskAddress" class="metamaskadress"></span>
 					</div>
 				</header>
+				<script src="./find.bundle.js"></script>
 
-				<!-- Banner -->
-				<section id="banner">
-					<div class="content">
-						<header>
-							<h1>Find project</h1>
-							<p>search by name, status</p>
+				<!-- Section -->
+				<section>
+					<div>
+						<header class="major">
+							<h2>Search for project, subproject or candidate by name</h2>
 						</header>
-
-
-						<div class="row uniform">
-							<div class="6u 12u$(xsmall)">
-								<input type="text" name="findByName" id="findByName" value="" placeholder="Project" />
+						
+						<form id="searchForm">
+							<label for="typeCategory">Search for: </label>
+							<select name="type-category" id="typeCategory">
+								<option value="Project">Project</option>
+								<option value="Subproject">Subproject</option>
+								<option value="Candidate">Candidate</option>
+							</select>
+							<br>
+							<label for="searchText">with name containing: </label>
+							<input id="searchText" type="text" required />
+							<br>
+							<div id='nodeStatus' style="display: none;">
+							<label for="statusCategory">and status: </label>
+							<select name="status-category" id="statusCategory">
+								<option value="">Status</option>
+								<option value="OPEN">OPEN</option>
+								<option value="APPROVED">APPROVED</option>
+								<option value="COMPLETED">COMPLETED</option>
+								<option value="PAYED">PAYED</option>
+							</select>
 							</div>
-						</div>
-						<div class="row uniform">
-							<div class="12u$">
-								<div class="select-wrapper">
-									<select name="status-category" id="statusCategory">
-										<option value="">Status</option>
-										<option value="OPEN">OPEN</option>
-										<option value="DELIVERY">APPROVED</option>
-										<option value="COMPLETED">COMPLETED</option>
-										<option value="PAYED">PAYED</option>
-									</select>
-								</div>
-							</div>
-						</div>
 
-						<div class="row uniform">
-							<ul class="actions">
-								<li>
-									<div class="button special big" id="searchBtn">search</div>
-								</li>
-							</ul>
-						</div>
-						<div class="row">
-							<table id="searchResult">
-								<tbody>
-								</tbody>
-							</table>
-
-						</div>
-
+							<br>
+							<button type="button" id="searchBtn" class='button apply'>Search</button>
+						</form>
 					</div>
 				</section>
+
+				<section id='searchResults'>
+					<div id='foundProjects' style="display: none;">  
+						<header class="major">
+							<h2>Found projects</h2>
+						</header>
+						<!-- Projects where I'm root -->    
+						<div id="fancyTreeContainer">
+							<table id="rootTree">
+								<colgroup>
+									<col width="25%"></col>
+									<col width="15%"></col>
+									<col width="15%"></col>
+									<col width="15%"></col>
+									<col width="15%"></col>
+									<col width="15%"></col>
+								</colgroup>
+								<thead>
+									<tr>
+										<th>Root project name</th>			
+										<th>State</th>													
+										<th>Tender lock time</th>
+										<th>Delivery lock time</th>
+										<th>Total/Available stake</th>
+										<th>Actions</th>
+									</tr>
+								</thead>
+								<tbody>
+									<!-- Define a row template for invariant markup and attributes: -->
+									<tr>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td></td>
+									</tr>
+								</tbody>
+							</table>
+						</div>   
+					</div>     
+
+					<div id='foundSubprojects' style="display: none;">    
+						<header class="major">
+							<h2>Found subprojects</h2>
+						</header>
+						<!-- Projects where own some subproject -->    
+						<div id="fancyTreeContainer">
+							<table id="subProjectTree">
+								<colgroup>
+									<col width="25%"></col>
+									<col width="30%"></col>
+									<col width="30%"></col>
+									<col width="15%"></col>
+								</colgroup>
+								<thead>
+									<tr>
+										<th>Subproject name</th>
+										<th>Status</th>
+										<th>Total/Available stake</th>
+										<th>Actions</th>
+									</tr>
+								</thead>
+								<tbody>
+									<!-- Define a row template for invariant markup and attributes: -->
+									<tr>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td></td>
+									</tr>
+								</tbody>
+							</table>
+						</div>   
+					</div>
+			
+					<!-- Projects where I'm a candidate -->
+					<div id='foundCandidates' style="display: none;">    
+						<header class="major">
+							<h2>Found candidates</h2>
+						</header>
+						<div id="fancyTreeContainer">
+							<table id="candidateTree">
+								<colgroup>
+									<col width="25%"></col>
+									<col width="60%"></col>
+									<col width="15%"></col>
+								</colgroup>
+								<thead>
+									<tr>
+										<th>Candidate name</th>
+										<th>Proposed stake</th>
+										<th>Actions</th>
+									</tr>
+								</thead>
+								<tbody>
+									<!-- Define a row template for invariant markup and attributes: -->
+									<tr>
+										<td></td>
+										<td></td>
+										<td></td>
+									</tr>
+								</tbody>
+							</table>
+						</div>  
+					</div> 	
+				</section>
+
 			</div>
 		</div>
 
@@ -83,9 +180,6 @@
 		<div id="sidebar">
 		</div>
 	</div>
-	<script src="./find.bundle.js"></script>
-
-
 </body>
 
 </html>
