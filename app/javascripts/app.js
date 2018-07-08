@@ -69,10 +69,6 @@ function checkActiveAccount() {
 function setSidebar() {
    $('#sidebar').html(`
       <div class="inner">
-        <!-- Search -->
-          <section id="search" class="alt">					
-          <a href="#" class="image"><img id="metamask3img" alt="" width="200" class="limage"/></a>
-        </section>
         <!-- Menu -->
         <nav id="menu">
         <header class="major">
