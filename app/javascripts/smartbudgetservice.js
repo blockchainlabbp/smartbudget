@@ -387,6 +387,7 @@ function SmartBudgetInstance(instance)  {
      */
     this.getNodeWeb = async function(nodeId) {
         /** "stake" : "Stake of node",
+        *   "totalStake" : "Total stake of node and children" 
         *   "addr" : "Address of node",
         *   "state" : "State of node",
         *   "cands" : "Array of candidate ids",
@@ -394,16 +395,18 @@ function SmartBudgetInstance(instance)  {
         *   "parent" : "Id of parent node",
         *   "childs" : "Array of child node ids"
         */
-        var attributes = await this.instance.getNodeWeb(nodeId, {gas: 500000 });
+        var vars = await this.instance.getNodeVars(nodeId, {gas: 500000 });
+        var statics = await this.instance.getNodeStatic(nodeId, {gas: 500000 });
         var smartNode = {id: nodeId, 
-            stakeInWei: attributes[0].toNumber(),
-            address: attributes[1].toString(),
-            state: parseNodeState(attributes[2]),
-            candidateIds: attributes[3].map((id) => id.toNumber()),
-            name: attributes[4].toString(),
-            title: attributes[4].toString(),
-            parentId: attributes[5].toNumber(),
-            childIds: attributes[6].map((id) => id.toNumber())};
+            stakeInWei: vars[0].toNumber(),
+            totalStakeInWei: statics[0].toNumber(),
+            address: statics[1].toString(),
+            state: parseNodeState(vars[1]),
+            candidateIds: vars[2].map((id) => id.toNumber()),
+            name: statics[2].toString(),
+            title: statics[2].toString(),
+            parentId: statics[3].toNumber(),
+            childIds: vars[3].map((id) => id.toNumber())};
         return smartNode;
     }
 

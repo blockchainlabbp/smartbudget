@@ -1,8 +1,8 @@
 :root {
-  --project-color:#ff9000;
+  --project-color:#ee2106;
   --apply-color:#06ce16;
-  --node-color:#d4b60a;
-  --candidate-color:#d450c3;
+  --node-color:#ff9000;
+  --candidate-color:#b4a306;
 }
 
 body {

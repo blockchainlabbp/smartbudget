@@ -44,6 +44,7 @@ contract SmartBudget is TimeLock {
     * Node struct represents a part of the project.
     * id uint - identifier of node 
     * stake uint - allocated ethereum on the node
+    * totalStake uint - total allocated ethereum on this node and its subprojects
     * addr address - address of selected candidate
     * state NodeState - state of the node
     * candidates uint[] - keys of the candidates (which are in candidates map)
@@ -54,6 +55,7 @@ contract SmartBudget is TimeLock {
     struct Node {      
         uint id;
         uint stake;
+        uint totalStake;
         address addr; 
         NodeState state;
         uint[] candidates;
@@ -212,6 +214,7 @@ contract SmartBudget is TimeLock {
         Node memory node;
         node.id = key;
         node.stake = msg.value;
+        node.totalStake = msg.value;
         node.addr = msg.sender;
         node.state = NodeState.COMPLETED;
         node.desc = desc;
@@ -292,6 +295,7 @@ contract SmartBudget is TimeLock {
         // Update the node
         nodes[nodeId].addr = candidate.addr;
         nodes[nodeId].stake = candidate.stake;
+        nodes[nodeId].totalStake = candidate.stake;
         nodes[nodeId].state = NodeState.APPROVED;
         // Update the node's parent
         nodes[parentId].stake = nodes[parentId].stake - candidate.stake;
@@ -322,22 +326,36 @@ contract SmartBudget is TimeLock {
     //-------------------------Getter methods for web interface-----------------------------
 
 
-    /** @notice [web3js] Get a node by Id (id is the key in context of map)
+    /** @notice [web3js] Get the variables (changeable attributes) of node by Id (id is the key in context of map)
+    * @dev Solidity function cannot return more than 7 variables in a single return statement, so we had to split the original getNodeWeb
     * @param nodeId Id of the node
     * @return {
     *   "stake" : "Stake of node",
-    *   "addr" : "Address of node",
     *   "state" : "State of node",
     *   "cands" : "Array of candidate ids",
-    *   "desc" : "Description of node",
-    *   "parent" : "Id of parent node",
     *   "childs" : "Array of child node ids"
     * }
     */
-    function getNodeWeb(uint nodeId) public view returns (uint stake, address addr, NodeState state, uint[] cands, string desc, uint parent, uint[] childs) {
+    function getNodeVars(uint nodeId) public view returns (uint stake, NodeState state, uint[] cands, uint[] childs) {
         validateNodeId(nodeId);
-        return (nodes[nodeId].stake, nodes[nodeId].addr, nodes[nodeId].state, nodes[nodeId].candidates, nodes[nodeId].desc, nodes[nodeId].parent, nodes[nodeId].childs);
+        return (nodes[nodeId].stake, nodes[nodeId].state, nodes[nodeId].candidates, nodes[nodeId].childs);
     }
+
+    /** @notice [web3js] Get the static (non-changeable) attributes of node by Id (id is the key in context of map)
+    * @dev Solidity function cannot return more than 7 variables in a single return statement, so we had to split the original getNodeWeb
+    * @param nodeId Id of the node
+    * @return {
+    *   "totalStake" : "Total stake of node and its subprojects",
+    *   "addr" : "Address of node",
+    *   "desc" : "Description of node",
+    *   "parent" : "Id of parent node",
+    * }
+    */
+    function getNodeStatic(uint nodeId) public view returns (uint totalStake, address addr, string desc, uint parent) {
+        validateNodeId(nodeId);
+        return (nodes[nodeId].totalStake, nodes[nodeId].addr, nodes[nodeId].desc, nodes[nodeId].parent);
+    }
+
 
     /** @notice [web3js] Get a candidate by Id (id is the key in context of map)
     * @param candidateId Id of the candidate

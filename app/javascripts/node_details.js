@@ -83,6 +83,7 @@ window.NodeDetailsController = {
         var node = await window.activeInstance.getNodeWeb(nodeId);
         $("#selectedProject").text(node.name);
         $("#ownerAddress").text(node.address);
+        $("#totalStake").text(web3.fromWei(node.totalStakeInWei, "ether"));
         // Get the parent
         if (node.id == 0) {
             $("#parentBtn").hide();
@@ -124,7 +125,12 @@ window.addEventListener('load', async function () {
     await window.NodeDetailsController.init();
     window.activeInstance.setApproveCandidateCallback(async function (error, result) {
         if (!error) {
-            window.NodeDetailsController.init();
+            window.NodeDetailsController.updateState();
+        }
+    });
+    window.activeInstance.setCompletedNodeCallback(async function (error, result) {
+        if (!error) {
+            window.NodeDetailsController.updateState();
         }
     });
 });
