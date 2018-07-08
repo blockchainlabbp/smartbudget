@@ -4,17 +4,38 @@
  */
 export const SmartBudgetService = {
     _truffleContract: null,
+    _fromBlock: null,
 
-    init: function (truffleContract) {
+    init: function (truffleContract, activeNetwork) {
         var self = this;
         self._truffleContract = truffleContract;
+        self._truffleContract.defaults({
+            gasPrice: 11000000000
+          });
+        switch (activeNetwork) {
+            case "Main":
+              self._fromBlock = 5928031;
+              break;
+            case "Ropsten":
+              self._fromBlock = 3594825;
+              break;
+            case "Rinkeby":
+              self._fromBlock = 2599614;
+              break;
+            case "Kovan":
+              self._fromBlock = 7920392;
+              break;
+            default:
+              self._fromBlock = 0x0;
+          };
         return self;
     },
 
     /**
      * Find all SmartBudget instances on the chain
      */
-    findAllInstances: function (version = 1, _fromBlock = 0x0) {
+    findAllInstances: function (version = 1) {
+        var fromBlockNum = this._fromBlock;
         // Calculate the padded variant of the version
         function paddedVersion(ver) {
             var hexVer = web3.toHex(ver);
@@ -34,7 +55,7 @@ export const SmartBudgetService = {
             var signature = web3.sha3("SBCreation(address,uint256,uint256)");
             var paddedVer = paddedVersion(version);
             // Find all past logs containing SBCreation event
-            var filter = web3.eth.filter({fromBlock: _fromBlock, toBlock: "latest", topics: [signature, null, paddedVer]});
+            var filter = web3.eth.filter({fromBlock: fromBlockNum, toBlock: "latest", topics: [signature, null, paddedVer]});
             return filter.get(function(error, result) {
                 if (!error)
                     resolve(result.map((item) => item.address));

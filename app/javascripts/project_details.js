@@ -94,8 +94,23 @@ window.TreeView = {
       }
       TreeView.myRootsTree.reload([myRoot]);
 
-      // Update the title
-      $('#contractAddress').append(myRoot.contractAddress);
+      // Update the title with contract address
+      switch (activeNetwork) {
+        case "Main":
+          $('#contractAddress').append(`<a href='https://etherscan.io/address/${myRoot.contractAddress}'>${myRoot.contractAddress}</a>`);
+          break;
+        case "Ropsten":
+          $('#contractAddress').append(`<a href='https://ropsten.etherscan.io/address/${myRoot.contractAddress}'>${myRoot.contractAddress}</a>`);
+          break;
+        case "Rinkeby":
+        $('#contractAddress').append(`<a href='https://rinkeby.etherscan.io/address/${myRoot.contractAddress}'>${myRoot.contractAddress}</a>`);
+          break;
+        case "Kovan":
+        $('#contractAddress').append(`<a href='https://kovan.etherscan.io/address/${myRoot.contractAddress}'>${myRoot.contractAddress}</a>`);
+          break;
+        default:
+        $('#contractAddress').append(myRoot.contractAddress);
+      };
 
       // Load the project details until 10 levels of depth
       var subTree = await window.activeInstance.getSubTree(0,10);

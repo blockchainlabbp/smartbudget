@@ -140,7 +140,7 @@ window.SearchController = {
       };
     }
 
-    if (instDataFlat.root.title.toLowerCase().includes(searchText.toLowerCase())) {
+    if (searchText == "" && instDataFlat.root.title.toLowerCase().includes(searchText.toLowerCase())) {
       return [root2TreeInst(instDataFlat)];
     } else {
       return [];
@@ -186,7 +186,6 @@ window.SearchController = {
     for (const address of addresses) {
         console.log("Scanning instace at address " + address);
         var inst = await SmartBudgetService.fromAddress(address);
-        console.log("This has passed");
         var instDataFlat = await inst.loadInstanceDataFlat();
         if (searchType == "Project") {
             foundRoots = foundRoots.concat(await window.SearchController.filterInstances(instDataFlat, searchText));
