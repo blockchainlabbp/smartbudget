@@ -1,0 +1,150 @@
+﻿<!DOCTYPE HTML>
+<!--
+  HTML5 - page01
+-->
+<html>
+	<head>
+		<title>SmartBudget homepage</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+	</head>
+	<body>
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Main -->
+					<div id="main">
+						<div class="inner">
+
+							<!-- Header -->
+								<header id="header">
+									<a href="index.html" class="logo"><img id="logoImg" src="" alt="" class="limage2"/></a>
+									<div class="icons">
+										<strong>METAMASK ADDRESS:</strong><br> 
+									<span id="metamaskAddress" class="metamaskadress"></span> </div>
+								</header>						
+
+							<!-- Section -->
+								<section>
+									<header class="major">
+										<h2>Projects owned by me</h2>
+									</header>
+										<!-- Projects where I'm root -->    
+											<div id="fancyTreeContainer">
+												<table id="rootTree">
+													<colgroup>
+														<col width="25%"></col>
+														<col width="15%"></col>
+														<col width="15%"></col>
+														<col width="15%"></col>
+														<col width="15%"></col>
+														<col width="15%"></col>
+													</colgroup>
+													<thead>
+														<tr>
+															<th>Root project name</th>			
+															<th>State</th>													
+															<th>Tender lock time</th>
+															<th>Delivery lock time</th>
+															<th>Total/Available stake</th>
+															<th>Actions</th>
+														</tr>
+													</thead>
+													<tbody>
+														<!-- Define a row template for invariant markup and attributes: -->
+														<tr>
+															<td></td>
+															<td></td>
+															<td></td>
+															<td></td>
+															<td></td>
+															<td></td>
+														</tr>
+													</tbody>
+												</table>
+											</div>        
+
+									<header class="major">
+										<h2>My subprojects</h2>
+									</header>
+											<!-- Projects where own some subproject -->    
+											<div id="fancyTreeContainer">
+												<table id="subProjectTree">
+													<colgroup>
+														<col width="25%"></col>
+														<col width="30%"></col>
+														<col width="30%"></col>
+														<col width="15%"></col>
+													</colgroup>
+													<thead>
+														<tr>
+															<th>Subproject name</th>
+															<th>Status</th>
+															<th>Total/Available stake</th>
+															<th>Actions</th>
+														</tr>
+													</thead>
+													<tbody>
+														<!-- Define a row template for invariant markup and attributes: -->
+														<tr>
+															<td></td>
+															<td></td>
+															<td></td>
+															<td></td>
+														</tr>
+													</tbody>
+												</table>
+											</div>   
+
+									<header class="major">
+										<h2>My candidates</h2>
+									</header>
+											<!-- Projects where I'm a candidate -->    
+											<div id="fancyTreeContainer">
+												<table id="candidateTree">
+													<colgroup>
+														<col width="25%"></col>
+														<col width="60%"></col>
+														<col width="15%"></col>
+													</colgroup>
+													<thead>
+														<tr>
+															<th>Candidate name</th>
+															<th>Proposed stake</th>
+															<th>Actions</th>
+														</tr>
+													</thead>
+													<tbody>
+														<!-- Define a row template for invariant markup and attributes: -->
+														<tr>
+															<td></td>
+															<td></td>
+															<td></td>
+														</tr>
+													</tbody>
+												</table>
+											</div>   
+								</section>
+					  </div>
+					</div>
+					<!-- Sidebar -->
+					<div id="sidebar">	
+					</div>
+			</div>
+
+		<!-- Scripts -->
+		<!--
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/skel.min.js"></script>
+			<script src="assets/js/util.js"></script>
+
+			[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]
+
+			<script src="assets/js/main.js"></script>
+		-->
+		<script src="./my_projects.bundle.js"></script>
+		
+
+	</body>
+</html>

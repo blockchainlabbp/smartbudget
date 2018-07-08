@@ -55,13 +55,13 @@ function checkActiveAccount() {
       }
 
       if (accs.length == 0) {
-        alert("Couldn't get any accounts! Please log in to your metamask account first, then click 'OK' to start!");
+        //alert("Couldn't get any accounts! Please log in to your metamask account first, then click 'OK' to start!");
         reject("Could not get any accounts");
+      } else {
+        window.activeAccount = accs[0];
+        $('#metamaskAddress').removeClass("error").html(window.activeAccount);
+        resolve(window.activeAccount);
       }
-
-      window.activeAccount = accs[0];
-      $('#metamaskAddress').html(window.activeAccount);
-      resolve(window.activeAccount);
     });
   });   
 };
@@ -79,9 +79,10 @@ function setSidebar() {
           <h2>MENU</h2>
         </header>
           <ul>
-            <li><a href="index.html">My projects</a></li>
+            <li><a href="index.html">What is SmartBudget?</a></li>
+            <li><a href="my_projects.html">My projects</a></li>
             <li><a href="create_project.html">Create new project</a></li>
-            <li><a href="find.html">Find project</a></li>
+            <li><a href="find.html">Search</a></li>
             <li><a href="about.html">About Us</a></li>      
           </ul>
         </nav>
@@ -91,7 +92,7 @@ function setSidebar() {
             <h2>CONTACT</h2>
           </header>
           <ul class="contact">
-            <li class="fa-envelope-o"><a href="#">info@blokklancmuhely.hu</a></li>
+            <li class="fa-envelope-o"><a href="mailto:info@blokklancmuhely.hu">info@blokklancmuhely.hu</a></li>
           </ul>
         </section>
         <!-- Footer -->
@@ -114,6 +115,7 @@ window.App = {
     window.App.checkMetaMask();
 
     // Set polling of account changes
+    $('#metamaskAddress').addClass("error").text("Could find active address!");
     checkActiveAccount();
     setInterval(checkActiveAccount, 2000);
 
