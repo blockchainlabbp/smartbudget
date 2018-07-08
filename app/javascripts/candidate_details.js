@@ -23,10 +23,19 @@ window.CandidateDetailsController = {
             if (node.state == "OPEN") {
                 $("#candidateScreenTitle").text("Applicant details");             
                 // Show the node
-                $("#subproject").text(node.name);
+                $("#subprojectBtn").text(node.name).click( function() {
+                    window.activeNode = nodeId;
+                    window.App.saveActiveNode();
+                    window.location.href = '/node_details.html';
+                  });
                 $("#status").text(node.state);
-                $("#parentSubproject").text(parentNode.name);
+                $("#parentNodeBtn").text(parentNode.name).click( function() {
+                    window.activeNode = node.parentId;
+                    window.App.saveActiveNode();
+                    window.location.href = '/node_details.html';
+                  });
                 $("#parentOwner").text(parentNode.address);
+                $("#totalStake").text(web3.fromWei(parentNode.totalStakeInWei, "ether"));
                 $("#availStake").text(web3.fromWei(parentNode.stakeInWei, "ether"));
                 $("#nodeDetails").show();
             }

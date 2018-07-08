@@ -46,7 +46,7 @@ window.TreeView = {
                 $tdList.eq(2).text(node.data.state);
                 $tdList.eq(3).text(window.App.formatDate(node.data.tenderLT));
                 $tdList.eq(4).text(window.App.formatDate(node.data.deliveryLT));
-                $tdList.eq(5).text(web3.fromWei(node.data.stakeInWei, "ether"));
+                $tdList.eq(5).text(web3.fromWei(node.data.totalStakeInWei, "ether") + "/" + web3.fromWei(node.data.stakeInWei, "ether"));
                 $tdList.eq(6).append("<button type='button' class='button apply'>New subproject</button>").click( function() {
                     window.activeNode = 0;
                     window.App.saveActiveNode();
@@ -68,7 +68,7 @@ window.TreeView = {
                 $tdList.eq(0).text(node.data.title);
                 $tdList.eq(1).text(node.data.address.slice(0,10) + "...");
                 $tdList.eq(2).text(node.data.state);
-                $tdList.eq(3).text(web3.fromWei(node.data.stakeInWei, "ether"));
+                $tdList.eq(3).text(web3.fromWei(node.data.totalStakeInWei, "ether") + "/" + web3.fromWei(node.data.stakeInWei, "ether"));
                 $tdList.eq(4).append("<button type='button' class='button node'>Details</button>").click( function() {
                     window.activeNode = node.data.id;
                     window.App.saveActiveNode();
@@ -87,6 +87,7 @@ window.TreeView = {
         tenderLT: instDataFlat.tenderLT,
         deliveryLT: instDataFlat.deliveryLT,
         state: instDataFlat.state,
+        totalStakeInWei: instDataFlat.root.totalStakeInWei,
         stakeInWei: instDataFlat.root.stakeInWei,
         rootAddress: instDataFlat.root.address,
         contractAddress: instDataFlat.address
