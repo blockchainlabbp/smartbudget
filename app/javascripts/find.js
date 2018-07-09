@@ -165,7 +165,11 @@ window.SearchController = {
    */
   filterCandidates: async function(instDataFlat, searchText) {
     return instDataFlat.candidates.filter((cand) => {
-      return cand.name.toLowerCase().includes(searchText.toLowerCase());
+      if (searchText == "") {
+        return true
+      } else {
+        return cand.name.toLowerCase().includes(searchText.toLowerCase());
+      }
     });
   },
 

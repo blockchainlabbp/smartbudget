@@ -83,6 +83,9 @@ function checkActiveAccount() {
 
 function setSidebar() {
    $('#sidebar').html(`
+
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/cookie-bar/cookiebar-latest.min.js?"></script>
+   
       <div class="inner">
         <!-- Menu -->
         <nav id="menu">
@@ -126,7 +129,7 @@ window.App = {
     await window.App.checkMetaMask();
 
     // Set polling of account changes
-    $('#metamaskAddress').addClass("error").text("Could find active address!");
+    $('#metamaskAddress').addClass("error").text("Could not find active address!");
     checkActiveAccount();
     setInterval(checkActiveAccount, 2000);
 
