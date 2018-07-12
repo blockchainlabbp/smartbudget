@@ -114,7 +114,8 @@ function setSidebar() {
           <img id="logo2Img" alt="" width="200" class="limage"/></a>
             <p class="copyright">&copy; 2018. All rights reserved.<a href="https://blokklancmuhely.club/" target="_blank"> Blokklánc Műhely</a></p>
         </footer>
-      </div>`);
+      </div>
+      </div><div class="modal"><!-- Place at bottom of page --></div>`);
 };
 
 window.App = {
@@ -259,7 +260,15 @@ window.App = {
   formatDate: function (date) {
     return date.getFullYear() + "-" + ("0"+(date.getMonth()+1)).slice(-2) + "-" + ("0" + date.getDate()).slice(-2) +
      " " + ("0" + date.getHours()).slice(-2) + ":" + ("0" + date.getMinutes()).slice(-2);
-  }
+  },
+  
+  startWaitOverlay: function () {
+    $("body").addClass("loading");
+  },
+  
+  endWaitOverlay: function () {
+    $("body").removeClass("loading");
+  }  
 };
 
 // ----------------------------------- Cookie management ---------------------------------------------

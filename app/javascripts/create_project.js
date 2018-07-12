@@ -60,24 +60,32 @@ window.NewProjectController = {
         if ($(this)[0].checkValidity()) {
             console.log("deployContract", projectName, window.NewProjectController._toUnixTime(projectTendetDate), window.NewProjectController._toUnixTime(projectDeliveryDate), projectStake);
 
-            var newInst = await window.SmartBudgetService.create(
-                window.NewProjectController._toUnixTime(projectTendetDate),
-                0, //0 for absolute, 1 for relative
-                window.NewProjectController._toUnixTime(projectDeliveryDate),
-                0, //0 for absolute, 1 for relative
-                projectName,
-                projectStake,
-                window.activeAccount
-            );
+            try {
+                window.App.startWaitOverlay();
+                var newInst = await window.SmartBudgetService.create(
+                    window.NewProjectController._toUnixTime(projectTendetDate),
+                    0, //0 for absolute, 1 for relative
+                    window.NewProjectController._toUnixTime(projectDeliveryDate),
+                    0, //0 for absolute, 1 for relative
+                    projectName,
+                    projectStake,
+                    window.activeAccount
+                );
 
-            if (newInst) {
-                //contract created
-                $(this).hide();
-                $("#infoSuccess").append(`Your project have been successfully deployed at <button id='newInst' type='button special'>${newInst.address}</button>`).show();
-                $("#newInst").click( function() {
-                    window.App.saveActiveInstanceAddress(newInst.address);
-                    window.location.href = '/project_details.html';
-                });
+                if (newInst) {
+                    //contract created
+                    $(this).hide();
+                    $("#infoSuccess").append(`Your project have been successfully deployed at <button id='newInst' type='button special'>${newInst.address}</button>`).show();
+                    $("#newInst").click( function() {
+                        window.App.saveActiveInstanceAddress(newInst.address);
+                        window.location.href = '/project_details.html';
+                    });
+                }
+            } catch (e) {
+                //
+            }
+            finally {
+                window.App.endWaitOverlay();
             }
         } else {
             $("#validationError", $(this)).show();

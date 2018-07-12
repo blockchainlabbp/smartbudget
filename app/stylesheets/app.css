@@ -86,3 +86,22 @@ button.candidate,
   box-shadow: inset 0 0 0 2px var(--candidate-color);
 	color: var(--candidate-color) !important;
 }
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background: rgba( 255, 255, 255, .6 ) url("./../images/ajax-loader.gif") 50% 50% no-repeat;
+}
+
+body.loading .modal {
+    overflow: hidden;
+}
+
+body.loading .modal {
+    display: block;
+}
