@@ -22,6 +22,9 @@ module.exports = {
   plugins: [
     // defined plugins should have a corresponding require() on the top
     // https://webpack.js.org/plugins/
+    new webpack.DefinePlugin({
+      'process.env.NODE_ENV': '"production"'
+    }),
 
     // Copy our app's index.html to the build folder.
     new CopyWebpackPlugin([
@@ -65,19 +68,6 @@ module.exports = {
       { test: /\.(?:png|jpe?g|svg|gif)$/i, use: [ { loader: 'url-loader', options: {
         limit: 10000  // Inline images smaller than 10kb as data URIs
         } } ]
-      }
-    ],
-    loaders: [
-      { test: /\.json$/, use: 'json-loader' },
-      { test: /\.css$/, use: 'css-loader'},
-      {
-        test: /\.js$/,
-        exclude: /(node_modules|bower_components)/,
-        loader: 'babel-loader',
-        query: {
-          presets: ['es2015'],
-          plugins: ['transform-runtime']
-        }
       }
     ]
   }
