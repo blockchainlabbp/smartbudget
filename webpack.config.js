@@ -2,6 +2,8 @@ const path = require('path');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const webpack = require('webpack');
 
+// ? : Suppresses warning that would otherwise show up in browser console
+// https://github.com/webpack-contrib/webpack-hot-middleware/issues/228
 module.exports = {
   entry: {
     about: './app/javascripts/about.js',
@@ -14,6 +16,15 @@ module.exports = {
     my_projects: './app/javascripts/my_projects.js',
     node_details: './app/javascripts/node_details.js',
     project_details: './app/javascripts/project_details.js',
+    smartbudgetservice: './app/javascripts/smartbudgetservice.js',
+  },
+  // Log level for the final build - in the npm console
+  stats: 'normal',
+  devServer: {
+    // Log level for the dev server - in the browser
+    clientLogLevel: 'error',
+    // Log level for the final build - in the npm console
+    stats: 'normal'
   },
   output: {
     path: path.resolve(__dirname, 'build'),
