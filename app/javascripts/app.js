@@ -1,9 +1,4 @@
 // --------------- Main js app, app page-specific js files should require this first! ------------------
-// Import the page's CSS. Webpack will know what to do with it.
-import "../stylesheets/app.css";
-import "../stylesheets/main.css";
-//import {SmartBudgetService} from "./smartbudgetservice.js";
-
 // Import fancytree https://github.com/mar10/fancytree/wiki
 import 'jquery.fancytree/dist/modules/jquery.fancytree.table';
 

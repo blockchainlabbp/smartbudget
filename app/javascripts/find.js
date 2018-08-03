@@ -10,7 +10,7 @@ window.SearchView = {
         titlesTabbable: true,        // Add all node titles to TAB chain
         source: null,
         minExpandLevel: 3,
-        extensions: ["table", "gridnav"],
+        extensions: ["table"],
         table: {
           checkboxColumnIdx: null,    // render the checkboxes into the this column index (default: nodeColumnIdx)
           indentation: 16,         // indent every node level by 16px
