@@ -60,8 +60,7 @@ window.NewProjectController = {
         if ($(this)[0].checkValidity()) {
             console.log("deployContract", projectName, window.NewProjectController._toUnixTime(projectTendetDate), window.NewProjectController._toUnixTime(projectDeliveryDate), projectStake);
 
-            try {
-                window.App.startWaitOverlay();
+            window.App.wait(async function() {
                 var newInst = await window.SmartBudgetService.create(
                     window.NewProjectController._toUnixTime(projectTendetDate),
                     0, //0 for absolute, 1 for relative
@@ -81,12 +80,7 @@ window.NewProjectController = {
                         window.location.href = '/project_details.html';
                     });
                 }
-            } catch (e) {
-                //
-            }
-            finally {
-                window.App.endWaitOverlay();
-            }
+            });
         } else {
             $("#validationError", $(this)).show();
         }

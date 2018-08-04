@@ -47,11 +47,16 @@ window.TreeView = {
                 $tdList.eq(3).text(window.App.formatDate(node.data.tenderLT));
                 $tdList.eq(4).text(window.App.formatDate(node.data.deliveryLT));
                 $tdList.eq(5).text(web3.fromWei(node.data.totalStakeInWei, "ether") + "/" + web3.fromWei(node.data.stakeInWei, "ether"));
-                $tdList.eq(6).append("<button type='button' class='button apply'>New subproject</button>").click( function() {
-                    window.activeNode = 0;
-                    window.App.saveActiveNode();
-                    window.location.href = '/create_node.html';
-                });
+                // If state is TENDER and I'm the owner, I may add a new subproject
+                if (node.data.rootAddress == window.activeAccount && node.data.state == "TENDER") {
+                    $tdList.eq(6).append("<button type='button' class='button apply'>New subproject</button>").click( function() {
+                        window.activeNode = 0;
+                        window.App.saveActiveNode();
+                        window.location.href = '/create_node.html';
+                    });
+                } else {
+                    $tdList.eq(6).append("-");
+                }
             }, 
         );
     },
@@ -122,18 +127,20 @@ window.TreeView = {
 
 window.ProjectDetailsController = {
     init: async function () {
-        // Check for valid address
-        if (typeof window.activeInstance == 'undefined') {
-            alert("No active instance selected! Please select one from your projects.");
-            window.location.href = '/index.html';
-        }
+        window.App.waitThenShow("#fancyTreeContainer", async function() {
+            // Check for valid address
+            if (typeof window.activeInstance == 'undefined') {
+                alert("No active instance selected! Please select one from your projects.");
+                window.location.href = '/index.html';
+            }
 
-        // Create tree object
-        await window.TreeView.createTreeNodes();
-        await window.TreeView.createTreeMyRootProjects();
+            // Create tree object
+            await window.TreeView.createTreeNodes();
+            await window.TreeView.createTreeMyRootProjects();
 
-        // Update the project
-        await window.TreeView.updateProject();
+            // Update the project
+            await window.TreeView.updateProject();
+        });
     }
 };
 

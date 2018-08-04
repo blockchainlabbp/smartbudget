@@ -5,28 +5,35 @@
   * [validateNodeId](#function-validatenodeid)
   * [withdraw](#function-withdraw)
   * [tenderLockTime](#function-tenderlocktime)
-  * [getNodeWeb](#function-getnodeweb)
   * [addNode](#function-addnode)
   * [approvedTopSubProjectsNum](#function-approvedtopsubprojectsnum)
   * [approveNode](#function-approvenode)
+  * [version](#function-version)
   * [validateCandidateId](#function-validatecandidateid)
   * [getNodesWeb](#function-getnodesweb)
   * [getContractState](#function-getcontractstate)
   * [toUnixTime](#function-tounixtime)
+  * [getNodeVars](#function-getnodevars)
   * [requireNodeOwner](#function-requirenodeowner)
   * [deliveryLockTime](#function-deliverylocktime)
   * [transferFunds](#function-transferfunds)
   * [applyForNode](#function-applyfornode)
   * [getLockState](#function-getlockstate)
   * [getCandidatesWeb](#function-getcandidatesweb)
+  * [validateStake](#function-validatestake)
   * [requireNodeParentOwner](#function-requirenodeparentowner)
   * [requireContractState](#function-requirecontractstate)
+  * [getNodeStatic](#function-getnodestatic)
   * [cancel](#function-cancel)
   * [extendLockTimes](#function-extendlocktimes)
   * [nodeCntr](#function-nodecntr)
   * [requireNodeState](#function-requirenodestate)
   * [markNodeComplete](#function-marknodecomplete)
-  * [SmartBudgetCreation](#event-smartbudgetcreation)
+  * [SBCreation](#event-sbcreation)
+  * [SBNodeAdded](#event-sbnodeadded)
+  * [SBCandidateAdded](#event-sbcandidateadded)
+  * [SBCandidateApproved](#event-sbcandidateapproved)
+  * [SBNodeCompleted](#event-sbnodecompleted)
 * [TimeLock](#timelock)
   * [tenderLockTime](#function-tenderlocktime)
   * [toUnixTime](#function-tounixtime)
@@ -112,31 +119,6 @@ SmartBudget.tenderLockTime() `view` `3d0ced49`
 
 
 
-## *function* getNodeWeb
-
-SmartBudget.getNodeWeb(nodeId) `view` `3f002528`
-
-**[web3js] Get a node by Id (id is the key in context of map)**
-
-
-Inputs
-
-| | | |
-|-|-|-|
-| *uint256* | nodeId | Id of the node |
-
-Outputs
-
-| | | |
-|-|-|-|
-| *uint256* | stake | Stake of node |
-| *address* | addr | Address of node |
-| *uint8* | state | State of node |
-| *uint256[]* | cands | Array of candidate ids |
-| *string* | desc | Description of node |
-| *uint256* | parent | Id of parent node |
-| *uint256[]* | childs | Array of child node ids |
-
 ## *function* addNode
 
 SmartBudget.addNode(desc, parentId) `nonpayable` `44be7f70`
@@ -173,6 +155,16 @@ Inputs
 |-|-|-|
 | *uint256* | nodeId | Id of the node |
 | *uint256* | candidateId | Id of candidate |
+
+
+## *function* version
+
+SmartBudget.version() `pure` `54fd4d50`
+
+**Returns the version of the contract**
+
+
+
 
 
 ## *function* validateCandidateId
@@ -242,6 +234,29 @@ Outputs
 | | | |
 |-|-|-|
 | *uint256* | unixtime | The unix timestamp |
+
+## *function* getNodeVars
+
+SmartBudget.getNodeVars(nodeId) `view` `900556a1`
+
+**[web3js] Get the variables (changeable attributes) of node by Id (id is the key in context of map)**
+
+> Solidity function cannot return more than 7 variables in a single return statement, so we had to split the original getNodeWeb
+
+Inputs
+
+| | | |
+|-|-|-|
+| *uint256* | nodeId | Id of the node |
+
+Outputs
+
+| | | |
+|-|-|-|
+| *uint256* | stake | Stake of node |
+| *uint8* | state | State of node |
+| *uint256[]* | cands | Array of candidate ids |
+| *uint256[]* | childs | Array of child node ids |
 
 ## *function* requireNodeOwner
 
@@ -334,6 +349,21 @@ Outputs
 | *uint256[]* | _stakes | stakes of the candidates |
 | *address[]* | _addresses | addresses of the candidates |
 
+## *function* validateStake
+
+SmartBudget.validateStake(stake, nodeId) `view` `d4650023`
+
+**Checks if 'stake' amount of ethereum is still available for allocation in node**
+
+
+Inputs
+
+| | | |
+|-|-|-|
+| *uint256* | stake | The amount of ethereum planned to be allocated for the new node |
+| *uint256* | nodeId | Id of node |
+
+
 ## *function* requireNodeParentOwner
 
 SmartBudget.requireNodeParentOwner(nodeId) `view` `de06c354`
@@ -361,6 +391,29 @@ Inputs
 |-|-|-|
 | *uint256* | state | The expected state |
 
+
+## *function* getNodeStatic
+
+SmartBudget.getNodeStatic(nodeId) `view` `e77842f6`
+
+**[web3js] Get the static (non-changeable) attributes of node by Id (id is the key in context of map)**
+
+> Solidity function cannot return more than 7 variables in a single return statement, so we had to split the original getNodeWeb
+
+Inputs
+
+| | | |
+|-|-|-|
+| *uint256* | nodeId | Id of the node |
+
+Outputs
+
+| | | |
+|-|-|-|
+| *uint256* | totalStake | undefined |
+| *address* | addr | undefined |
+| *string* | desc | undefined |
+| *uint256* | parent | undefined |
 
 ## *function* cancel
 
@@ -429,16 +482,61 @@ Inputs
 
 
 
-## *event* SmartBudgetCreation
+## *event* SBCreation
 
-SmartBudget.SmartBudgetCreation(owner, stake) `127f33f6`
+SmartBudget.SBCreation(owner, version, stake) `9ab7c601`
 
 Arguments
 
 | | | |
 |-|-|-|
 | *address* | owner | indexed |
+| *uint256* | version | indexed |
 | *uint256* | stake | not indexed |
+
+## *event* SBNodeAdded
+
+SmartBudget.SBNodeAdded(owner, id) `54ad5106`
+
+Arguments
+
+| | | |
+|-|-|-|
+| *address* | owner | indexed |
+| *uint256* | id | not indexed |
+
+## *event* SBCandidateAdded
+
+SmartBudget.SBCandidateAdded(owner, id) `30a338bd`
+
+Arguments
+
+| | | |
+|-|-|-|
+| *address* | owner | indexed |
+| *uint256* | id | not indexed |
+
+## *event* SBCandidateApproved
+
+SmartBudget.SBCandidateApproved(owner, id) `d8036122`
+
+Arguments
+
+| | | |
+|-|-|-|
+| *address* | owner | indexed |
+| *uint256* | id | not indexed |
+
+## *event* SBNodeCompleted
+
+SmartBudget.SBNodeCompleted(owner, id) `00397d9e`
+
+Arguments
+
+| | | |
+|-|-|-|
+| *address* | owner | indexed |
+| *uint256* | id | not indexed |
 
 
 ---

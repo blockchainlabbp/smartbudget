@@ -20,6 +20,9 @@ module.exports = {
   },
   // Log level for the final build - in the npm console
   stats: 'normal',
+  optimization: {
+    minimize: true
+  },
   devServer: {
     // Log level for the dev server - in the browser
     clientLogLevel: 'error',
@@ -36,7 +39,6 @@ module.exports = {
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': '"production"'
     }),
-
     // Copy our app's index.html to the build folder.
     new CopyWebpackPlugin([
       { from: './app/images', to:'images'},
@@ -55,7 +57,8 @@ module.exports = {
       { from: './app/webelements.html', to: "webelements.html" },
     ]), 
     new webpack.ProvidePlugin({
-        // Make jQuery / $ available in every module:
+        // Make jQuery / $ available in every module, without the need to import it always
+        // https://webpack.js.org/plugins/provide-plugin/
         $: 'jquery',
         jQuery: 'jquery',
         // NOTE: Required to load jQuery Plugins into the *global* jQuery instance:

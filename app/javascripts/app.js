@@ -248,6 +248,27 @@ window.App = {
   
   endWaitOverlay: function () {
     $("body").removeClass("loading");
+  }, 
+
+  // Should be used in asny calls
+  // First we hide the element with id 'id', then wait for the fucntion 'callback' for execution
+  // When all finished, we show the element
+  wait: async function (callback) {
+    try {
+      window.App.startWaitOverlay();
+      await callback();
+    } catch (e) {
+      //
+    }
+    finally {
+      window.App.endWaitOverlay();
+    }
+  },
+
+  waitThenShow: async function (id, callback) {
+    $(id).hide();
+    await window.App.wait(callback);
+    $(id).show();
   }  
 };
 

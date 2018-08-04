@@ -178,38 +178,40 @@ window.SearchController = {
    * the active account
    */
   scanProjects: async function(searchType, searchText, nodeStatus) {
-    var foundRoots = [];
-    var foundNodes = [];
-    var foundCandidates = [];
-    await window.SearchView.updateTrees(foundRoots, foundNodes, foundCandidates);   
-    console.log("Loading my projects, nodes and candidates...");
-    
-    var addresses = await SmartBudgetService.findAllInstances(window.activeVersion);
-    console.log("Addresses: " + addresses);
-    // For loop notation that can handle async calls   
-    for (const address of addresses) {
-        console.log("Scanning instace at address " + address);
-        var inst = await SmartBudgetService.fromAddress(address);
-        var instDataFlat = await inst.loadInstanceDataFlat();
-        if (searchType == "Project") {
-            foundRoots = foundRoots.concat(await window.SearchController.filterInstances(instDataFlat, searchText));
-            $("#foundProjects").show();
-            $("#foundSubprojects").hide();
-            $("#foundCandidates").hide();
-        } else if (searchType == "Subproject") {
-            foundNodes = foundNodes.concat(await window.SearchController.filterNodes(instDataFlat, searchText, nodeStatus));
-            $("#foundProjects").hide();
-            $("#foundSubprojects").show();
-            $("#foundCandidates").hide();
-        } else {
-            foundCandidates = foundCandidates.concat(await window.SearchController.filterCandidates(instDataFlat, searchText));
-            $("#foundProjects").hide();
-            $("#foundSubprojects").hide();
-            $("#foundCandidates").show();
-        }
-        // Update the trees in each round   
-        await window.SearchView.updateTrees(foundRoots, foundNodes, foundCandidates);   
-    }
+    window.App.wait(async function() {
+      var foundRoots = [];
+      var foundNodes = [];
+      var foundCandidates = [];
+      await window.SearchView.updateTrees(foundRoots, foundNodes, foundCandidates);   
+      console.log("Loading my projects, nodes and candidates...");
+      
+      var addresses = await SmartBudgetService.findAllInstances(window.activeVersion);
+      console.log("Addresses: " + addresses);
+      // For loop notation that can handle async calls   
+      for (const address of addresses) {
+          console.log("Scanning instace at address " + address);
+          var inst = await SmartBudgetService.fromAddress(address);
+          var instDataFlat = await inst.loadInstanceDataFlat();
+          if (searchType == "Project") {
+              foundRoots = foundRoots.concat(await window.SearchController.filterInstances(instDataFlat, searchText));
+              $("#foundProjects").show();
+              $("#foundSubprojects").hide();
+              $("#foundCandidates").hide();
+          } else if (searchType == "Subproject") {
+              foundNodes = foundNodes.concat(await window.SearchController.filterNodes(instDataFlat, searchText, nodeStatus));
+              $("#foundProjects").hide();
+              $("#foundSubprojects").show();
+              $("#foundCandidates").hide();
+          } else {
+              foundCandidates = foundCandidates.concat(await window.SearchController.filterCandidates(instDataFlat, searchText));
+              $("#foundProjects").hide();
+              $("#foundSubprojects").hide();
+              $("#foundCandidates").show();
+          }
+          // Update the trees in each round   
+          await window.SearchView.updateTrees(foundRoots, foundNodes, foundCandidates);   
+      }
+    });
   }
 };
 
