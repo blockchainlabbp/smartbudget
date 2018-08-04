@@ -2,6 +2,8 @@ const path = require('path');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const webpack = require('webpack');
 
+// ? : Suppresses warning that would otherwise show up in browser console
+// https://github.com/webpack-contrib/webpack-hot-middleware/issues/228
 module.exports = {
   entry: {
     about: './app/javascripts/about.js',
@@ -14,6 +16,18 @@ module.exports = {
     my_projects: './app/javascripts/my_projects.js',
     node_details: './app/javascripts/node_details.js',
     project_details: './app/javascripts/project_details.js',
+    smartbudgetservice: './app/javascripts/smartbudgetservice.js',
+  },
+  // Log level for the final build - in the npm console
+  stats: 'normal',
+  optimization: {
+    minimize: true
+  },
+  devServer: {
+    // Log level for the dev server - in the browser
+    clientLogLevel: 'error',
+    // Log level for the final build - in the npm console
+    stats: 'normal'
   },
   output: {
     path: path.resolve(__dirname, 'build'),
@@ -22,9 +36,14 @@ module.exports = {
   plugins: [
     // defined plugins should have a corresponding require() on the top
     // https://webpack.js.org/plugins/
-
+    new webpack.DefinePlugin({
+      'process.env.NODE_ENV': '"production"'
+    }),
     // Copy our app's index.html to the build folder.
     new CopyWebpackPlugin([
+      { from: './app/images', to:'images'},
+      { from: './app/stylesheets/app.css', to: "app.css" },
+      { from: './app/stylesheets/main.css', to: "main.css" },
       { from: './app/about.html', to: "about.html" },
       { from: './app/apply_node.html', to: "apply_node.html" },
       { from: './app/candidate_details.html', to: "candidate_details.html" },
@@ -38,7 +57,8 @@ module.exports = {
       { from: './app/webelements.html', to: "webelements.html" },
     ]), 
     new webpack.ProvidePlugin({
-        // Make jQuery / $ available in every module:
+        // Make jQuery / $ available in every module, without the need to import it always
+        // https://webpack.js.org/plugins/provide-plugin/
         $: 'jquery',
         jQuery: 'jquery',
         // NOTE: Required to load jQuery Plugins into the *global* jQuery instance:
@@ -65,19 +85,6 @@ module.exports = {
       { test: /\.(?:png|jpe?g|svg|gif)$/i, use: [ { loader: 'url-loader', options: {
         limit: 10000  // Inline images smaller than 10kb as data URIs
         } } ]
-      }
-    ],
-    loaders: [
-      { test: /\.json$/, use: 'json-loader' },
-      { test: /\.css$/, use: 'css-loader'},
-      {
-        test: /\.js$/,
-        exclude: /(node_modules|bower_components)/,
-        loader: 'babel-loader',
-        query: {
-          presets: ['es2015'],
-          plugins: ['transform-runtime']
-        }
       }
     ]
   }

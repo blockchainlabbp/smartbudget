@@ -48,9 +48,10 @@ window.NodeDetailsController = {
         $("#nodeStatus").text(state);
         $("#availStake").text(web3.fromWei(node.stakeInWei, "ether"));
 
-        // Add new subproject button if owner
+        // Add new subproject button if owner and contract state is open
         window.App.onAccountChange( async function() {
-            if (node.address == window.activeAccount) {
+            var contractState = await window.activeInstance.getContractState();
+            if (node.address == window.activeAccount && contractState == "TENDER") {
                 $("#newSubproject").click( async function() {
                     window.activeNode = node.id;
                     window.App.saveActiveNode();
@@ -78,44 +79,46 @@ window.NodeDetailsController = {
     },
 
     init: async function () {
-        // Load the name and the stake of the active node   
-        var nodeId = window.App.loadActiveNode();
-        var node = await window.activeInstance.getNodeWeb(nodeId);
-        $("#selectedProject").text(node.name);
-        $("#ownerAddress").text(node.address);
-        $("#totalStake").text(web3.fromWei(node.totalStakeInWei, "ether"));
-        // Get the parent
-        if (node.id == 0) {
-            $("#parentBtn").hide();
-            $("#parent").text("-");
-        } else {
-            var parentNode = await window.activeInstance.getNodeWeb(node.parentId);
-            $("#parentBtn").text(parentNode.name).click( function() {
-                window.activeNode = node.parentId;
-                window.App.saveActiveNode();
-                window.location.href = '/node_details.html';
-              });
-        }
-
-        // Add project overview button
-        var root = await window.activeInstance.getNodeWeb(0);
-        $("#contractBtn").text(root.name).click( function() {
-            window.App.saveActiveInstance();
-            window.location.href = '/project_details.html';
-          });
-
-        await window.NodeDetailsController.updateState(nodeId);
-
-        // Reload direct subprojects on new node addition
-        window.activeInstance.setAddNodeCallback(async function (error, result) {
-            if (!error) {
-                window.NodeDetailsController.scanSubprojects(nodeId);
+        window.App.waitThenShow("#nodeDetailsFrame", async function() {
+            // Load the name and the stake of the active node   
+            var nodeId = window.App.loadActiveNode();
+            var node = await window.activeInstance.getNodeWeb(nodeId);
+            $("#selectedProject").text(node.name);
+            $("#ownerAddress").text(node.address);
+            $("#totalStake").text(web3.fromWei(node.totalStakeInWei, "ether"));
+            // Get the parent
+            if (node.id == 0) {
+                $("#parentBtn").hide();
+                $("#parent").text("-");
+            } else {
+                var parentNode = await window.activeInstance.getNodeWeb(node.parentId);
+                $("#parentBtn").text(parentNode.name).click( function() {
+                    window.activeNode = node.parentId;
+                    window.App.saveActiveNode();
+                    window.location.href = '/node_details.html';
+                });
             }
-        });
-        window.activeInstance.setAddCandidateCallback(async function (error, result) {
-            if (!error) {
-                window.NodeDetailsController.scanCandidates(nodeId);
-            }
+
+            // Add project overview button
+            var root = await window.activeInstance.getNodeWeb(0);
+            $("#contractBtn").text(root.name).click( function() {
+                window.App.saveActiveInstance();
+                window.location.href = '/project_details.html';
+            });
+
+            await window.NodeDetailsController.updateState(nodeId);
+
+            // Reload direct subprojects on new node addition
+            window.activeInstance.setAddNodeCallback(async function (error, result) {
+                if (!error) {
+                    window.NodeDetailsController.scanSubprojects(nodeId);
+                }
+            });
+            window.activeInstance.setAddCandidateCallback(async function (error, result) {
+                if (!error) {
+                    window.NodeDetailsController.scanCandidates(nodeId);
+                }
+            });
         });
     }
 };

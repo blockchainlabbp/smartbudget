@@ -31,7 +31,7 @@ window.TreeView = {
       titlesTabbable: true,        // Add all node titles to TAB chain
       source: null,
       minExpandLevel: 3,
-      extensions: ["table", "gridnav"],
+      extensions: ["table"],
       table: {
         checkboxColumnIdx: null,    // render the checkboxes into the this column index (default: nodeColumnIdx)
         indentation: 16,         // indent every node level by 16px
@@ -180,22 +180,24 @@ window.Controller = {
    */
   scanProjects: async function() {
     if (window.lastActiveAccount != window.activeAccount) {
-      window.lastActiveAccount = window.activeAccount;
-      console.log("Loading my projects, nodes and candidates...");
-      var myRoots = [];
-      var myNodes = [];
-      var myCandidates = [];
-      var addresses = await SmartBudgetService.findAllInstances(window.activeVersion);
-      // For loop notation that can handle async calls   
-      for (const address of addresses) {
-        console.log("Scanning instace at address " + address);
-        var inst = await SmartBudgetService.fromAddress(address);
-        var instDataFlat = await inst.loadInstanceDataFlat();
-        myRoots = myRoots.concat(await window.Controller.filterMyInstance(instDataFlat));
-        myNodes = myNodes.concat(await window.Controller.filterMyNodes(instDataFlat));
-        myCandidates = myCandidates.concat(await window.Controller.filterMyCandidates(instDataFlat));      
-      }
-      await window.TreeView.updateTrees(myRoots, myNodes, myCandidates);
+      window.App.wait(async function () {
+        window.lastActiveAccount = window.activeAccount;
+        console.log("Loading my projects, nodes and candidates...");
+        var myRoots = [];
+        var myNodes = [];
+        var myCandidates = [];
+        var addresses = await SmartBudgetService.findAllInstances(window.activeVersion);
+        // For loop notation that can handle async calls   
+        for (const address of addresses) {
+          console.log("Scanning instace at address " + address);
+          var inst = await SmartBudgetService.fromAddress(address);
+          var instDataFlat = await inst.loadInstanceDataFlat();
+          myRoots = myRoots.concat(await window.Controller.filterMyInstance(instDataFlat));
+          myNodes = myNodes.concat(await window.Controller.filterMyNodes(instDataFlat));
+          myCandidates = myCandidates.concat(await window.Controller.filterMyCandidates(instDataFlat));      
+        }
+        await window.TreeView.updateTrees(myRoots, myNodes, myCandidates);
+      });
     }
   }
 };

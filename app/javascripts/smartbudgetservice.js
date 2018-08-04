@@ -1,14 +1,24 @@
+// Import libraries we need.
+import { default as Web3} from 'web3';
+import { default as contract } from 'truffle-contract';
+
+// Smartbudget imports
+import smartbudget_abi from '../../build/contracts/SmartBudget.json';
+var SmartBudgetContract = contract(smartbudget_abi);
+
 /**
  * SmartBudgetService: object for finding, loading and creating SmartBudgetInstance,
  * which are convenient wrappers around truffle contract instances
  */
-export const SmartBudgetService = {
+window.SmartBudgetService = {
     _truffleContract: null,
     _fromBlock: null,
 
-    init: function (truffleContract, activeNetwork) {
+    init: function (activeNetwork) {
+         // Configure SmartBudgetService
+        SmartBudgetContract.setProvider(web3.currentProvider);      
         var self = this;
-        self._truffleContract = truffleContract;
+        self._truffleContract = SmartBudgetContract;
         self._truffleContract.defaults({
             gasPrice: 11000000000
           });

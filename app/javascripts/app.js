@@ -1,24 +1,11 @@
 // --------------- Main js app, app page-specific js files should require this first! ------------------
-// Import the page's CSS. Webpack will know what to do with it.
-import "../stylesheets/app.css";
-import "../stylesheets/main.css";
-import {SmartBudgetService} from "./smartbudgetservice.js";
-
 // Import fancytree https://github.com/mar10/fancytree/wiki
-import 'jquery.fancytree/dist/skin-lion/ui.fancytree.less';
-import 'jquery.fancytree/dist/modules/jquery.fancytree.edit';
-import 'jquery.fancytree/dist/modules/jquery.fancytree.filter';  
 import 'jquery.fancytree/dist/modules/jquery.fancytree.table';
-import 'jquery.fancytree/dist/modules/jquery.fancytree.gridnav';
 
 import 'jquery-ui/ui/widgets/dialog';
 import 'jquery-ui/ui/widgets/datepicker';
 import 'jquery-ui/ui/widgets/spinner';
 import 'jquery-ui/themes/base/all.css';
-
-// Import libraries we need.
-import { default as Web3} from 'web3';
-import { default as contract } from 'truffle-contract'
 
 import logoData from '../images/logo.png';
 import logo2Data from '../images/logo2.png';
@@ -31,10 +18,6 @@ $('#metamask3Img').attr('src', metamask3Data);
 $('#pic01Img').attr('src', pic01Data);
 $('#pic11Img').attr('src', pic11Data);
 
-// Smartbudget imports
-import smartbudget_abi from '../../build/contracts/SmartBudget.json'
-var SmartBudgetContract = contract(smartbudget_abi);
-
 // In this simple setting, we're using globals to deal with concept of "selected account in metamask"
 // and "selected contract"
 window.activeVersion;  // The version of the SmartBudget solidity code
@@ -44,7 +27,6 @@ window.activeNode;     // The node currently in use /type: uint
 window.activeCandidate;     // The node currently in use /type: uint
 window.contractAddresses; // The list of found contract addresses /type: list(address)
 window.activeInstance;   // The currently active contract instance /type: SmartBudgetInstance 
-window.SmartBudgetService;
 
 function checkActiveAccount() {
   return new Promise(function (resolve, reject) {
@@ -129,14 +111,12 @@ window.App = {
     // Checking if Web3 has been injected by the browser (Mist/MetaMask)
     await window.App.checkMetaMask();
 
+    window.SmartBudgetService.init(window.activeNetwork);
+
     // Set polling of account changes
     $('#metamaskAddress').addClass("error").text("Could not find active address!");
     checkActiveAccount();
     setInterval(checkActiveAccount, 2000);
-
-    // Configure SmartBudgetService
-    SmartBudgetContract.setProvider(web3.currentProvider);
-    window.SmartBudgetService = SmartBudgetService.init(SmartBudgetContract, window.activeNetwork);
 
     // Check if we have already an activeInstance, node and contractor
     await window.App.loadActiveInstance();
@@ -268,6 +248,27 @@ window.App = {
   
   endWaitOverlay: function () {
     $("body").removeClass("loading");
+  }, 
+
+  // Should be used in asny calls
+  // First we hide the element with id 'id', then wait for the fucntion 'callback' for execution
+  // When all finished, we show the element
+  wait: async function (callback) {
+    try {
+      window.App.startWaitOverlay();
+      await callback();
+    } catch (e) {
+      //
+    }
+    finally {
+      window.App.endWaitOverlay();
+    }
+  },
+
+  waitThenShow: async function (id, callback) {
+    $(id).hide();
+    await window.App.wait(callback);
+    $(id).show();
   }  
 };
 
