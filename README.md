@@ -1,39 +1,70 @@
 # SmartBudget - the smart budget manager dapp
-* Based on https://github.com/truffle-box/webpack-box
-* Truffle docs: http://truffleframework.com/docs/
-* Webpack guides: https://webpack.js.org/guides/
-* FancyTree docs: https://github.com/mar10/fancytree/wiki
-* ES6 modules: https://developer.ibm.com/node/2015/12/01/an-introduction-to-javascript-es6-modules/ 
 
-## Setting up the environment
-1. Install NodeJS and npm (Node Package Manager): https://nodejs.org/en/
-1. Install `solc` binaries (https://github.com/ethereum/solidity/releases) and add it to your PATH (this is only needed for documentation generation)
-1. `npm install -g truffle@4.1.4` - Install specific version of Truffle globally. It is important that we all use the same version of truffle to avoid misterious issues. Global installation means the `truffle` is installed to your npm install folder (instead of the project folder) which is supposed to be on the cmd path.
-1. `git clone https://gitlab.com/BlokklancMuhely/MuhelyMunkak/smartbudget.git`  - Clone the git repository
-1. `npm install` - within the `smartbudget` folder. This will download all dependencies defined in `package.json`. These node modules are installed into `node_modules`, therefore only available within the project.
+Ethereum smart contract based project budget managment app. Built by blockchain enthusiast for blockchain enthusiast.
 
-## Deployment
-1. `truffle.cmd compile`
-1. `npm run build`
-1. Copy the contents of the `./build` directory to the server's root serve folder
+## Table of Contents
 
-## Development
-To get started with development, you need to install MetaMask and Ganache cli.
+- [Installation](#installation)
+  - [Metamask](#metamask)
+- [Usage](#usage)
+- [Contribute](#contribute)
+  - [Requirements](#requirements)
+  - [Project setup](#project-setup)
+  - [Development workflow](#development-workflow)
+  - [Tests](#tests)
+  - [Documentation](#documentation)
+- [License](#license)
 
-### Setting up Metamask
-Metamask is a web3.js provider and Ethereum wallet as a browser extension. It is essential for interacting with Ethereum smart contracts from the browser.
-1. Read 'Interacting with the dapp in a browser' section at http://truffleframework.com/tutorials/pet-shop
-2. If Metamask transactions fail because of invalid nonce, then change the 'network id' in Ganache settings. It usually happens when Ganache is restarted and a totally fresh blockchain is generated because Metamask does not update the fresh state from Ganache.
+## Installation
 
-### Running project
-(!) Make sure to start `Ganache`, `truffle develop` or `geth` on the port defined in `truffle.js` before running `truffle migrate`
+### MetaMask
 
-1. `truffle compile` - Compile `.sol` files into `build/contracts`. This generates the `.json` files that represent the ABI to be used in javascript code
-3. `npm run dev` - Run webpack dev server
+You need to have the [MetaMask](https://metamask.io/) extension installed in your browser to interact with the website.
 
-### Running tests
-* Full test: `truffle test`
-* Frontend test: `./node_modules/mocha/bin/mocha --require babel-register test/*.js`
+> Tip: use the Ropsten network to try the website with test ether. Get some test ether [here](https://faucet.ropsten.be/).
+
+## Usage
+
+A beta version of the project is live at http://teszt.tomorgraphic.com/.
+
+## Contribute
+
+### Requirements
+
+If you want to contribute to the project you need to install the following:
+
+- Install NodeJS and npm (Node Package Manager): https://nodejs.org/en/
+
+- Install [Ganache cli](https://github.com/trufflesuite/ganache-cli) to have a local blockchain for development.
+
+Optional:
+
+- Install `solc` binaries (https://github.com/ethereum/solidity/releases) and add it to your PATH (this is only needed for [documentation generation](#documentation))
+
+### Project setup
+
+- Initial setup
+
+Execute the `build.cmd` script in the root of the repository. This will install Truffle, the required packages and build the sources for the entire site.
+
+- Clean and rebuild workspace
+
+Execute `clean.cmd`, then `build.cmd`. Might be needed if project dependencies have changed since your last build
+
+- Incremental build
+
+In a typical development scenario, you only need to call `truffle.cmd compile` to compile the smart contract sources and `npm run dev` to run the webpack development server.
+
+### Development workflow
+The typical development workflow follows consists of executing the following steps in cycles until you had enough...
+
+1. Start `ganache-cli` to have a local blockchain running on your dev machine. To clear you blockchain, just restart ganache.
+2. Run `truffle compile` - this compiles for you the EVM bytecode of the smart contract that can be uploaded to the blockchain, and the ABI that is needed by the dapp to interact with the smart contract. Run this each time you update the smart contracts.
+3. `npm run dev` - Run webpack dev server. Just edit any sorce files you wish, the webpack dev server will reload them on the fly!
+
+### Tests
+* Full test suite: `truffle test`
+* Javascript tests only: `./node_modules/mocha/bin/mocha --require babel-register test/*.js`
 
 ### Ropsten test network
 Metamask seed words: `man garbage awesome trash juice hollow genre service verify amount awake shy`
@@ -41,7 +72,12 @@ Metamask seed words: `man garbage awesome trash juice hollow genre service verif
 ### Notes
 Do not remove `package-lock.json` from source control, it is intended to be committed: https://github.com/npm/npm/blob/latest/doc/files/package-lock.json.md
 
-## Smart Contract documentation
+### Documentation
+
+The documentation of the solidity files can be found here:
+
+[SmartBudget](docs/contracts.md/SmartBudget.md)
+
 We're using [solmd](https://github.com/dpilch/solmd) to generate markdown documentation for our solidity files.
 Currently the documentation generation has to be kicked off manually, no pipeline set up yet.
 To update the documentation of the Solidity files:
@@ -51,5 +87,3 @@ To update the documentation of the Solidity files:
 1. Add the generated `.md` files to the repository
 1. For new Solidity files, add new link to the Solidity docs section below
 
-### Solidity Docs
-[SmartBudget](docs/contracts.md/SmartBudget.md)
