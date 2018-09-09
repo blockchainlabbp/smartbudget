@@ -11,14 +11,15 @@ window.NewProjectController = {
 
         $("#newProjectForm").submit(window.NewProjectController.deployContract);
         
-        $("#projectTenderDateTime").datepicker({
-            minDate: today,
-            dateFormat: dateFormat
-        });
-        $("#projectDeliveryDateTime").datepicker({
-            minDate: tomorrow,
-            dateFormat: dateFormat
-        });
+        window.NewProjectController._initDateInputs("#tenderDateType", 
+                                                    "#projectTenderDateTime", 
+                                                    today, 
+                                                    dateFormat);
+
+        window.NewProjectController._initDateInputs("#deliveryDateType", 
+                                                    "#projectDeliveryDateTime", 
+                                                    tomorrow, 
+                                                    dateFormat);
 
         $("#projectStake").spinner({
             step: stakePrecision,
@@ -26,6 +27,26 @@ window.NewProjectController = {
             incremental: true,
             numberFormat: "n"
         });
+    },
+
+    _initDateInputs: function(selectorId, inputId, _minDate, _format) {
+        $(inputId).datepicker({
+            minDate: _minDate,
+            dateFormat: _format
+        });
+
+        $(selectorId).change(function () {
+            if ($(`${selectorId} option:selected`).val() == 'absolute') {
+                $(inputId).val("");
+                $(inputId).datepicker({
+                    minDate: _minDate,
+                    dateFormat: _format
+                });
+            } else {
+                $(inputId).val("");
+                $(inputId).datepicker("destroy");
+            }
+         });
     },
 
     _toUnixTime: function (dateString) {
@@ -39,30 +60,63 @@ window.NewProjectController = {
         return dateTimeObj;
     },
 
+    _parsePositiveInt: function(str, msg) {
+        var res = parseInt(str);
+        if (isNaN(res) || res <= 0) {    
+            alert(msg);
+            throw msg;
+        } else {
+            return res;
+        }
+    },
+
+    _getDateTime: function(selectorId, inputId, refDate, msg) {
+        if ($(`${selectorId} option:selected`).val() == 'absolute') {
+            var rawDate = $(inputId).datepicker( "getDate" );
+            return window.NewProjectController._setTimeToMidnight(rawDate);
+        } else if ($(`${selectorId} option:selected`).val() == 'relative.sec') {
+            var secs = window.NewProjectController._parsePositiveInt($(inputId).val(), msg);
+            return new Date(refDate.getTime() + secs * 1000);
+        } else if ($(`${selectorId} option:selected`).val() == 'relative.hour') {
+            var hours = window.NewProjectController._parsePositiveInt($(inputId).val(), msg);
+            return new Date(refDate.getTime() + hours * 3600 * 1000);
+        } else if ($(`${selectorId} option:selected`).val() == 'relative.day') {
+            var days = window.NewProjectController._parsePositiveInt($(inputId).val(), msg);
+            return new Date(refDate.getTime() + days * 24 * 3600 * 1000);
+        } else {
+            error(`Unknown input type for selector ${selectorId}`);
+        }
+    },
+
     // Deploy new contract
     deployContract: async function (e) {
         e.preventDefault();
         $("#validationErrorDate, #validationErrorDate", $(this)).hide();
 
+        var now = new Date();
         var projectName = $("#projectName", $(this)).val();
-        var projectTendetDate = $("#projectTenderDateTime", $(this)).datepicker( "getDate" );
-        var projectDeliveryDate = $("#projectDeliveryDateTime", $(this)).datepicker("getDate");
+        var projectTenderDate = window.NewProjectController._getDateTime("#tenderDateType", 
+                                                                         "#projectTenderDateTime",
+                                                                         now,
+                                                                         "Please provide a positive integer for the tender date specification")
+        var projectDeliveryDate = window.NewProjectController._getDateTime("#deliveryDateType", 
+                                                                           "#projectDeliveryDateTime",
+                                                                           now,
+                                                                           "Please provide a positive integer for the delivery date specification")
+
         var projectStake = $("#projectStake", $(this)).val();
 
-        if (projectTendetDate > projectDeliveryDate) {
+        if (projectTenderDate > projectDeliveryDate) {
             $("#validationErrorDate", $(this)).show();
             return false;
         }
 
-        projectTendetDate = window.NewProjectController._setTimeToMidnight(projectTendetDate);
-        projectDeliveryDate = window.NewProjectController._setTimeToMidnight(projectDeliveryDate);
-
         if ($(this)[0].checkValidity()) {
-            console.log("deployContract", projectName, window.NewProjectController._toUnixTime(projectTendetDate), window.NewProjectController._toUnixTime(projectDeliveryDate), projectStake);
+            console.log("deployContract", projectName, window.NewProjectController._toUnixTime(projectTenderDate), window.NewProjectController._toUnixTime(projectDeliveryDate), projectStake);
 
             window.App.wait(async function() {
                 var newInst = await window.SmartBudgetService.create(
-                    window.NewProjectController._toUnixTime(projectTendetDate),
+                    window.NewProjectController._toUnixTime(projectTenderDate),
                     0, //0 for absolute, 1 for relative
                     window.NewProjectController._toUnixTime(projectDeliveryDate),
                     0, //0 for absolute, 1 for relative
@@ -74,7 +128,7 @@ window.NewProjectController = {
                 if (newInst) {
                     //contract created
                     $(this).hide();
-                    $("#infoSuccess").append(`Your project have been successfully deployed at <button id='newInst' type='button special'>${newInst.address}</button>`).show();
+                    $("#infoSuccess").text(`Your project have been successfully deployed at <button id='newInst' type='button special'>${newInst.address}</button>`).show();
                     $("#newInst").click( function() {
                         window.App.saveActiveInstanceAddress(newInst.address);
                         window.location.href = '/project_details.html';
