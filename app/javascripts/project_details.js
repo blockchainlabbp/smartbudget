@@ -47,12 +47,21 @@ window.TreeView = {
                 $tdList.eq(3).text(window.App.formatDate(node.data.tenderLT));
                 $tdList.eq(4).text(window.App.formatDate(node.data.deliveryLT));
                 $tdList.eq(5).text(web3.fromWei(node.data.totalStakeInWei, "ether") + "/" + web3.fromWei(node.data.stakeInWei, "ether"));
-                // If state is TENDER and I'm the owner, I may add a new subproject
+                // Actions in different phases of the project
                 if (node.data.rootAddress == window.activeAccount && node.data.state == "TENDER") {
+                    // If state is TENDER and I'm the owner, I may add a new subproject
                     $tdList.eq(6).append("<button type='button' class='button apply'>New subproject</button>").click( function() {
                         window.activeNode = 0;
                         window.App.saveActiveNode();
                         window.location.href = '/create_node.html';
+                    });
+                } else if (node.data.rootAddress == window.activeAccount && node.data.state == "FINISHED") {
+                    $tdList.eq(6).append("<button type='button' class='button apply'>Collect remaining funds</button>").click( function() {
+                        window.activeInstance.withdraw(window.activeAccount, 0);
+                    });
+                } else if (node.data.rootAddress == window.activeAccount && node.data.state == "CANCELLED") {
+                    $tdList.eq(6).append("<button type='button' class='button apply'>Redeem funds</button>").click( function() {
+                        window.activeInstance.cancel(window.activeAccount);
                     });
                 } else {
                     $tdList.eq(6).append("-");

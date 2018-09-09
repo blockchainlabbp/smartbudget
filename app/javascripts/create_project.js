@@ -128,7 +128,7 @@ window.NewProjectController = {
                 if (newInst) {
                     //contract created
                     $(this).hide();
-                    $("#infoSuccess").text(`Your project have been successfully deployed at <button id='newInst' type='button special'>${newInst.address}</button>`).show();
+                    $("#infoSuccess").append(`Your project have been successfully deployed at <button id='newInst' type='button special'>${newInst.address}</button>`).show();
                     $("#newInst").click( function() {
                         window.App.saveActiveInstanceAddress(newInst.address);
                         window.location.href = '/project_details.html';

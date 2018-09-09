@@ -38,26 +38,51 @@ window.NodeDetailsController = {
 
     updateState: async function(nodeId) {
         var node = await window.activeInstance.getNodeWeb(nodeId);
+        var root = await window.activeInstance.getNodeWeb(0);
         // Update state and stake
         var state;
         if (node.id == 0) {
             state = "ROOT";
         } else {
             state = node.state;
-        }
-        $("#nodeStatus").text(state);
+        }  
         $("#availStake").text(web3.fromWei(node.stakeInWei, "ether"));
 
         // Add new subproject button if owner and contract state is open
         window.App.onAccountChange( async function() {
             var contractState = await window.activeInstance.getContractState();
+            //Add mark completed button if needed
+            if ((contractState == "DELIVERY" || contractState == "FINISHED") && 
+                root.address == window.activeAccount &&
+                node.state == "APPROVED") {
+                    $("#nodeStatus").text("");
+                    $("#nodeStatus").append("<button type='button' class='button apply'>Mark completed</button>").click( function() {
+                        window.activeInstance.markNodeComplete(window.activeAccount, node.id);
+                    });
+            } else {
+                $("#nodeStatus").text(state);
+            }
+
             if (node.address == window.activeAccount && contractState == "TENDER") {
                 $("#newSubproject").click( async function() {
                     window.activeNode = node.id;
                     window.App.saveActiveNode();
                     window.location.href = '/create_node.html';
                 }).show();
+                $("#collectFeeBtn").hide();
+            } else if (contractState == "FINISHED") {
+                $("#newSubproject").hide();
+                if (node.state == "COMPLETED" && node.address == window.activeAccount) {
+                    $("#collectFeeBtn").click( async function() {
+                        window.activeInstance.withdraw(window.activeAccount, node.id);
+                    }).show();
+                } else if (node.state == "APPROVED" && root.address == window.activeAccount) {
+                    $("#collectFeeBtn").click( async function() {
+                        window.activeInstance.withdraw(window.activeAccount, node.id);
+                    }).show();
+                }
             } else {
+                $("#collectFeeBtn").hide();
                 $("#newSubproject").hide();
             }
         });
