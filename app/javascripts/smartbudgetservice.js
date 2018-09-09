@@ -843,14 +843,13 @@ function SmartBudgetInstance(instance)  {
             return msg;
         });
 
-        rootId = 0;
-        await this.requireNodeOwner(fromAddress, rootId, async () => {
+        await this.requireNodeOwner(fromAddress, 0, async () => {
             var msg = "Only the root owner can redeem stake from the contract.";
             alert(msg);
             return msg;
         });
 
-        var res = await this.instance.cancel(nodeId, {from: fromAddress});
+        var res = await this.instance.cancel({from: fromAddress});
         console.log("Stake redemption successfully competed!");
      }
 };

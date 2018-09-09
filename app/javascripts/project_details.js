@@ -48,25 +48,43 @@ window.TreeView = {
                 $tdList.eq(4).text(window.App.formatDate(node.data.deliveryLT));
                 $tdList.eq(5).text(web3.fromWei(node.data.totalStakeInWei, "ether") + "/" + web3.fromWei(node.data.stakeInWei, "ether"));
                 // Actions in different phases of the project
-                if (node.data.rootAddress == window.activeAccount && node.data.state == "TENDER") {
-                    // If state is TENDER and I'm the owner, I may add a new subproject
-                    $tdList.eq(6).append("<button type='button' class='button apply'>New subproject</button>").click( function() {
-                        window.activeNode = 0;
-                        window.App.saveActiveNode();
-                        window.location.href = '/create_node.html';
-                    });
-                } else if (node.data.rootAddress == window.activeAccount && node.data.state == "FINISHED") {
-                    $tdList.eq(6).append("<button type='button' class='button apply'>Collect remaining funds</button>").click( function() {
-                        window.activeInstance.withdraw(window.activeAccount, 0);
-                    });
-                } else if (node.data.rootAddress == window.activeAccount && node.data.state == "CANCELLED") {
-                    $tdList.eq(6).append("<button type='button' class='button apply'>Redeem funds</button>").click( function() {
-                        window.activeInstance.cancel(window.activeAccount);
-                    });
-                } else {
-                    $tdList.eq(6).append("-");
-                }
-            }, 
+                window.App.onAccountChange( async function() {
+                    $tdList.eq(6).text("");
+                    if (node.data.rootAddress == window.activeAccount && node.data.state == "TENDER") {
+                        // If state is TENDER and I'm the owner, I may add a new subproject
+                        $tdList.eq(6).append("<button type='button' class='button apply'>New subproject</button>").click( function() {
+                            window.activeNode = 0;
+                            window.App.saveActiveNode();
+                            window.location.href = '/create_node.html';
+                        });
+                    } else if (node.data.rootAddress == window.activeAccount && node.data.state == "FINISHED") {
+                        $tdList.eq(6).append("<button type='button' class='button apply'>Collect remaining funds</button>").click( function() {
+                            window.activeInstance.withdraw(window.activeAccount, 0);
+                        });
+                    } else if (node.data.rootAddress == window.activeAccount && node.data.state == "CANCELLED") {
+                        // Check if there are still funds
+                        var balProm = new Promise(function (resolve, reject) {
+                            web3.eth.getBalance(window.activeInstance.address, function(err, bal) {
+                                if (err != null) {
+                                    reject("Could not get balance of contract at " +  window.activeInstance.address);
+                                } else {
+                                    resolve(bal.toNumber());
+                                }
+                            });
+                        });
+                        var balance = await balProm;
+                        if (balance > 0) {
+                            $tdList.eq(6).append("<button type='button' class='button apply'>Redeem funds</button>").click( function() {
+                                window.activeInstance.cancel(window.activeAccount);
+                            });
+                        } else {
+                            $tdList.eq(6).append("<button type='button' class='button apply' disabled>Funds redeemed</button>")
+                        }
+                    } else {
+                        $tdList.eq(6).append("-");
+                    }
+                })
+            },
         );
     },
 
