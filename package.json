@@ -6,7 +6,7 @@
     "lint": "eslint ./",
     "build": "webpack --mode production",
     "dev": "webpack-dev-server",
-    "docs": "node ./scripts/docs_generate.js"
+    "docs": "node ./scripts/js/docs_generate.js"
   },
   "author": "Blokklanc Muhely",
   "license": "MIT",

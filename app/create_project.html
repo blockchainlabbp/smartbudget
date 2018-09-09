@@ -38,10 +38,34 @@
 											<input id="projectName" type="text" required />
 
 											<label for="projectTenderDateTime">Tender end time</label>
-											<input id="projectTenderDateTime" required />
+											<div style="display: table;">
+												<div style="display: table-cell;">
+													<select name="tenderdate-type" id="tenderDateType">
+														<option value="absolute">At midnight on date </option>
+														<option value="relative.sec">After this many seconds </option>
+														<option value="relative.hour">After this many hours </option>
+														<option value="relative.day">After this many days </option>
+													</select>
+												</div>
+												<div style="display: table-cell;">
+													<input id="projectTenderDateTime" required type="text"/>
+												</div>
+											</div>
 
 											<label for="projectDeliveryDateTime">Project end time</label>
-											<input id="projectDeliveryDateTime" required />
+											<div style="display: table;">
+												<div style="display: table-cell;">
+													<select name="delierydate-type" id="deliveryDateType">
+														<option value="absolute">At midnight on date </option>
+														<option value="relative.sec">After this many seconds </option>
+														<option value="relative.hour">After this many hours </option>
+														<option value="relative.day">After this many days </option>
+													</select>
+												</div>
+												<div style="display: table-cell;">
+													<input id="projectDeliveryDateTime" required type="text"/>
+												</div>
+											</div>
 
 											<label for="projectStake">Project budget</label>
 											<input id="projectStake" placeholder="0.0001" min="0" required />
@@ -52,7 +76,7 @@
 											<button type="submit" id="btnDeployContract" class='button apply'>Submit new project</button>
 										</form>
 
-									<div id="infoSuccess" class="info" style="display: none;">Project was created successfully!</div>
+									<div id="infoSuccess" class="info" style="display: none;"></div>
 								</section>
 					  </div>
 					</div>
