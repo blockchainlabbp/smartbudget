@@ -1,4 +1,6 @@
 @echo off
+rem Change working directory to repo root
+cd "%~dp0"..\..
 echo Installing Truffle Framework...
 call npm install -g truffle@4.1.4
 if errorlevel 1 (

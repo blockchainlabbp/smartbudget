@@ -1,4 +1,6 @@
 @echo off
+rem Change working directory to repo root
+cd "%~dp0"..\..
 echo Removing node_modules folder...
 rmdir node_modules /s /q
 if errorlevel 1 (

@@ -10,7 +10,7 @@ Ethereum smart contract based project budget managment app. Built by blockchain 
 - [Contribute](#contribute)
   - [Requirements](#requirements)
   - [Project setup](#project-setup)
-  - [Development workflow](#development-workflow)
+  - [Development environment](#development-environment)
   - [Tests](#tests)
   - [Documentation](#documentation)
 - [License](#license)
@@ -43,24 +43,28 @@ Optional:
 
 ### Project setup
 
+> We're currently developing under Windows, so our scripts are for windows only.
+
 - Initial setup
 
-Execute the `build.cmd` script in the root of the repository. This will install Truffle, the required packages and build the sources for the entire site.
+Execute the `scripts\win\build.cmd` script. This will install Truffle, the required packages, build the JS bundles and copy source files for the entire site to the `build` folder.
 
 - Clean and rebuild workspace
 
-Execute `clean.cmd`, then `build.cmd`. Might be needed if project dependencies have changed since your last build
+Execute `scripts\win\clean.cmd`, then `scripts\win\build.cmd`. Might be needed if project dependencies have changed since your last build
 
 - Incremental build
 
-In a typical development scenario, you only need to call `truffle.cmd compile` to compile the smart contract sources and `npm run dev` to run the webpack development server.
+In a typical development scenario, you only need to call `truffle.cmd compile` to compile the smart contract sources and `npm run dev` to run the webpack development server. See the [development environment](#development-environment) section.
 
-### Development workflow
-The typical development workflow follows consists of executing the following steps in cycles until you had enough...
+### Development environment
+The typical development workflow follows consists of executing the following steps in cycles:
 
-1. Start `ganache-cli` to have a local blockchain running on your dev machine. To clear you blockchain, just restart ganache.
-2. Run `truffle compile` - this compiles for you the EVM bytecode of the smart contract that can be uploaded to the blockchain, and the ABI that is needed by the dapp to interact with the smart contract. Run this each time you update the smart contracts.
-3. `npm run dev` - Run webpack dev server. Just edit any sorce files you wish, the webpack dev server will reload them on the fly!
+1. Run `truffle compile` - this compiles for you the EVM bytecode of the smart contract that can be uploaded to the blockchain, and the ABI that is needed by the dapp to interact with the smart contract. Run this each time you update the smart contracts.
+2. `npm run dev` - Run webpack dev server. Just edit any sorce files you wish, the webpack dev server will reload them on the fly!
+3. Start `ganache-cli` to have a local blockchain running on your dev machine. To clear you blockchain, just restart ganache.
+
+On windows, you can start the `scripts\win\dev-local.cmd` scripts to do all of the above in one step.
 
 ### Tests
 * Full test suite: `truffle test`
