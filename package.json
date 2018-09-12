@@ -5,7 +5,7 @@
   "scripts": {
     "lint": "eslint ./",
     "build": "webpack --mode production",
-    "dev": "webpack-dev-server",
+    "dev": "webpack-dev-server --mode development",
     "docs": "node ./scripts/js/docs_generate.js"
   },
   "author": "Blokklanc Muhely",

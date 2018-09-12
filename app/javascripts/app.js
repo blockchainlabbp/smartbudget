@@ -82,13 +82,15 @@ function setSidebar() {
             <li><a href="about.html">About Us</a></li>      
           </ul>
         </nav>
-        <!-- Contact -->
+        <!-- Feedback -->
         <section>
           <header class="major">
-            <h2>CONTACT</h2>
+            <h2>FEEDBACK</h2>
           </header>
           <ul class="contact">
-            <li class="fa-envelope-o"><a href="mailto:info@blokklancmuhely.hu">info@blokklancmuhely.hu</a></li>
+            <li class="fa-envelope-o">
+              <button id='feedback_gh' type='button' class='button'>GitHub</button>
+            </li>
           </ul>
         </section>
         <!-- Footer -->
@@ -104,6 +106,9 @@ window.App = {
   start: async function() {
     // Set the menu
     setSidebar();
+    $("#feedback_gh").click( async function() {
+      window.open('https://github.com/Smart-Budget/smartbudget-core/issues');
+  }).show();
 
     // Set the version we'll be using
     window.activeVersion = 1;
