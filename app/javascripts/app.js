@@ -107,7 +107,7 @@ window.App = {
     // Set the menu
     setSidebar();
     $("#feedback_gh").click( async function() {
-      window.open('https://github.com/Smart-Budget/smartbudget-core/issues');
+      window.open('https://github.com/blockchainlabbp/smartbudget/issues');
   }).show();
 
     // Set the version we'll be using
