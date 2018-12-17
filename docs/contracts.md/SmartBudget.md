@@ -54,13 +54,13 @@ SmartBudget.getCandidateWeb(candidateId) `view` `1806f659`
 
 Inputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | candidateId | Id of the candidate |
 
 Outputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *string* | name | Name of the  candidate |
 | *uint256* | stake | Proposed stake of candidate |
@@ -91,7 +91,7 @@ SmartBudget.validateNodeId(nodeId) `view` `1d7c5e76`
 
 Inputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | nodeId | The node id to validate |
 
@@ -106,7 +106,7 @@ SmartBudget.withdraw(nodeId) `nonpayable` `2e1a7d4d`
 
 Inputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | nodeId | The id of the node to retreive the promised amount from |
 
@@ -128,7 +128,7 @@ SmartBudget.addNode(desc, parentId) `nonpayable` `44be7f70`
 
 Inputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *string* | desc | Description of node |
 | *uint256* | parentId | Parent's id of node |
@@ -151,7 +151,7 @@ SmartBudget.approveNode(nodeId, candidateId) `nonpayable` `546c93c5`
 
 Inputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | nodeId | Id of the node |
 | *uint256* | candidateId | Id of candidate |
@@ -176,7 +176,7 @@ SmartBudget.validateCandidateId(candidateId) `view` `69bebc3f`
 
 Inputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | candidateId | The candidate id to validate |
 
@@ -191,14 +191,14 @@ SmartBudget.getNodesWeb(firstNodeId, lastNodeId) `view` `70c7a4a7`
 
 Inputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | firstNodeId | Starting id |
 | *uint256* | lastNodeId | Ending id |
 
 Outputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256[]* | _ids | ids of the nodes |
 | *uint256[]* | _stakes | stakes of the nodes |
@@ -224,14 +224,14 @@ SmartBudget.toUnixTime(_time, _type) `view` `83b52eb4`
 
 Inputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | _time | undefined |
 | *uint256* | _type | undefined |
 
 Outputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | unixtime | The unix timestamp |
 
@@ -245,13 +245,13 @@ SmartBudget.getNodeVars(nodeId) `view` `900556a1`
 
 Inputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | nodeId | Id of the node |
 
 Outputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | stake | Stake of node |
 | *uint8* | state | State of node |
@@ -267,7 +267,7 @@ SmartBudget.requireNodeOwner(nodeId) `view` `949004a0`
 
 Inputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | nodeId | The node Id |
 
@@ -289,7 +289,7 @@ SmartBudget.transferFunds(recipient, amount) `nonpayable` `990dc9db`
 
 Inputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *address* | recipient | The recipient |
 | *uint256* | amount | The amount |
@@ -304,7 +304,7 @@ SmartBudget.applyForNode(nodeId, name, stake) `nonpayable` `ac35de92`
 
 Inputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | nodeId | Id of the node |
 | *string* | name | Candidate's name |
@@ -322,7 +322,7 @@ SmartBudget.getLockState() `view` `cc7d9ade`
 
 Outputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | lockState | LockState enum representing the contract status |
 
@@ -336,14 +336,14 @@ SmartBudget.getCandidatesWeb(firstCandidateId, lastCandidateId) `view` `d11b4ccb
 
 Inputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | firstCandidateId | Starting id |
 | *uint256* | lastCandidateId | Ending id |
 
 Outputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256[]* | _ids | ids of the candidates |
 | *uint256[]* | _stakes | stakes of the candidates |
@@ -358,7 +358,7 @@ SmartBudget.validateStake(stake, nodeId) `view` `d4650023`
 
 Inputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | stake | The amount of ethereum planned to be allocated for the new node |
 | *uint256* | nodeId | Id of node |
@@ -373,7 +373,7 @@ SmartBudget.requireNodeParentOwner(nodeId) `view` `de06c354`
 
 Inputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | nodeId | The node Id, whose parent will be checked |
 
@@ -387,7 +387,7 @@ SmartBudget.requireContractState(state) `view` `e60a0bf2`
 
 Inputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | state | The expected state |
 
@@ -402,13 +402,13 @@ SmartBudget.getNodeStatic(nodeId) `view` `e77842f6`
 
 Inputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | nodeId | Id of the node |
 
 Outputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | totalStake | undefined |
 | *address* | addr | undefined |
@@ -435,7 +435,7 @@ SmartBudget.extendLockTimes(_tenderLockTime, _tenderLockType, _deliveryLockTime,
 
 Inputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | _tenderLockTime | Tender lock time, absolute or relative |
 | *uint256* | _tenderLockType | Tender lock type, 0 for absolute, 1 for relative |
@@ -460,7 +460,7 @@ SmartBudget.requireNodeState(nodeId, state) `view` `f5a098af`
 
 Inputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | nodeId | The node Id |
 | *uint256* | state | The expected state of the node |
@@ -476,7 +476,7 @@ SmartBudget.markNodeComplete(nodeId) `nonpayable` `f7e8db3c`
 
 Inputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | nodeId | Id of the node |
 
@@ -488,7 +488,7 @@ SmartBudget.SBCreation(owner, version, stake) `9ab7c601`
 
 Arguments
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *address* | owner | indexed |
 | *uint256* | version | indexed |
@@ -500,7 +500,7 @@ SmartBudget.SBNodeAdded(owner, id) `54ad5106`
 
 Arguments
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *address* | owner | indexed |
 | *uint256* | id | not indexed |
@@ -511,7 +511,7 @@ SmartBudget.SBCandidateAdded(owner, id) `30a338bd`
 
 Arguments
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *address* | owner | indexed |
 | *uint256* | id | not indexed |
@@ -522,7 +522,7 @@ SmartBudget.SBCandidateApproved(owner, id) `d8036122`
 
 Arguments
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *address* | owner | indexed |
 | *uint256* | id | not indexed |
@@ -533,7 +533,7 @@ SmartBudget.SBNodeCompleted(owner, id) `00397d9e`
 
 Arguments
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *address* | owner | indexed |
 | *uint256* | id | not indexed |
@@ -560,14 +560,14 @@ TimeLock.toUnixTime(_time, _type) `view` `83b52eb4`
 
 Inputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | _time | undefined |
 | *uint256* | _type | undefined |
 
 Outputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | unixtime | The unix timestamp |
 
@@ -588,7 +588,7 @@ TimeLock.transferFunds(recipient, amount) `nonpayable` `990dc9db`
 
 Inputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *address* | recipient | The recipient |
 | *uint256* | amount | The amount |
@@ -605,7 +605,7 @@ TimeLock.getLockState() `view` `cc7d9ade`
 
 Outputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | lockState | LockState enum representing the contract status |
 
@@ -618,7 +618,7 @@ TimeLock.extendLockTimes(_tenderLockTime, _tenderLockType, _deliveryLockTime, _d
 
 Inputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | _tenderLockTime | Tender lock time, absolute or relative |
 | *uint256* | _tenderLockType | Tender lock type, 0 for absolute, 1 for relative |

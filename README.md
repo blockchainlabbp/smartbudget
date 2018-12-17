@@ -1,4 +1,4 @@
-# SmartBudget - the smart budget manager dapp
+# SmartBudget - the smart budget manager dapp [![Build Status](https://travis-ci.com/blockchainlabbp/smartbudget.svg?branch=master)](https://travis-ci.com/blockchainlabbp/smartbudget)
 
 Ethereum smart contract based project budget managment app. Built by blockchain enthusiast for blockchain enthusiast.
 
