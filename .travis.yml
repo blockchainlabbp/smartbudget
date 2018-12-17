@@ -1,0 +1,10 @@
+services:
+  - docker
+
+before_install:
+- echo "Started before_install"
+- docker pull trufflesuite/ganache-cli
+
+script:
+- docker run -d -p 8545:8545 trufflesuite/ganache-cli ganache-cli -d -p 8545
+- truffle test
