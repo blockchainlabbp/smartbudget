@@ -60,10 +60,10 @@ contract('SmartBudget:WithdrawalTests', function(accounts) {
           return contract.withdraw(childId, {from: child_acc});
         }).then(function (result) {
           // Check if state has been flipped
-          return contract.getNodeWeb(childId);
+          return contract.getNodeVars(childId);
         }).then( function(attributes) {
-          // uint stake, address addr, NodeState state, uint[] cands, string desc, uint parent, uint[] childs
-          var state = attributes[2].toNumber();
+          // uint stake, NodeState state, uint[] cands, uint[] childs
+          var state = attributes[1].toNumber();
           assert.equal(state, payedState, "Node owner should be able to withdraw their stake after completion!");
         });
     });
@@ -183,10 +183,10 @@ contract('SmartBudget:WithdrawalTests', function(accounts) {
           return contract.withdraw(childId, {from: root_acc});
         }).then(function (result) {
           // Check if state has been flipped
-          return contract.getNodeWeb(childId);
+          return contract.getNodeVars(childId);
         }).then( function(attributes) {
-          // uint stake, address addr, NodeState state, uint[] cands, string desc, uint parent, uint[] childs
-          var state = attributes[2].toNumber();
+          // // uint stake, NodeState state, uint[] cands, uint[] childs
+          var state = attributes[1].toNumber();
           assert.equal(state, payedState, "Node owner should be able to withdraw their stake after completion!");
         });
     });

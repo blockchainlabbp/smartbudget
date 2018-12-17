@@ -26,14 +26,14 @@ TimeLock.toUnixTime(_time, _type) `view` `83b52eb4`
 
 Inputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | _time | undefined |
 | *uint256* | _type | undefined |
 
 Outputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | unixtime | The unix timestamp |
 
@@ -54,7 +54,7 @@ TimeLock.transferFunds(recipient, amount) `nonpayable` `990dc9db`
 
 Inputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *address* | recipient | The recipient |
 | *uint256* | amount | The amount |
@@ -71,7 +71,7 @@ TimeLock.getLockState() `view` `cc7d9ade`
 
 Outputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | lockState | LockState enum representing the contract status |
 
@@ -84,7 +84,7 @@ TimeLock.extendLockTimes(_tenderLockTime, _tenderLockType, _deliveryLockTime, _d
 
 Inputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | _tenderLockTime | Tender lock time, absolute or relative |
 | *uint256* | _tenderLockType | Tender lock type, 0 for absolute, 1 for relative |

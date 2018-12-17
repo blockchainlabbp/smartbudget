@@ -14,7 +14,7 @@ Migrations.upgrade(new_address) `nonpayable` `0900f010`
 
 Inputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *address* | new_address | undefined |
 
@@ -42,7 +42,7 @@ Migrations.setCompleted(completed) `nonpayable` `fdacd576`
 
 Inputs
 
-| | | |
+| **type** | **name** | **description** |
 |-|-|-|
 | *uint256* | completed | undefined |
 
